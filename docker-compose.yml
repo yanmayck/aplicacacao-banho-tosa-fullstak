@@ -26,28 +26,54 @@ services:
       db: # Espera o serviço db estar saudável antes de iniciar
         condition: service_started # Para um healthcheck mais robusto, o db precisaria de um script de healthcheck
     environment:
-      NODE_ENV: production
-      PORT: ${BACKEND_PORT?ERRO_BACKEND_PORT_NAO_DEFINIDO_NO_ENV}
+      NODE_ENV: ${NODE_ENV:-development} # Default to development if not set
+      PORT: ${BACKEND_PORT:-3333} # Default backend port
       DATABASE_URL: ${DATABASE_URL?ERRO_DATABASE_URL_NAO_DEFINIDO_NO_ENV}
       JWT_SECRET: ${JWT_SECRET?ERRO_JWT_SECRET_NAO_DEFINIDO_NO_ENV}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN?ERRO_JWT_EXPIRES_IN_NAO_DEFINIDO_NO_ENV}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8080,http://localhost:5173,http://127.0.0.1:8080} # Added 127.0.0.1
       # Prisma specific env var, if needed for migrations in entrypoint script
       # PRISMA_MIGRATE_EXPERIMENTAL: 'true' # Se for usar migrate no entrypoint
     ports:
-      - "${BACKEND_PORT?ERRO_BACKEND_PORT_NAO_DEFINIDO_NO_ENV}:${BACKEND_PORT?ERRO_BACKEND_PORT_NAO_DEFINIDO_NO_ENV}"
+      - "${BACKEND_PORT:-3333}:${BACKEND_PORT:-3333}" # Map to host, use default if not set
     volumes:
-      # Para desenvolvimento, você poderia montar o código-fonte:
-      # - ./furry-friends-agenda-backend/src:/usr/src/app/src
-      # - ./furry-friends-agenda-backend/prisma:/usr/src/app/prisma
-      # Mas para produção, a imagem já contém o código buildado.
-      # Se você tiver uploads de arquivos, precisará de um volume para eles.
-      - ./furry-friends-agenda-backend/.env:/usr/src/app/.env # Monta o .env do backend para o Prisma CLI em runtime, se necessário.
-                                                            # No entanto, as vars de ambiente já são passadas acima para a aplicação.
-                                                            # O ideal é que o Prisma use as vars de ambiente também.
+      # Mount source code for development to enable hot-reloading for the backend
+      - ./furry-friends-agenda-backend:/usr/src/app
+      # Prevent node_modules from host overwriting container's node_modules
+      - /usr/src/app/node_modules
+      # Mount .env file for backend if it exists (optional, environment vars above take precedence for app)
+      - ./furry-friends-agenda-backend/.env:/usr/src/app/.env
     networks:
       - furry_friends_network
-    # Adicionar um entrypoint/comando para rodar migrações automaticamente ao iniciar seria ideal para produção.
-    # command: ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+    # For development, use a command that supports hot-reloading (e.g., `npm run start:dev`)
+    # The Dockerfile CMD will be used if not overridden here.
+    # For NestJS, `npm run start:dev` is common.
+    # command: ["npm", "run", "start:dev"] # This requires devDependencies to be in the production image or a dev stage.
+                                         # The current backend Dockerfile prunes devDependencies.
+                                         # For dev, it's better to run `npm install` in the container with volumes.
+
+  frontend:
+    build:
+      context: ./furry-friends-agenda-app
+      dockerfile: Dockerfile
+      target: development-server # Use the development-server stage from the Dockerfile
+    container_name: furry_friends_frontend
+    ports:
+      - "8080:8080" # Vite dev server port (from vite.config.ts)
+    volumes:
+      # Mount source code for development to enable hot-reloading for the frontend
+      - ./furry-friends-agenda-app:/app
+      # Prevent node_modules from host overwriting container's node_modules
+      - /app/node_modules
+    environment:
+      # Important: Use the backend service name for API calls from within Docker network
+      VITE_API_BASE_URL: http://backend:${BACKEND_PORT:-3333}
+      NODE_ENV: development
+      # CHOKIDAR_USEPOLLING: "true" # Uncomment if HMR isn't working in some environments
+    depends_on:
+      - backend
+    networks:
+      - furry_friends_network
 
 networks:
   furry_friends_network:
