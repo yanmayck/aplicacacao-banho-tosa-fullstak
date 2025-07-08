@@ -1,11 +1,33 @@
 node_modules
-.env
 dist
+
+# Ignore .env files
+.env
+.env.*
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Ignore log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.vscode
-.idea
-*.local
+*.log
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Ignore IDE/editor specific files
+.vscode/
+.idea/
 *.suo
-.DS_Store 
+*.user
+*.local
+
+# Ignore Prisma specific files that might contain sensitive info if not handled by ENV
+# prisma/dev.db # Example if using sqlite locally and don't want to commit/include it
+# prisma/migration_lock.toml # Generally committed, but can be ignored if desired

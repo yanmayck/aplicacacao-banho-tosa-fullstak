@@ -1,0 +1,27 @@
+# Ignore node_modules and build artifacts
+node_modules
+dist
+build
+
+# Ignore .env files
+.env
+.env.*
+
+# Ignore development specific files
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore IDE/editor specific files
+.vscode/
+.idea/
+*.suo
+*.user
+*.log
+*.tmp
+
+# Ignore OS specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
