@@ -38,8 +38,8 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  await app.listen(port, '0.0.0.0'); // Listen on all network interfaces
+  console.log(`Application is running on: ${await app.getUrl()} - accessible externally if port is mapped.`);
 }
 bootstrap().catch((err) => {
   console.error('Failed to bootstrap the application', err);

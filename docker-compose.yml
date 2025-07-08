@@ -71,8 +71,9 @@ services:
       # Important: Use the backend service name for API calls from within Docker network
       # VITE_API_BASE_URL is now sourced from the root .env file, but we need to ensure it's correctly set for Docker internal communication.
       # The value in .env might be http://localhost:3333, which won't work from container to container.
-      # We override it here to use the service name 'backend'.
-      VITE_API_BASE_URL: http://backend:${BACKEND_PORT:-3333}
+      # VITE_API_BASE_URL should be defined in the .env file to point to the correct backend URL
+      # accessible from the user's browser (e.g., http://localhost:3333 or Codespace URL).
+      # Forcing http://backend:... here makes it unusable from the browser.
       NODE_ENV: ${NODE_ENV:-development} # Source from .env, default to development
       # CHOKIDAR_USEPOLLING: "true" # Uncomment if HMR isn't working in some environments
     depends_on:
