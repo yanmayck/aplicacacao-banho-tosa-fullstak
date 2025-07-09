@@ -1,0 +1,90 @@
+# Git stuff
+.git
+.gitignore
+.gitattributes
+
+# Docker stuff
+Dockerfile
+docker-compose.yml
+README.md
+
+# Dependencies
+**/node_modules
+node_modules
+
+# Build artifacts
+**/dist
+dist
+**/build
+build
+
+# Environment variables
+.env
+.env.*
+*.local
+
+# Development specific files and logs
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+logs
+
+# IDE/editor specific files
+.vscode/
+.idea/
+*.suo
+*.user
+*.tmp
+
+# OS specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Prisma
+**/prisma/dev.db
+# **/prisma/migration_lock.toml # Usually committed
+
+# Specific project files that are not needed in the final image if using multi-stage builds
+# These assume that build artifacts are copied from a builder stage
+
+# Frontend app development files
+furry-friends-agenda-app/src/
+furry-friends-agenda-app/public/ # Static assets might be needed, depends on serving strategy
+furry-friends-agenda-app/prisma/ # Schema itself not needed in runtime image if client is built
+furry-friends-agenda-app/components.json
+furry-friends-agenda-app/eslint.config.js
+furry-friends-agenda-app/postcss.config.js
+furry-friends-agenda-app/tailwind.config.ts
+furry-friends-agenda-app/tsconfig.json
+furry-friends-agenda-app/tsconfig.app.json
+furry-friends-agenda-app/tsconfig.node.json
+furry-friends-agenda-app/vite.config.ts
+furry-friends-agenda-app/bun.lockb
+furry-friends-agenda-app/package.json # Needed for build stage, not runtime
+furry-friends-agenda-app/package-lock.json # Needed for build stage, not runtime
+furry-friends-agenda-app/README.md
+furry-friends-agenda-app/.dockerignore # Original, now redundant
+furry-friends-agenda-app/.gitignore # Original, now redundant
+
+# Backend app development files
+furry-friends-agenda-backend/src/
+furry-friends-agenda-backend/test/
+furry-friends-agenda-backend/prisma/ # Schema itself not needed in runtime image if client is built
+furry-friends-agenda-backend/.prettierrc
+furry-friends-agenda-backend/nest-cli.json
+furry-friends-agenda-backend/tsconfig.json
+furry-friends-agenda-backend/tsconfig.build.json
+furry-friends-agenda-backend/package.json # Needed for build stage, not runtime
+furry-friends-agenda-backend/package-lock.json # Needed for build stage, not runtime
+furry-friends-agenda-backend/README.md
+furry-friends-agenda-backend/cloudbuild.yaml
+furry-friends-agenda-backend/setup-server.ps1
+furry-friends-agenda-backend/.dockerignore # Original, now redundant
+furry-friends-agenda-backend/.gitignore # Original, now redundant
+
+# Root level files if not needed in image
+.env.example # Example files usually not needed
+# Add any other root level files/folders that are not part of the final application

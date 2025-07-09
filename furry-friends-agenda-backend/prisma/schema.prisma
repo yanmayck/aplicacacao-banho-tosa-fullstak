@@ -1,12 +1,9 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
+  // output   = "../node_modules/.prisma/client" // Removido para usar o default
 }
 
 datasource db {
@@ -19,55 +16,118 @@ model User {
   email     String   @unique
   password  String
   name      String?
-  roles     String[] @default(["USER"]) // Pode ser "USER", "ADMIN", etc.
+  role      UserRole @default(USER) // Alterado de roles String[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  // Relação com Client (um User pode ser um Client)
+  client    Client?
+}
 
-  pets          Pet[] // Relação com Pets
-  appointments  Appointment[] // Relação com Agendamentos do cliente
+// Novo Enum UserRole (como no frontend)
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// Novo Modelo Client (como no frontend)
+model Client {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String?
+  email        String?       @unique // Pode ser diferente do User.email ou o mesmo se logado
+  address      String?
+  pets         Pet[]
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Opcional: se um cliente está associado a uma conta de usuário do sistema
+  userId       String?       @unique
+  user         User?         @relation(fields: [userId], references: [id])
 }
 
 model Pet {
-  id        String   @id @default(cuid())
-  name      String
-  species   String?
-  breed     String?
-  birthDate DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  owner     User     @relation(fields: [ownerId], references: [id])
-  ownerId   String
-
-  appointments Appointment[]
+  id            String        @id @default(cuid())
+  name          String
+  species       String // Ex: "Cachorro", "Gato" (era String? antes, tornando obrigatório como no frontend)
+  breed         String?
+  birthDate     DateTime?
+  clientId      String        // Alterado de ownerId
+  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade) // Alterado de User
+  appointments  Appointment[]
+  observations  String?       // Adicionado
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
-model ServiceType {
-  id              String    @id @default(cuid())
-  name            String    @unique
-  description     String?
-  price           Float?
-  durationMinutes Int?      // Duração estimada em minutos
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+// Novo Modelo Groomer (como no frontend)
+model Groomer {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String?
+  email        String?       @unique
+  specialties  String[] // e.g., ["Tosa Bebê", "Banho Terapêutico"]
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
 
-  appointments    Appointment[]
+// Renomeado de ServiceType para Service e ajustado (como no frontend)
+model Service {
+  id                 String                 @id @default(cuid())
+  name               String                 @unique
+  description        String?
+  price              Float                  // Era Float?, tornando obrigatório
+  durationMin        Int                    // Renomeado de durationMinutes, era Int?, tornando obrigatório
+  appointmentServices AppointmentService[]
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
 }
 
 model Appointment {
-  id                  String      @id @default(cuid())
-  appointmentDateTime DateTime
-  status              String      // Ex: SCHEDULED, COMPLETED, CANCELLED, NO_SHOW
-  notes               String?
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
+  id           String                 @id @default(cuid())
+  dateTime     DateTime               // Renomeado de appointmentDateTime
+  status       AppointmentStatus      @default(SCHEDULED) // Alterado de String e adicionado enum
+  notes        String?
+  totalPrice   Float                  // Adicionado
 
-  pet                 Pet         @relation(fields: [petId], references: [id])
-  petId               String
+  clientId     String
+  client       Client                 @relation(fields: [clientId], references: [id])
+  petId        String
+  pet          Pet                    @relation(fields: [petId], references: [id])
+  groomerId    String
+  groomer      Groomer                @relation(fields: [groomerId], references: [id]) // Adicionado
 
-  serviceType         ServiceType @relation(fields: [serviceTypeId], references: [id])
-  serviceTypeId       String
+  appointmentServices AppointmentService[] // Adicionado para relação N-N com Service
 
-  client              User        @relation(fields: [clientId], references: [id])
-  clientId            String
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  // Removida relação direta com ServiceType:
+  // serviceType         ServiceType @relation(fields: [serviceTypeId], references: [id])
+  // serviceTypeId       String
+}
+
+// Novo: Tabela de junção para Appointment e Service (como no frontend)
+model AppointmentService {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  serviceId     String
+  service       Service     @relation(fields: [serviceId], references: [id])
+  priceAtTime   Float // Preço do serviço no momento do agendamento
+  quantity      Int         @default(1)
+
+  @@unique([appointmentId, serviceId])
+  createdAt DateTime @default(now())
+}
+
+// Novo Enum AppointmentStatus (como no frontend)
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
 }
