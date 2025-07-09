@@ -3,9 +3,9 @@ import {
   IsString,
   MinLength,
   IsOptional,
-  IsArray,
-  ArrayNotEmpty,
+  IsEnum, // Para validar o role contra o enum
 } from 'class-validator';
+import { UserRole } from '@prisma/client'; // Importar o enum do Prisma
 
 export class RegisterDto {
   @IsEmail({}, { message: 'Email inválido' })
@@ -20,8 +20,6 @@ export class RegisterDto {
   name?: string;
 
   @IsOptional()
-  @IsArray()
-  @ArrayNotEmpty()
-  @IsString({ each: true })
-  roles?: string[];
+  @IsEnum(UserRole, { message: 'Role inválido. Valores permitidos: USER, ADMIN' })
+  role?: UserRole; // Alterado de roles para role, usando o enum do Prisma
 }

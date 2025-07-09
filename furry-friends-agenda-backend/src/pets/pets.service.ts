@@ -12,22 +12,27 @@ import { Pet } from '@prisma/client';
 export class PetsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createPetDto: CreatePetDto, ownerId: string): Promise<Pet> {
+  async create(createPetDto: CreatePetDto, clientId: string): Promise<Pet> {
+    // O parâmetro ownerId foi renomeado para clientId para refletir o schema
+    // A variável createPetDto pode ainda ter campos que precisam ser mapeados se ela espera ownerId
+    // No entanto, o schema Pet espera clientId.
     return this.prisma.pet.create({
       data: {
-        ...createPetDto,
-        ownerId,
+        ...createPetDto, // Assume-se que createPetDto já está alinhado ou será alinhado para fornecer os campos corretos para Pet.
+        clientId, // Esta é a mudança principal aqui, usando o parâmetro renomeado.
       },
     });
   }
 
-  async findAllByOwner(ownerId: string): Promise<Pet[]> {
+  async findAllByOwner(clientId: string): Promise<Pet[]> {
+    // Renomeado ownerId para clientId
     return this.prisma.pet.findMany({
-      where: { ownerId },
+      where: { clientId },
     });
   }
 
-  async findOneByOwner(id: string, ownerId: string): Promise<Pet | null> {
+  async findOneByOwner(id: string, clientId: string): Promise<Pet | null> {
+    // Renomeado ownerId para clientId
     const pet = await this.prisma.pet.findUnique({
       where: { id },
     });
@@ -36,7 +41,8 @@ export class PetsService {
       throw new NotFoundException(`Pet with ID "${id}" not found`);
     }
 
-    if (pet.ownerId !== ownerId) {
+    // A comparação agora usa pet.clientId
+    if (pet.clientId !== clientId) {
       throw new ForbiddenException('You are not allowed to access this pet');
     }
     return pet;
@@ -45,13 +51,14 @@ export class PetsService {
   async update(
     id: string,
     updatePetDto: UpdatePetDto,
-    ownerId: string,
+    clientId: string,
   ): Promise<Pet> {
-    const pet = await this.findOneByOwner(id, ownerId); // Garante que o pet existe e pertence ao usuário
+    // Renomeado ownerId para clientId
+    const pet = await this.findOneByOwner(id, clientId); // Garante que o pet existe e pertence ao usuário
     if (!pet) {
       // findOneByOwner já lança exceção, mas por segurança:
       throw new NotFoundException(
-        `Pet with ID "${id}" not found or not owned by user.`,
+        `Pet with ID "${id}" not found or not owned by client.`, // Mensagem atualizada
       );
     }
 
@@ -61,12 +68,13 @@ export class PetsService {
     });
   }
 
-  async remove(id: string, ownerId: string): Promise<Pet> {
-    const pet = await this.findOneByOwner(id, ownerId); // Garante que o pet existe e pertence ao usuário
+  async remove(id: string, clientId: string): Promise<Pet> {
+    // Renomeado ownerId para clientId
+    const pet = await this.findOneByOwner(id, clientId); // Garante que o pet existe e pertence ao usuário
     if (!pet) {
       // findOneByOwner já lança exceção
       throw new NotFoundException(
-        `Pet with ID "${id}" not found or not owned by user.`,
+        `Pet with ID "${id}" not found or not owned by client.`, // Mensagem atualizada
       );
     }
     return this.prisma.pet.delete({

@@ -16,4 +16,8 @@ export class UpdatePetDto {
   @IsOptional()
   @IsDateString()
   birthDate?: string;
+
+  @IsOptional() // Campo novo
+  @IsString()   // Campo novo
+  observations?: string; // Campo novo
 }

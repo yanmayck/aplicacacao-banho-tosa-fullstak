@@ -10,7 +10,7 @@ import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { User } from '@prisma/client'; // Import User type
+import { User, UserRole } from '@prisma/client'; // Import User and UserRole types
 
 @Injectable()
 export class AuthService {
@@ -27,7 +27,7 @@ export class AuthService {
     const user = await this.usersService.findOneByEmail(email);
     if (user && (await bcrypt.compare(pass, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = user; // Mantido por enquanto devido ao Omit<User, 'password'>
+      const { password, ...result } = user;
       return result;
     }
     return null;
@@ -38,14 +38,23 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = { username: user.email, sub: user.id, roles: user.roles }; // Incluir roles no payload
+    // No schema, User.role é singular e do tipo UserRole.
+    // Omit<User, 'password'> não garante que 'role' (singular) esteja presente se o validateUser retornar um tipo mais genérico.
+    // Para segurança, vamos buscar o usuário completo novamente ou garantir que 'role' está no tipo retornado por validateUser.
+    const fullUser = await this.usersService.findOneById(user.id); // Assumindo que findOneById existe e retorna o usuário completo
+    if (!fullUser) {
+        // Isso não deveria acontecer se validateUser retornou um usuário
+        throw new InternalServerErrorException('User not found after validation.');
+    }
+
+    const payload = { username: fullUser.email, sub: fullUser.id, role: fullUser.role }; // Alterado de roles para role
     return {
       access_token: this.jwtService.sign(payload),
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        roles: user.roles,
+        id: fullUser.id,
+        email: fullUser.email,
+        name: fullUser.name,
+        role: fullUser.role, // Alterado de roles para role
       },
     };
   }
@@ -54,14 +63,18 @@ export class AuthService {
     registerDto: RegisterDto,
   ): Promise<Omit<User, 'password'> | null> {
     try {
+      // Assumindo que RegisterDto será atualizado para ter 'role: UserRole' em vez de 'roles: string[]'
+      // e que usersService.createUser também será ajustado.
       const newUser = await this.usersService.createUser({
         email: registerDto.email,
         password: registerDto.password, // Hashing é feito no UsersService
         name: registerDto.name,
-        roles: registerDto.roles || ['USER'], // Default role if not provided
+        // registerDto.role deve ser do tipo UserRole ou string compatível.
+        // Se UsersService.createUser espera UserRole, a conversão/validação deve ocorrer antes ou lá.
+        role: registerDto.role || UserRole.USER, // Alterado de roles para role, usando UserRole enum
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = newUser; // Mantido por enquanto devido ao Omit<User, 'password'>
+      const { password, ...result } = newUser;
       return result;
     } catch (error) {
       if (error instanceof ConflictException) {

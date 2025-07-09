@@ -10,9 +10,9 @@ export class CreatePetDto {
   @IsNotEmpty()
   name: string;
 
-  @IsOptional()
-  @IsString()
-  species?: string;
+  @IsString() // Tornou-se obrigatório
+  @IsNotEmpty() // Tornou-se obrigatório
+  species: string; // Removido '?'
 
   @IsOptional()
   @IsString()
@@ -22,5 +22,9 @@ export class CreatePetDto {
   @IsDateString()
   birthDate?: string; // Usar string para facilitar a entrada, o Prisma converte para DateTime
 
-  // o ownerId será pego do usuário logado no serviço
+  @IsOptional() // Campo novo
+  @IsString()   // Campo novo
+  observations?: string; // Campo novo
+
+  // o clientId (anteriormente ownerId) será pego do usuário logado no serviço
 }

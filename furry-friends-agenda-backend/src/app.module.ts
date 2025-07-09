@@ -6,7 +6,7 @@ import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { PetsModule } from './pets/pets.module';
-import { ServiceTypesModule } from './service-types/service-types.module';
+import { ServicesModule } from './services/services.module'; // Caminho e nome atualizados
 import { AppointmentsModule } from './appointments/appointments.module';
 
 @Module({
@@ -16,7 +16,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
     UsersModule,
     PrismaModule,
     PetsModule,
-    ServiceTypesModule,
+    ServicesModule, // Nome atualizado
     AppointmentsModule,
   ],
   controllers: [AppController],
