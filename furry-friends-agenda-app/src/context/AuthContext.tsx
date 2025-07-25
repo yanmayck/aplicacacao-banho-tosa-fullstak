@@ -6,20 +6,18 @@ export type UserRole = "admin" | "common" | "user"; // Adjusted to include a mor
 
 // Define the user interface - Aligning with backend response
 export interface User {
-  id: string; // Or number, if backend uses number
-  email: string; // Changed from username
-  name?: string; // Optional name field from backend
-  roles: string[]; // Backend returns roles as an array of strings
-  // Computed property, not directly from backend, but derived
-  primaryRole: UserRole;
+  id: string;
+  email: string;
+  name?: string;
+  role: UserRole; // Changed from roles: string[]
 }
 
 // Interface for the backend login response structure
 interface BackendUser {
-  id: string; // Or number
+  id: string;
   email: string;
   name?: string;
-  roles: string[];
+  role: UserRole; // Changed from roles: string[]
 }
 
 interface LoginResponse {
@@ -57,11 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Helper function to determine primary role from roles array
-  const getPrimaryRole = (roles: string[]): UserRole => {
-    if (roles.includes("admin")) return "admin";
-    if (roles.includes("common")) return "common"; // Assuming "common" is a possible role string
-    if (roles.length > 0) return roles[0] as UserRole; // Fallback to the first role
-    return "user"; // Default fallback
+  const getPrimaryRole = (role: UserRole): UserRole => {
+    return role; // Directly return the role as it's already UserRole
   };
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
@@ -116,8 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: data.user.id,
           email: data.user.email,
           name: data.user.name,
-          roles: data.user.roles || [], // Ensure roles is always an array
-          primaryRole: getPrimaryRole(data.user.roles || []),
+          role: data.user.role,
         };
 
         setToken(data.access_token);
@@ -151,8 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Helper function to check if user is admin
   const isAdmin = (): boolean => {
-    // Check if 'admin' is present in the roles array
-    return user?.roles?.includes("admin") || user?.primaryRole === "admin" || false;
+    return user?.role === "admin" || false;
   };
   
   const value = {
