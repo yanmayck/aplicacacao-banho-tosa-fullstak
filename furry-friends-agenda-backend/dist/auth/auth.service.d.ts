@@ -16,7 +16,7 @@ export declare class AuthService {
             id: string;
             email: string;
             name: string | null;
-            roles: string[];
+            role: import(".prisma/client").$Enums.UserRole;
         };
     }>;
     register(registerDto: RegisterDto): Promise<Omit<User, 'password'> | null>;

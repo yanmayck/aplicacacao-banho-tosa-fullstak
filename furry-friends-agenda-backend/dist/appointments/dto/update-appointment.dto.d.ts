@@ -1,6 +1,8 @@
-import { AppointmentStatus } from './create-appointment.dto';
+import { AppointmentStatus as PrismaAppointmentStatus } from '@prisma/client';
 export declare class UpdateAppointmentDto {
-    appointmentDateTime?: string;
-    status?: AppointmentStatus;
+    dateTime?: string;
+    status?: PrismaAppointmentStatus;
     notes?: string;
+    serviceIds?: string[];
+    groomerId?: string;
 }

@@ -1,19 +1,22 @@
 
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
-import { useStore, Groomer } from "@/context/StoreContext";
+import { Groomer } from "@/context/models/types";
+import { useGroomers } from "@/context/groomers/GroomerContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Edit, Trash2, Plus, Activity, Award } from "lucide-react";
+import { Edit, Trash2, Plus, Activity, Award, Loader2 } from "lucide-react";
 import GroomerForm from "./GroomerForm";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useStore } from "@/context/StoreContext";
 
 const GroomersList: React.FC = () => {
-  const { groomers, deleteGroomer, getGroomerWorkload, getGroomerMonthlyPoints } = useStore();
+  const { groomers, deleteGroomer, isLoading, error } = useGroomers();
+  const { getGroomerWorkload, getGroomerMonthlyPoints } = useStore(); // Still needed for calculated fields
   const { isAdmin } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [showStatusForm, setShowStatusForm] = useState(false);
@@ -49,6 +52,24 @@ const GroomersList: React.FC = () => {
   const formatCommission = (percentage: number): string => {
     return `${percentage}%`;
   };
+
+  if (isLoading) {
+    return (
+      <Layout activePage="groomers" setActivePage={() => {}}>
+        <div className="flex justify-center items-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout activePage="groomers" setActivePage={() => {}}>
+        <div className="text-red-500">Erro ao carregar tosadores: {error.message}</div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout activePage="groomers" setActivePage={() => {}}>
@@ -161,7 +182,6 @@ const GroomersList: React.FC = () => {
           </>
         )}
         
-        {/* Points Dialog */}
         <Dialog open={showPointsDialog} onOpenChange={setShowPointsDialog}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>

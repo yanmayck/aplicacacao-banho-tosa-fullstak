@@ -11,21 +11,23 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateAppointmentDto = void 0;
 const class_validator_1 = require("class-validator");
-const create_appointment_dto_1 = require("./create-appointment.dto");
+const client_1 = require("@prisma/client");
 class UpdateAppointmentDto {
-    appointmentDateTime;
+    dateTime;
     status;
     notes;
+    serviceIds;
+    groomerId;
 }
 exports.UpdateAppointmentDto = UpdateAppointmentDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
-], UpdateAppointmentDto.prototype, "appointmentDateTime", void 0);
+], UpdateAppointmentDto.prototype, "dateTime", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(create_appointment_dto_1.AppointmentStatus),
+    (0, class_validator_1.IsEnum)(client_1.AppointmentStatus),
     __metadata("design:type", String)
 ], UpdateAppointmentDto.prototype, "status", void 0);
 __decorate([
@@ -33,4 +35,15 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateAppointmentDto.prototype, "notes", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsUUID)('all', { each: true }),
+    __metadata("design:type", Array)
+], UpdateAppointmentDto.prototype, "serviceIds", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "groomerId", void 0);
 //# sourceMappingURL=update-appointment.dto.js.map

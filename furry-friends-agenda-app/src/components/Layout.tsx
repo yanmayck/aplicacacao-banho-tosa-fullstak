@@ -117,10 +117,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activePage, setActivePage }) 
           <div className="flex items-center space-x-2 mb-2">
             <Avatar>
               <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-              <AvatarFallback>{user?.username[0].toUpperCase()}</AvatarFallback>
+              <AvatarFallback>{user?.email?.[0]?.toUpperCase() || 'US'}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-medium leading-none">{user?.username}</p>
+              <p className="text-sm font-medium leading-none">{user?.email}</p>
               <p className="text-sm text-gray-500 leading-none">Admin</p>
             </div>
           </div>

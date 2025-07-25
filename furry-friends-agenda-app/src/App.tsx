@@ -17,6 +17,8 @@ import GroomersList from "./components/groomers/GroomersList";
 import PackagesList from "./components/packages/PackagesList";
 import Reports from "./components/reports/Reports";
 
+import Register from "./pages/Register";
+
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();

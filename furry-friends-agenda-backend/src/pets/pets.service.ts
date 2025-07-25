@@ -6,22 +6,25 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
-import { Pet } from '@prisma/client';
+import { Pet, Prisma } from '@prisma/client';
 
 @Injectable()
 export class PetsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createPetDto: CreatePetDto, clientId: string): Promise<Pet> {
-    // O parâmetro ownerId foi renomeado para clientId para refletir o schema
-    // A variável createPetDto pode ainda ter campos que precisam ser mapeados se ela espera ownerId
-    // No entanto, o schema Pet espera clientId.
-    return this.prisma.pet.create({
-      data: {
-        ...createPetDto, // Assume-se que createPetDto já está alinhado ou será alinhado para fornecer os campos corretos para Pet.
-        clientId, // Esta é a mudança principal aqui, usando o parâmetro renomeado.
-      },
-    });
+  async create(createPetDto: CreatePetDto): Promise<Pet> {
+    const { clientId, ...petData } = createPetDto;
+
+    // Prisma espera que campos Json sejam `JsonValue`. Convertemos os objetos.
+    const data: Prisma.PetCreateInput = {
+      ...petData,
+      client: { connect: { id: clientId } },
+      lastTickMedicine: petData.lastTickMedicine ? (JSON.parse(JSON.stringify(petData.lastTickMedicine))) : undefined,
+      rabiesVaccine: petData.rabiesVaccine ? (JSON.parse(JSON.stringify(petData.rabiesVaccine))) : undefined,
+      vaccineHistory: petData.vaccineHistory ? (JSON.parse(JSON.stringify(petData.vaccineHistory))) : undefined,
+    };
+
+    return this.prisma.pet.create({ data });
   }
 
   async findAllByOwner(clientId: string): Promise<Pet[]> {
@@ -64,7 +67,12 @@ export class PetsService {
 
     return this.prisma.pet.update({
       where: { id },
-      data: updatePetDto,
+      data: {
+        ...updatePetDto,
+        lastTickMedicine: updatePetDto.lastTickMedicine ? (updatePetDto.lastTickMedicine as unknown as Prisma.JsonObject) : undefined,
+        rabiesVaccine: updatePetDto.rabiesVaccine ? (updatePetDto.rabiesVaccine as unknown as Prisma.JsonObject) : undefined,
+        vaccineHistory: updatePetDto.vaccineHistory ? JSON.parse(JSON.stringify(updatePetDto.vaccineHistory)) : undefined,
+      },
     });
   }
 

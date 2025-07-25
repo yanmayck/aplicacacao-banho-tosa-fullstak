@@ -1,15 +1,17 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Package } from "../models/types";
-import { generateId } from "../models/types";
-import { loadFromStorage, saveToStorage } from "../utils/storage";
+import { packageApi } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
 
 interface PackageContextType {
   packages: Package[];
-  addPackage: (pkg: Omit<Package, "id">) => void;
-  updatePackage: (pkg: Package) => void;
-  deletePackage: (id: string) => void;
+  isLoading: boolean;
+  error: Error | null;
+  addPackage: (pkg: Omit<Package, "id">) => Promise<void>;
+  updatePackage: (pkg: Package) => Promise<void>;
+  deletePackage: (id: string) => Promise<void>;
   getPackageById: (id: string) => Package | undefined;
 }
 
@@ -24,80 +26,57 @@ export const usePackages = () => {
 };
 
 export const PackageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [packages, setPackages] = useState<Package[]>([]);
+  const queryClient = useQueryClient();
 
-  // Load packages from localStorage on mount and initialize default package if none exists
-  useEffect(() => {
-    const storedPackages = loadFromStorage<Package[]>("petshop-packages", []);
-    
-    if (storedPackages.length === 0) {
-      const defaultPackage: Package = {
-        id: generateId(),
-        name: "Pacote Semanal",
-        description: "4 banhos com direito a 1 tosa higiênica ou hidratação",
-        includesBaths: 4,
-        includesGrooming: true,
-        includesHydration: true,
-        basePrice: 130.00,
-        pickupPrice: 140.00
-      };
-      setPackages([defaultPackage]);
-    } else {
-      setPackages(storedPackages);
-    }
-  }, []);
+  const { data: packages = [], isLoading, error } = useQuery<Package[], Error>({
+    queryKey: ["packages"],
+    queryFn: packageApi.getPackages,
+  });
 
-  // Save packages to localStorage when they change
-  useEffect(() => {
-    saveToStorage("petshop-packages", packages);
-  }, [packages]);
+  const addMutation = useMutation({
+    mutationFn: packageApi.createPackage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
+      toast({ title: "Pacote adicionado com sucesso!" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao adicionar pacote", description: error.message, variant: "destructive" });
+    },
+  });
 
-  const getPackageById = (id: string) => {
-    return packages.find(pkg => pkg.id === id);
-  };
-  
-  const addPackage = (pkg: Omit<Package, "id">) => {
-    const newPackage = { ...pkg, id: generateId() };
-    setPackages([...packages, newPackage]);
-    toast({
-      title: "Pacote adicionado",
-      description: `${pkg.name} foi cadastrado com sucesso.`
-    });
-  };
-  
-  const updatePackage = (updatedPackage: Package) => {
-    setPackages(
-      packages.map(pkg => 
-        pkg.id === updatedPackage.id ? updatedPackage : pkg
-      )
-    );
-    toast({
-      title: "Pacote atualizado",
-      description: `${updatedPackage.name} foi atualizado com sucesso.`
-    });
-  };
-  
-  const deletePackage = (id: string) => {
-    // We'll check if there are any appointments using this package at the StoreContext level
-    // to avoid circular dependencies
-    const packageToDelete = packages.find(pkg => pkg.id === id);
-    setPackages(packages.filter(pkg => pkg.id !== id));
-    
-    if (packageToDelete) {
-      toast({
-        title: "Pacote excluído",
-        description: `${packageToDelete.name} foi removido com sucesso.`
-      });
-    }
-  };
+  const updateMutation = useMutation({
+    mutationFn: (pkg: Package) => packageApi.updatePackage(pkg.id, pkg),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
+      toast({ title: "Pacote atualizado com sucesso!" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao atualizar pacote", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: packageApi.deletePackage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
+      toast({ title: "Pacote excluído com sucesso!" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao excluir pacote", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const getPackageById = (id: string) => packages.find((pkg) => pkg.id === id);
 
   return (
     <PackageContext.Provider
       value={{
         packages,
-        addPackage,
-        updatePackage,
-        deletePackage,
+        isLoading,
+        error,
+        addPackage: async (pkg) => await addMutation.mutateAsync(pkg),
+        updatePackage: async (pkg) => await updateMutation.mutateAsync(pkg),
+        deletePackage: async (id) => await deleteMutation.mutateAsync(id),
         getPackageById,
       }}
     >

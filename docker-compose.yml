@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?ERRO_POSTGRES_PASSWORD_NAO_DEFINIDO_NO_ENV}
       POSTGRES_DB: ${POSTGRES_DB?ERRO_POSTGRES_DB_NAO_DEFINIDO_NO_ENV}
     ports:
-      - "${POSTGRES_PORT?ERRO_POSTGRES_PORT_NAO_DEFINIDO_NO_ENV}:5432" # Mapeia a porta do container para o host
+      - "5433:5432" # Mapeia a porta do container para o host
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

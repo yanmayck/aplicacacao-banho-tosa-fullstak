@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect } from "react";
-import { Pet, useStore } from "@/context/StoreContext";
+import { Pet } from "@/context/models/types";
+import { usePets } from "@/context/pets/PetContext";
+import { useClients } from "@/context/clients/ClientContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/use-toast";
 
 interface PetFormProps {
   pet?: Pet;
@@ -15,61 +18,38 @@ interface PetFormProps {
 }
 
 const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
-  const { clients, addPet, updatePet } = useStore();
+  const { clients } = useClients();
+  const { addPet, updatePet } = usePets();
   const isEditing = !!pet;
   
-  const [formData, setFormData] = useState<{
-    clientId: string;
-    name: string;
-    foodType: string;
-    lastTickMedicine: {
-      name: string;
-      date: string;
-    };
-    rabiesVaccine: {
-      isUpToDate: boolean;
-      lastDate: string;
-    };
-    vaccineHistory: Array<{
-      name: string;
-      date: string;
-    }>;
-  }>({
+  const [formData, setFormData] = useState<Omit<Pet, 'id'>>({
     clientId: clientId || "",
     name: "",
+    species: "",
+    breed: "",
+    birthDate: "",
+    observations: "",
     foodType: "",
-    lastTickMedicine: {
-      name: "",
-      date: new Date().toISOString().split('T')[0]
-    },
-    rabiesVaccine: {
-      isUpToDate: true,
-      lastDate: new Date().toISOString().split('T')[0]
-    },
-    vaccineHistory: []
+    lastTickMedicine: { name: "", date: new Date().toISOString().split('T')[0] },
+    rabiesVaccine: { isUpToDate: true, lastDate: new Date().toISOString().split('T')[0] },
+    vaccineHistory: [],
   });
   
-  const [currentVaccine, setCurrentVaccine] = useState({
-    name: "",
-    date: new Date().toISOString().split('T')[0]
-  });
+  const [currentVaccine, setCurrentVaccine] = useState({ name: "", date: new Date().toISOString().split('T')[0] });
   
-  // If editing, populate form with pet data
   useEffect(() => {
     if (pet) {
       setFormData({
         clientId: pet.clientId,
         name: pet.name,
-        foodType: pet.foodType,
-        lastTickMedicine: {
-          name: pet.lastTickMedicine.name,
-          date: pet.lastTickMedicine.date
-        },
-        rabiesVaccine: {
-          isUpToDate: pet.rabiesVaccine.isUpToDate,
-          lastDate: pet.rabiesVaccine.lastDate
-        },
-        vaccineHistory: [...pet.vaccineHistory]
+        species: pet.species,
+        breed: pet.breed || "",
+        birthDate: pet.birthDate ? pet.birthDate.split('T')[0] : "",
+        observations: pet.observations || "",
+        foodType: pet.foodType || "",
+        lastTickMedicine: pet.lastTickMedicine || { name: "", date: "" },
+        rabiesVaccine: pet.rabiesVaccine || { isUpToDate: false, lastDate: "" },
+        vaccineHistory: pet.vaccineHistory || [],
       });
     }
   }, [pet]);
@@ -79,84 +59,48 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
+  const handleTickMedicineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, lastTickMedicine: { ...prev.lastTickMedicine, [name]: value } as any }));
+  };
+  
+  const handleRabiesDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setFormData(prev => ({ ...prev, rabiesVaccine: { ...prev.rabiesVaccine, lastDate: value } as any }));
+  };
+  
+  const handleRabiesStatusChange = (value: boolean) => {
+    setFormData(prev => ({ ...prev, rabiesVaccine: { ...prev.rabiesVaccine, isUpToDate: value } as any }));
+  };
+
   const handleVaccineInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCurrentVaccine(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleTickMedicineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    
-    setFormData(prev => ({
-      ...prev,
-      lastTickMedicine: {
-        ...prev.lastTickMedicine,
-        [name]: value
-      }
-    }));
-  };
-  
-  const handleRabiesDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    
-    setFormData(prev => ({
-      ...prev,
-      rabiesVaccine: {
-        ...prev.rabiesVaccine,
-        lastDate: value
-      }
-    }));
-  };
-  
-  const handleRabiesStatusChange = (value: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      rabiesVaccine: {
-        ...prev.rabiesVaccine,
-        isUpToDate: value
-      }
-    }));
-  };
-  
   const addVaccineToHistory = () => {
     if (currentVaccine.name.trim() === "") {
-      alert("Por favor, insira o nome da vacina.");
+      toast({ title: "Erro", description: "Por favor, insira o nome da vacina.", variant: "destructive" });
       return;
     }
-    
-    setFormData(prev => ({
-      ...prev,
-      vaccineHistory: [...prev.vaccineHistory, { ...currentVaccine }]
-    }));
-    
-    // Reset the current vaccine fields
-    setCurrentVaccine({
-      name: "",
-      date: new Date().toISOString().split('T')[0]
-    });
+    setFormData(prev => ({ ...prev, vaccineHistory: [...prev.vaccineHistory, { ...currentVaccine }] }));
+    setCurrentVaccine({ name: "", date: new Date().toISOString().split('T')[0] });
   };
   
   const removeVaccineFromHistory = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      vaccineHistory: prev.vaccineHistory.filter((_, i) => i !== index)
-    }));
+    setFormData(prev => ({ ...prev, vaccineHistory: prev.vaccineHistory.filter((_, i) => i !== index) }));
   };
   
-  const handleSubmit = () => {
-    // Validate form
-    if (!formData.clientId || !formData.name) {
-      alert("Por favor, preencha os campos obrigatórios: Cliente e Nome do Pet");
+  const handleSubmit = async () => {
+    if (!formData.clientId || !formData.name || !formData.species) {
+      toast({ title: "Erro", description: "Por favor, preencha os campos obrigatórios: Cliente, Nome do Pet e Espécie.", variant: "destructive" });
       return;
     }
     
     if (isEditing && pet) {
-      updatePet({
-        ...pet,
-        ...formData
-      });
+      await updatePet({ ...pet, ...formData });
     } else {
-      addPet(formData);
+      await addPet(formData);
     }
     
     onClose();
@@ -169,7 +113,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
         <div>
           <Label htmlFor="clientId">Cliente *</Label>
           <Select 
-            value={formData.clientId} 
+            value={formData.clientId}
             onValueChange={(value) => setFormData(prev => ({ ...prev, clientId: value }))}
             disabled={!!clientId}
           >
@@ -179,84 +123,63 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
             <SelectContent>
               {clients.map(client => (
                 <SelectItem key={client.id} value={client.id}>
-                  {client.tutorName}
+                  {client.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         
-        <div>
-          <Label htmlFor="name">Nome do Pet *</Label>
-          <Input 
-            id="name" 
-            name="name" 
-            value={formData.name}
-            onChange={handleInputChange} 
-            placeholder="Nome do pet" 
-            required 
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="name">Nome do Pet *</Label>
+            <Input id="name" name="name" value={formData.name} onChange={handleInputChange} placeholder="Nome do pet" required />
+          </div>
+          <div>
+            <Label htmlFor="species">Espécie *</Label>
+            <Input id="species" name="species" value={formData.species} onChange={handleInputChange} placeholder="Cachorro, Gato..." required />
+          </div>
         </div>
-        
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="breed">Raça</Label>
+            <Input id="breed" name="breed" value={formData.breed || ''} onChange={handleInputChange} placeholder="Ex: Golden Retriever" />
+          </div>
+          <div>
+            <Label htmlFor="birthDate">Data de Nascimento</Label>
+            <Input id="birthDate" name="birthDate" type="date" value={formData.birthDate || ''} onChange={handleInputChange} />
+          </div>
+        </div>
+
         <div>
           <Label htmlFor="foodType">Tipo de Ração</Label>
-          <Input 
-            id="foodType" 
-            name="foodType" 
-            value={formData.foodType}
-            onChange={handleInputChange} 
-            placeholder="Marca, tipo e frequência" 
-          />
+          <Input id="foodType" name="foodType" value={formData.foodType || ''} onChange={handleInputChange} placeholder="Marca, tipo e frequência" />
         </div>
-        
+
         <div className="border-t pt-4">
           <h3 className="font-medium mb-2">Medicamento Anti-carrapato</h3>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="name">Nome do Medicamento</Label>
-              <Input 
-                id="name" 
-                name="name" 
-                value={formData.lastTickMedicine.name}
-                onChange={handleTickMedicineChange} 
-                placeholder="Nome do medicamento" 
-              />
+              <Label htmlFor="tickMedicineName">Nome do Medicamento</Label>
+              <Input id="tickMedicineName" name="name" value={formData.lastTickMedicine?.name || ''} onChange={handleTickMedicineChange} placeholder="Nome do medicamento" />
             </div>
-            
             <div>
-              <Label htmlFor="date">Data de Aplicação</Label>
-              <Input 
-                id="date" 
-                name="date" 
-                type="date"
-                value={formData.lastTickMedicine.date}
-                onChange={handleTickMedicineChange}
-              />
+              <Label htmlFor="tickMedicineDate">Data de Aplicação</Label>
+              <Input id="tickMedicineDate" name="date" type="date" value={formData.lastTickMedicine?.date || ''} onChange={handleTickMedicineChange} />
             </div>
           </div>
         </div>
         
         <div className="border-t pt-4">
           <h3 className="font-medium mb-2">Vacina Contra Raiva</h3>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
             <div>
               <Label htmlFor="rabiesDate">Data da Última Dose</Label>
-              <Input 
-                id="rabiesDate" 
-                type="date"
-                value={formData.rabiesVaccine.lastDate}
-                onChange={handleRabiesDateChange}
-              />
+              <Input id="rabiesDate" type="date" value={formData.rabiesVaccine?.lastDate || ''} onChange={handleRabiesDateChange} />
             </div>
-            
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="rabiesStatus"
-                checked={formData.rabiesVaccine.isUpToDate}
-                onCheckedChange={handleRabiesStatusChange}
-              />
+            <div className="flex items-center space-x-2 pt-6">
+              <Switch id="rabiesStatus" checked={formData.rabiesVaccine?.isUpToDate || false} onCheckedChange={handleRabiesStatusChange} />
               <Label htmlFor="rabiesStatus">Vacina em dia</Label>
             </div>
           </div>
@@ -264,35 +187,17 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
         
         <div className="border-t pt-4">
           <h3 className="font-medium mb-2">Histórico de Vacinas</h3>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
             <div>
               <Label htmlFor="vaccineName">Nome da Vacina</Label>
-              <Input 
-                id="vaccineName" 
-                name="name" 
-                value={currentVaccine.name}
-                onChange={handleVaccineInputChange} 
-                placeholder="Nome da vacina" 
-              />
+              <Input id="vaccineName" name="name" value={currentVaccine.name} onChange={handleVaccineInputChange} placeholder="Nome da vacina" />
             </div>
-            
             <div>
               <Label htmlFor="vaccineDate">Data de Aplicação</Label>
-              <Input 
-                id="vaccineDate" 
-                name="date" 
-                type="date"
-                value={currentVaccine.date}
-                onChange={handleVaccineInputChange}
-              />
+              <Input id="vaccineDate" name="date" type="date" value={currentVaccine.date} onChange={handleVaccineInputChange} />
             </div>
           </div>
-          
-          <Button type="button" size="sm" onClick={addVaccineToHistory}>
-            Adicionar Vacina
-          </Button>
-          
+          <Button type="button" size="sm" onClick={addVaccineToHistory}>Adicionar Vacina</Button>
           {formData.vaccineHistory.length > 0 && (
             <div className="mt-3">
               <h4 className="text-sm font-medium mb-2">Vacinas Registradas:</h4>
@@ -302,17 +207,9 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
                     <li key={index} className="py-2 flex justify-between items-center">
                       <div>
                         <span className="font-medium">{vaccine.name}</span>
-                        <span className="text-sm text-gray-500 ml-2">
-                          {new Date(vaccine.date).toLocaleDateString()}
-                        </span>
+                        <span className="text-sm text-gray-500 ml-2">{new Date(vaccine.date).toLocaleDateString()}</span>
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => removeVaccineFromHistory(index)}
-                      >
-                        Remover
-                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => removeVaccineFromHistory(index)}>Remover</Button>
                     </li>
                   ))}
                 </ul>

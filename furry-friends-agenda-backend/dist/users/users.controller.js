@@ -23,7 +23,7 @@ let UsersController = class UsersController {
         this.usersService = usersService;
     }
     async getMyProfile(req) {
-        const user = await this.usersService.findOneById(req.user.sub);
+        const user = await this.usersService.findOneById(req.user.userId);
         if (!user) {
             return null;
         }
@@ -31,7 +31,7 @@ let UsersController = class UsersController {
         return userWithoutPassword;
     }
     async updateMyProfile(req, updateUserDto) {
-        const updatedUser = await this.usersService.updateUser(req.user.sub, updateUserDto);
+        const updatedUser = await this.usersService.updateUser(req.user.userId, updateUserDto);
         if (updatedUser) {
             const { password, ...userWithoutPassword } = updatedUser;
             return userWithoutPassword;

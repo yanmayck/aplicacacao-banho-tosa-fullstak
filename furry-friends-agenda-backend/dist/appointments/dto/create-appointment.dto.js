@@ -9,40 +9,47 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateAppointmentDto = exports.AppointmentStatus = void 0;
+exports.CreateAppointmentDto = void 0;
 const class_validator_1 = require("class-validator");
-var AppointmentStatus;
-(function (AppointmentStatus) {
-    AppointmentStatus["SCHEDULED"] = "SCHEDULED";
-    AppointmentStatus["COMPLETED"] = "COMPLETED";
-    AppointmentStatus["CANCELLED"] = "CANCELLED";
-    AppointmentStatus["NO_SHOW"] = "NO_SHOW";
-})(AppointmentStatus || (exports.AppointmentStatus = AppointmentStatus = {}));
+const client_1 = require("@prisma/client");
 class CreateAppointmentDto {
     petId;
-    serviceTypeId;
-    appointmentDateTime;
+    serviceIds;
+    groomerId;
+    dateTime;
     notes;
+    status;
 }
 exports.CreateAppointmentDto = CreateAppointmentDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsUUID)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateAppointmentDto.prototype, "petId", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayNotEmpty)(),
+    (0, class_validator_1.IsUUID)('all', { each: true }),
+    __metadata("design:type", Array)
+], CreateAppointmentDto.prototype, "serviceIds", void 0);
+__decorate([
+    (0, class_validator_1.IsUUID)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], CreateAppointmentDto.prototype, "serviceTypeId", void 0);
+], CreateAppointmentDto.prototype, "groomerId", void 0);
 __decorate([
     (0, class_validator_1.IsDateString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], CreateAppointmentDto.prototype, "appointmentDateTime", void 0);
+], CreateAppointmentDto.prototype, "dateTime", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateAppointmentDto.prototype, "notes", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(client_1.AppointmentStatus),
+    __metadata("design:type", String)
+], CreateAppointmentDto.prototype, "status", void 0);
 //# sourceMappingURL=create-appointment.dto.js.map

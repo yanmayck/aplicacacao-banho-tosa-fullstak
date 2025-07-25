@@ -67,11 +67,9 @@ export class AuthService {
       // e que usersService.createUser também será ajustado.
       const newUser = await this.usersService.createUser({
         email: registerDto.email,
-        password: registerDto.password, // Hashing é feito no UsersService
+        password: registerDto.password,
         name: registerDto.name,
-        // registerDto.role deve ser do tipo UserRole ou string compatível.
-        // Se UsersService.createUser espera UserRole, a conversão/validação deve ocorrer antes ou lá.
-        role: registerDto.role || UserRole.USER, // Alterado de roles para role, usando UserRole enum
+        role: registerDto.role || UserRole.USER,
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = newUser;

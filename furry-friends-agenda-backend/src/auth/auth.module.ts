@@ -17,12 +17,18 @@ import { UsersModule } from '../users/users.module';
     UsersModule, // Adicionar UsersModule aos imports
     JwtModule.registerAsync({
       imports: [ConfigModule], // Ensure ConfigModule is imported here too
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || jwtConstants.secret, // Fallback to constant if not in .env
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '3600s',
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error('JWT_SECRET is not set in the environment variables. Application cannot start.');
+        }
+        return {
+          secret,
+          signOptions: {
+            expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '3600s',
+          },
+        };
+      },
       inject: [ConfigService],
     }),
   ],

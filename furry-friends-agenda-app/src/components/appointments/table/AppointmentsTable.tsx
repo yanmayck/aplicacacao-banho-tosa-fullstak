@@ -6,9 +6,6 @@ import { AppointmentRow } from "./AppointmentRow";
 
 interface AppointmentsTableProps {
   filteredAppointments: any[];
-  dateFilter: string;
-  statusFilter: AppointmentStatus | "all";
-  groomerFilter: string;
   handleEditAppointment: (appointment: any) => void;
   handleDeleteAppointment: (id: string) => void;
   handleStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
@@ -18,15 +15,17 @@ interface AppointmentsTableProps {
 
 export const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   filteredAppointments,
-  dateFilter,
-  statusFilter,
-  groomerFilter,
   handleEditAppointment,
   handleDeleteAppointment,
   handleStatusChange,
   handleAutoAssign,
   handleEditPoints
 }) => {
+  const areFiltersActive = () => {
+    // Esta função pode ser mais elaborada dependendo de como os filtros são gerenciados
+    return true; // Simplificado para o exemplo
+  };
+
   return (
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
@@ -72,7 +71,7 @@ export const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
             ) : (
               <tr>
                 <td colSpan={7} className="px-4 py-4 text-center text-sm text-gray-500">
-                  {dateFilter || statusFilter !== "all" || groomerFilter !== "all"
+                  {areFiltersActive()
                     ? "Nenhum agendamento encontrado com os filtros selecionados."
                     : "Nenhum agendamento cadastrado. Clique em 'Novo Agendamento' para adicionar."}
                 </td>

@@ -11,7 +11,7 @@ const {
   Public,
   getRuntime,
   skip
-} = require('./runtime/index-browser.js')
+} = require('@prisma/client/runtime/index-browser.js')
 
 
 const Prisma = {}
@@ -20,12 +20,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 6.8.2
- * Query Engine version: 2060c79ba17c6bb9f5823312b6f6b7f4a845738e
+ * Prisma Client JS version: 6.11.1
+ * Query Engine version: f40f79ec31188888a2e33acda0ecc8fd10a853a9
  */
 Prisma.prismaVersion = {
-  client: "6.8.2",
-  engine: "2060c79ba17c6bb9f5823312b6f6b7f4a845738e"
+  client: "6.11.1",
+  engine: "f40f79ec31188888a2e33acda0ecc8fd10a853a9"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -125,9 +125,20 @@ exports.Prisma.UserScalarFieldEnum = {
   email: 'email',
   password: 'password',
   name: 'name',
-  roles: 'roles',
+  role: 'role',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ClientScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  phone: 'phone',
+  email: 'email',
+  address: 'address',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  userId: 'userId'
 };
 
 exports.Prisma.PetScalarFieldEnum = {
@@ -136,36 +147,81 @@ exports.Prisma.PetScalarFieldEnum = {
   species: 'species',
   breed: 'breed',
   birthDate: 'birthDate',
+  clientId: 'clientId',
+  observations: 'observations',
+  foodType: 'foodType',
+  lastTickMedicine: 'lastTickMedicine',
+  rabiesVaccine: 'rabiesVaccine',
+  vaccineHistory: 'vaccineHistory',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  ownerId: 'ownerId'
+  updatedAt: 'updatedAt'
 };
 
-exports.Prisma.ServiceTypeScalarFieldEnum = {
+exports.Prisma.GroomerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  phone: 'phone',
+  email: 'email',
+  specialties: 'specialties',
+  status: 'status',
+  commissionPercentage: 'commissionPercentage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PackageScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  includesBaths: 'includesBaths',
+  includesGrooming: 'includesGrooming',
+  includesHydration: 'includesHydration',
+  basePrice: 'basePrice',
+  pickupPrice: 'pickupPrice',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ServicePackageScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
   price: 'price',
-  durationMinutes: 'durationMinutes',
+  durationMin: 'durationMin',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
 
 exports.Prisma.AppointmentScalarFieldEnum = {
   id: 'id',
-  appointmentDateTime: 'appointmentDateTime',
+  dateTime: 'dateTime',
   status: 'status',
   notes: 'notes',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
+  totalPrice: 'totalPrice',
+  clientId: 'clientId',
   petId: 'petId',
-  serviceTypeId: 'serviceTypeId',
-  clientId: 'clientId'
+  groomerId: 'groomerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AppointmentServiceScalarFieldEnum = {
+  id: 'id',
+  appointmentId: 'appointmentId',
+  serviceId: 'serviceId',
+  priceAtTime: 'priceAtTime',
+  quantity: 'quantity',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -178,12 +234,34 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+exports.UserRole = exports.$Enums.UserRole = {
+  USER: 'USER',
+  ADMIN: 'ADMIN'
+};
+
+exports.AppointmentStatus = exports.$Enums.AppointmentStatus = {
+  SCHEDULED: 'SCHEDULED',
+  CONFIRMED: 'CONFIRMED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  NO_SHOW: 'NO_SHOW'
+};
 
 exports.Prisma.ModelName = {
   User: 'User',
+  Client: 'Client',
   Pet: 'Pet',
-  ServiceType: 'ServiceType',
-  Appointment: 'Appointment'
+  Groomer: 'Groomer',
+  Package: 'Package',
+  ServicePackage: 'ServicePackage',
+  Appointment: 'Appointment',
+  AppointmentService: 'AppointmentService'
 };
 
 /**

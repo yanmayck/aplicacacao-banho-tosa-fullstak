@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
-import { useStore } from "@/context/StoreContext";
+import { useAppointments } from "@/context/appointments/AppointmentContext";
+import { useGroomers } from "@/context/groomers/GroomerContext";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,8 @@ import { AssignPointsDialog } from "./AssignPointsDialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export const GroomingBoard: React.FC = () => {
-  const { appointments, updateAppointment, groomers, autoAssignGroomer } = useStore();
+  const { appointments, updateAppointment, autoAssignGroomer } = useAppointments();
+  const { groomers } = useGroomers();
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<any | null>(null);
   const [isPointsDialogOpen, setIsPointsDialogOpen] = useState(false);
@@ -22,7 +24,6 @@ export const GroomingBoard: React.FC = () => {
   
   const today = format(new Date(), 'yyyy-MM-dd');
   
-  // Filter appointments for today
   useEffect(() => {
     const filteredAppointments = appointments.filter(
       appointment => appointment.date === today && appointment.status !== "completed"
@@ -30,15 +31,11 @@ export const GroomingBoard: React.FC = () => {
     setTodayAppointments(filteredAppointments);
   }, [appointments, today]);
 
-  // Handle auto assign all unassigned appointments
   const handleAutoAssignAll = () => {
     const unassignedAppointments = todayAppointments.filter(app => app.groomerId === null);
     
     if (unassignedAppointments.length === 0) {
-      toast({
-        title: "Nenhum agendamento para atribuir",
-        description: "Não há agendamentos não atribuídos.",
-      });
+      toast({ title: "Nenhum agendamento para atribuir" });
       return;
     }
     
@@ -46,45 +43,31 @@ export const GroomingBoard: React.FC = () => {
       autoAssignGroomer(app.id);
     });
     
-    toast({
-      title: "Atribuição automática concluída",
-      description: `${unassignedAppointments.length} agendamentos foram atribuídos automaticamente.`
-    });
+    toast({ title: "Atribuição automática concluída" });
   };
 
-  // Handle drag end event
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
-    // Return if dropped outside a droppable area
     if (!destination) return;
 
-    // Return if dropped in the same position
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) return;
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
-    // Find the appointment that was dragged
     const appointment = appointments.find(app => app.id === draggableId);
     if (!appointment) return;
 
-    // Handle logic when dropping in a groomer column
     if (destination.droppableId !== 'unassigned') {
-      // Update appointment with new groomer
       updateAppointment({
         ...appointment,
         groomerId: destination.droppableId,
         status: appointment.status === "waiting" ? "progress" : appointment.status
       });
       
-      // If appointment is completed, ask for point assignment
       if (appointment.status === "completed") {
         setSelectedAppointment(appointment);
         setIsPointsDialogOpen(true);
       }
     } else if (source.droppableId !== 'unassigned') {
-      // If moving from a groomer column to the unassigned column
       updateAppointment({
         ...appointment,
         groomerId: null,
@@ -93,15 +76,12 @@ export const GroomingBoard: React.FC = () => {
     }
   };
 
-  // Group appointments by groomer
   const getAppointmentsByGroomer = (groomerId: string | null) => {
     return todayAppointments.filter(app => app.groomerId === groomerId);
   };
 
-  // Get unassigned appointments (not assigned to any groomer)
   const unassignedAppointments = getAppointmentsByGroomer(null);
   
-  // Navegação de groomers em dispositivos móveis
   const nextGroomer = () => {
     if (activeGroomerIndex < groomers.length - 1) {
       setActiveGroomerIndex(activeGroomerIndex + 1);
@@ -132,9 +112,7 @@ export const GroomingBoard: React.FC = () => {
           </Button>
         </div>
         
-        {/* Layout para desktop */}
         <div className="hidden lg:grid lg:grid-cols-4 gap-4">
-          {/* Unassigned appointments column */}
           <div className="col-span-1">
             <Card className="p-4 h-full">
               <h3 className="font-semibold mb-4 text-center bg-slate-100 py-2 rounded">
@@ -177,7 +155,6 @@ export const GroomingBoard: React.FC = () => {
             </Card>
           </div>
           
-          {/* Groomer columns */}
           <div className="col-span-1 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {groomers.map(groomer => (
               <GroomerColumn 
@@ -189,9 +166,7 @@ export const GroomingBoard: React.FC = () => {
           </div>
         </div>
         
-        {/* Layout para mobile */}
         <div className="lg:hidden flex flex-col gap-4">
-          {/* Unassigned appointments column */}
           <Card className="p-3">
             <h3 className="font-semibold mb-3 text-center bg-slate-100 py-2 rounded text-sm">
               Não atribuídos
@@ -238,7 +213,6 @@ export const GroomingBoard: React.FC = () => {
             </Droppable>
           </Card>
           
-          {/* Groomer navigation */}
           {groomers.length > 0 && (
             <div className="flex flex-col">
               <div className="flex justify-between items-center mb-2">
@@ -265,7 +239,6 @@ export const GroomingBoard: React.FC = () => {
                 </Button>
               </div>
               
-              {/* Groomer column */}
               {groomers[activeGroomerIndex] && (
                 <GroomerColumn 
                   groomer={groomers[activeGroomerIndex]} 
@@ -275,7 +248,6 @@ export const GroomingBoard: React.FC = () => {
             </div>
           )}
           
-          {/* Horizontal scroll for all groomers on small tablets */}
           <div className="hidden sm:block md:hidden mt-2">
             <h3 className="font-semibold mb-2 text-sm">Todos os Tosadores</h3>
             <ScrollArea className="w-full whitespace-nowrap">
@@ -295,7 +267,6 @@ export const GroomingBoard: React.FC = () => {
         </div>
       </div>
       
-      {/* Points assignment dialog */}
       {selectedAppointment && (
         <AssignPointsDialog 
           isOpen={isPointsDialogOpen} 

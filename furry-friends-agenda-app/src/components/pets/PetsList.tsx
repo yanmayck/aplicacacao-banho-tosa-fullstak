@@ -1,24 +1,26 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
-import { useStore, Pet, Client } from "@/context/StoreContext";
+import { Pet } from "@/context/models/types";
+import { usePets } from "@/context/pets/PetContext";
+import { useClients } from "@/context/clients/ClientContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Plus, Search, Dog, AlertCircle } from "lucide-react";
+import { Edit, Trash2, Plus, Search, Dog, AlertCircle, Loader2 } from "lucide-react";
 import PetForm from "./PetForm";
 
 const PetsList: React.FC = () => {
-  const { pets, deletePet, clients, getPetsByClientId } = useStore();
+  const { pets, deletePet, isLoading, error, getPetsByClientId } = usePets();
+  const { clients } = useClients();
   const [searchQuery, setSearchQuery] = useState("");
   const [clientFilter, setClientFilter] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | undefined>(undefined);
   
-  // Filter pets based on search query and client filter
   let filteredPets = pets;
   
-  if (clientFilter) {
+  if (clientFilter && clientFilter !== "all_clients") {
     filteredPets = getPetsByClientId(clientFilter);
   }
   
@@ -44,47 +46,48 @@ const PetsList: React.FC = () => {
     setEditingPet(undefined);
   };
   
-  // Check if vaccines are up to date or about to expire
   const checkVaccinationStatus = (pet: Pet): { status: 'ok' | 'warning' | 'expired', message: string } => {
-    if (!pet.rabiesVaccine.isUpToDate) {
-      return {
-        status: 'expired',
-        message: 'Vacina contra raiva vencida'
-      };
+    if (!pet.rabiesVaccine || !pet.rabiesVaccine.isUpToDate) {
+      return { status: 'expired', message: 'Vacina contra raiva vencida' };
     }
     
     const rabiesDate = new Date(pet.rabiesVaccine.lastDate);
     const currentDate = new Date();
-    
-    // Calculate difference in months
-    const diffMonths = (currentDate.getFullYear() - rabiesDate.getFullYear()) * 12 + 
-                       (currentDate.getMonth() - rabiesDate.getMonth());
+    const diffMonths = (currentDate.getFullYear() - rabiesDate.getFullYear()) * 12 + (currentDate.getMonth() - rabiesDate.getMonth());
                        
     if (diffMonths >= 10 && diffMonths < 12) {
-      // Expiring in next 2 months
-      return {
-        status: 'warning',
-        message: 'Vacina contra raiva expira em breve'
-      };
+      return { status: 'warning', message: 'Vacina contra raiva expira em breve' };
     }
     
     if (diffMonths >= 12) {
-      return {
-        status: 'expired',
-        message: 'Vacina contra raiva vencida'
-      };
+      return { status: 'expired', message: 'Vacina contra raiva vencida' };
     }
     
-    return {
-      status: 'ok',
-      message: 'Vacinas em dia'
-    };
+    return { status: 'ok', message: 'Vacinas em dia' };
   };
   
   const getClientName = (clientId: string): string => {
-    const client = clients.find((c: Client) => c.id === clientId);
-    return client ? client.tutorName : "Cliente desconhecido";
+    const client = clients.find((c) => c.id === clientId);
+    return client ? client.name : "Cliente desconhecido";
   };
+
+  if (isLoading) {
+    return (
+      <Layout activePage="pets" setActivePage={() => {}}>
+        <div className="flex justify-center items-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout activePage="pets" setActivePage={() => {}}>
+        <div className="text-red-500">Erro ao carregar pets: {error.message}</div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout activePage="pets" setActivePage={() => {}}>
@@ -114,8 +117,8 @@ const PetsList: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all_clients">Todos os tutores</SelectItem>
-                    {clients.map((client: Client) => (
-                      <SelectItem key={client.id} value={client.id}>{client.tutorName}</SelectItem>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -133,7 +136,7 @@ const PetsList: React.FC = () => {
                   <Dog className="h-12 w-12 text-gray-400" />
                   <h3 className="text-lg font-medium">Nenhum pet encontrado</h3>
                   <p className="text-sm text-gray-500">
-                    {searchQuery || clientFilter
+                    {searchQuery || (clientFilter && clientFilter !== 'all_clients')
                       ? "Tente ajustar seus filtros de busca."
                       : "Clique em 'Novo Pet' para adicionar."}
                   </p>
@@ -153,9 +156,7 @@ const PetsList: React.FC = () => {
                             <p className="text-sm text-gray-500">Tutor: {getClientName(pet.clientId)}</p>
                           </div>
                           {vacStatus.status !== 'ok' && (
-                            <div className={`px-2 py-1 rounded-full text-xs font-medium inline-flex items-center ${
-                              vacStatus.status === 'warning' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'
-                            }`}>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium inline-flex items-center ${vacStatus.status === 'warning' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'}`}>
                               <AlertCircle className="h-3 w-3 mr-1" />
                               {vacStatus.message}
                             </div>
@@ -169,18 +170,18 @@ const PetsList: React.FC = () => {
                           <div>
                             <p className="text-xs font-medium text-gray-500">Último Anti-carrapato</p>
                             <p className="text-sm">
-                              {pet.lastTickMedicine.name
+                              {pet.lastTickMedicine?.name
                                 ? `${pet.lastTickMedicine.name} - ${new Date(pet.lastTickMedicine.date).toLocaleDateString()}`
                                 : "Não informado"}
                             </p>
                           </div>
                           <div>
                             <p className="text-xs font-medium text-gray-500">Vacina contra Raiva</p>
-                            <p className={`text-sm ${!pet.rabiesVaccine.isUpToDate ? 'text-red-600' : ''}`}>
-                              {pet.rabiesVaccine.lastDate
+                            <p className={`text-sm ${!pet.rabiesVaccine?.isUpToDate ? 'text-red-600' : ''}`}>
+                              {pet.rabiesVaccine?.lastDate
                                 ? `Última dose: ${new Date(pet.rabiesVaccine.lastDate).toLocaleDateString()}`
                                 : "Não vacinado"}
-                              {!pet.rabiesVaccine.isUpToDate && " - VENCIDA"}
+                              {!pet.rabiesVaccine?.isUpToDate && " - VENCIDA"}
                             </p>
                           </div>
                         </div>

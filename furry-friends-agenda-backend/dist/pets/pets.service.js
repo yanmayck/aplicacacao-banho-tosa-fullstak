@@ -17,45 +17,53 @@ let PetsService = class PetsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async create(createPetDto, ownerId) {
-        return this.prisma.pet.create({
-            data: {
-                ...createPetDto,
-                ownerId,
-            },
-        });
+    async create(createPetDto) {
+        const { clientId, ...petData } = createPetDto;
+        const data = {
+            ...petData,
+            client: { connect: { id: clientId } },
+            lastTickMedicine: petData.lastTickMedicine ? (JSON.parse(JSON.stringify(petData.lastTickMedicine))) : undefined,
+            rabiesVaccine: petData.rabiesVaccine ? (JSON.parse(JSON.stringify(petData.rabiesVaccine))) : undefined,
+            vaccineHistory: petData.vaccineHistory ? (JSON.parse(JSON.stringify(petData.vaccineHistory))) : undefined,
+        };
+        return this.prisma.pet.create({ data });
     }
-    async findAllByOwner(ownerId) {
+    async findAllByOwner(clientId) {
         return this.prisma.pet.findMany({
-            where: { ownerId },
+            where: { clientId },
         });
     }
-    async findOneByOwner(id, ownerId) {
+    async findOneByOwner(id, clientId) {
         const pet = await this.prisma.pet.findUnique({
             where: { id },
         });
         if (!pet) {
             throw new common_1.NotFoundException(`Pet with ID "${id}" not found`);
         }
-        if (pet.ownerId !== ownerId) {
+        if (pet.clientId !== clientId) {
             throw new common_1.ForbiddenException('You are not allowed to access this pet');
         }
         return pet;
     }
-    async update(id, updatePetDto, ownerId) {
-        const pet = await this.findOneByOwner(id, ownerId);
+    async update(id, updatePetDto, clientId) {
+        const pet = await this.findOneByOwner(id, clientId);
         if (!pet) {
-            throw new common_1.NotFoundException(`Pet with ID "${id}" not found or not owned by user.`);
+            throw new common_1.NotFoundException(`Pet with ID "${id}" not found or not owned by client.`);
         }
         return this.prisma.pet.update({
             where: { id },
-            data: updatePetDto,
+            data: {
+                ...updatePetDto,
+                lastTickMedicine: updatePetDto.lastTickMedicine ? updatePetDto.lastTickMedicine : undefined,
+                rabiesVaccine: updatePetDto.rabiesVaccine ? updatePetDto.rabiesVaccine : undefined,
+                vaccineHistory: updatePetDto.vaccineHistory ? JSON.parse(JSON.stringify(updatePetDto.vaccineHistory)) : undefined,
+            },
         });
     }
-    async remove(id, ownerId) {
-        const pet = await this.findOneByOwner(id, ownerId);
+    async remove(id, clientId) {
+        const pet = await this.findOneByOwner(id, clientId);
         if (!pet) {
-            throw new common_1.NotFoundException(`Pet with ID "${id}" not found or not owned by user.`);
+            throw new common_1.NotFoundException(`Pet with ID "${id}" not found or not owned by client.`);
         }
         return this.prisma.pet.delete({
             where: { id },

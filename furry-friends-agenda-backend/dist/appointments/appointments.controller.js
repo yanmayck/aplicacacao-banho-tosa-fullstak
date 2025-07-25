@@ -14,29 +14,32 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppointmentsController = void 0;
 const common_1 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const appointments_service_1 = require("./appointments.service");
 const create_appointment_dto_1 = require("./dto/create-appointment.dto");
 const update_appointment_dto_1 = require("./dto/update-appointment.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const client_1 = require("@prisma/client");
 let AppointmentsController = class AppointmentsController {
     appointmentsService;
     constructor(appointmentsService) {
         this.appointmentsService = appointmentsService;
     }
     create(createAppointmentDto, req) {
-        return this.appointmentsService.create(createAppointmentDto, req.user.sub);
+        return this.appointmentsService.create(createAppointmentDto, req.user.userId);
     }
     findAll(req) {
-        return this.appointmentsService.findAllByClient(req.user.sub);
+        return this.appointmentsService.findAllByClient(req.user.userId);
     }
     findOne(id, req) {
-        return this.appointmentsService.findOneByClient(id, req.user.sub);
+        return this.appointmentsService.findOneByClient(id, req.user.userId);
     }
     update(id, updateAppointmentDto, req) {
-        return this.appointmentsService.update(id, updateAppointmentDto, req.user.sub);
+        return this.appointmentsService.update(id, updateAppointmentDto, req.user.userId);
     }
     remove(id, req) {
-        return this.appointmentsService.remove(id, req.user.sub);
+        return this.appointmentsService.remove(id, req.user.userId);
     }
 };
 exports.AppointmentsController = AppointmentsController;
@@ -76,6 +79,8 @@ __decorate([
 ], AppointmentsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),

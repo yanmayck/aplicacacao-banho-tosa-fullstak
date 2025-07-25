@@ -1,15 +1,17 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Client } from "../models/types";
-import { generateId } from "../models/types";
-import { loadFromStorage, saveToStorage } from "../utils/storage";
+import { clientApi } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
 
 interface ClientContextType {
   clients: Client[];
-  addClient: (client: Omit<Client, "id">) => void;
-  updateClient: (client: Client) => void;
-  deleteClient: (id: string) => void;
+  isLoading: boolean;
+  error: Error | null;
+  addClient: (client: Omit<Client, "id">) => Promise<void>;
+  updateClient: (client: Client) => Promise<void>;
+  deleteClient: (id: string) => Promise<void>;
   getClientById: (id: string) => Client | undefined;
 }
 
@@ -24,63 +26,81 @@ export const useClients = () => {
 };
 
 export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [clients, setClients] = useState<Client[]>([]);
+  const queryClient = useQueryClient();
 
-  // Load clients from localStorage on mount
-  useEffect(() => {
-    const storedClients = loadFromStorage<Client[]>("petshop-clients", []);
-    setClients(storedClients);
-  }, []);
+  const { data: clients = [], isLoading, error } = useQuery<Client[], Error>({
+    queryKey: ["clients"],
+    queryKey: ["clients"],
+    queryFn: clientApi.getClients,
+  });
 
-  // Save clients to localStorage when they change
-  useEffect(() => {
-    saveToStorage("petshop-clients", clients);
-  }, [clients]);
+  const addMutation = useMutation({
+    mutationFn: clientApi.createClient,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      toast({
+        title: "Cliente adicionado",
+        description: "O novo cliente foi cadastrado com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao adicionar cliente",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
-  const getClientById = (id: string) => {
-    return clients.find(client => client.id === id);
-  };
-  
-  const addClient = (client: Omit<Client, "id">) => {
-    const newClient = { ...client, id: generateId() };
-    setClients([...clients, newClient]);
-    toast({
-      title: "Cliente adicionado",
-      description: `${client.tutorName} foi cadastrado com sucesso.`
-    });
-  };
-  
-  const updateClient = (updatedClient: Client) => {
-    setClients(
-      clients.map(client => 
-        client.id === updatedClient.id ? updatedClient : client
-      )
-    );
-    toast({
-      title: "Cliente atualizado",
-      description: `${updatedClient.tutorName} foi atualizado com sucesso.`
-    });
-  };
-  
-  const deleteClient = (id: string) => {
-    const clientToDelete = clients.find(client => client.id === id);
-    setClients(clients.filter(client => client.id !== id));
-    
-    if (clientToDelete) {
+  const updateMutation = useMutation({
+    mutationFn: (client: Client) => clientApi.updateClient(client.id, client),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      toast({
+        title: "Cliente atualizado",
+        description: "Os dados do cliente foram atualizados com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar cliente",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: clientApi.deleteClient,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast({
         title: "Cliente excluído",
-        description: `${clientToDelete.tutorName} foi removido com sucesso.`
+        description: "O cliente foi removido com sucesso.",
       });
-    }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao excluir cliente",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const getClientById = (id: string) => {
+    return clients.find((client) => client.id === id);
   };
 
   return (
     <ClientContext.Provider
       value={{
         clients,
-        addClient,
-        updateClient,
-        deleteClient,
+        isLoading,
+        error,
+        addClient: async (client) => await addMutation.mutateAsync(client),
+        updateClient: async (client) => await updateMutation.mutateAsync(client),
+        deleteClient: async (id) => await deleteMutation.mutateAsync(id),
         getClientById,
       }}
     >

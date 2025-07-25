@@ -13,13 +13,31 @@ async function bootstrap() {
             enableImplicitConversion: true,
         },
     }));
+    const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:8080'];
+    const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
+        ? process.env.CORS_ALLOWED_ORIGINS.split(',')
+        : defaultAllowedOrigins;
     app.enableCors({
-        origin: 'http://localhost:5173',
+        origin: (origin, callback) => {
+            if (!origin) {
+                return callback(null, true);
+            }
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            else {
+                return callback(new Error(`Not allowed by CORS: ${origin}`));
+            }
+        },
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         credentials: true,
     });
-    await app.listen(process.env.PORT ?? 3000);
-    console.log(`Application is running on: ${await app.getUrl()}`);
+    const port = process.env.PORT || 3000;
+    await app.listen(port, '0.0.0.0');
+    console.log(`Application is running on: ${await app.getUrl()} - accessible externally if port is mapped.`);
 }
-bootstrap();
+bootstrap().catch((err) => {
+    console.error('Failed to bootstrap the application', err);
+    process.exit(1);
+});
 //# sourceMappingURL=main.js.map

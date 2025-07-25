@@ -10,6 +10,9 @@ WORKDIR /usr/src/app
 ENV PRISMA_TELEMETRY_INFORMATION='disable' \
     PRISMA_UPDATE_NOTIFIER='disable'
 
+# Instalar dependências do sistema para o Prisma (libssl)
+RUN apt-get update -y && apt-get install -y openssl libssl-dev
+
 # Copiar package.json e package-lock.json (ou yarn.lock, etc.)
 COPY package*.json ./
 

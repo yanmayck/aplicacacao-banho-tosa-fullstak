@@ -1,31 +1,21 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  ValidationPipe,
-  UsePipes,
-  ParseUUIDPipe,
-} from '@nestjs/common';
-import { ServicesService } from './services.service'; // Atualizado
-import { CreateServiceDto } from './dto/create-service.dto'; // Atualizado
-import { UpdateServiceDto } from './dto/update-service.dto'; // Atualizado
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ValidationPipe, UsePipes, ParseUUIDPipe } from '@nestjs/common';
+import { ServicesService } from './services.service';
+import { CreateServiceDto } from './dto/create-service.dto';
+import { UpdateServiceDto } from './dto/update-service.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-// import { Roles } from '../auth/decorators/roles.decorator';
-// import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { UserRole } from '@prisma/client';
 
-@Controller('services') // Rota atualizada
-export class ServicesController { // Classe renomeada
-  constructor(private readonly servicesService: ServicesService) {} // Serviço injetado atualizado
+@Controller('services')
+export class ServicesController {
+  constructor(private readonly servicesService: ServicesService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  create(@Body() createServiceDto: CreateServiceDto) { // DTO atualizado
+  create(@Body() createServiceDto: CreateServiceDto) {
     return this.servicesService.create(createServiceDto);
   }
 
@@ -40,17 +30,19 @@ export class ServicesController { // Classe renomeada
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateServiceDto: UpdateServiceDto, // DTO atualizado
+    @Body() updateServiceDto: UpdateServiceDto,
   ) {
     return this.servicesService.update(id, updateServiceDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.servicesService.remove(id);
   }

@@ -12,11 +12,14 @@ import {
   UsePipes,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PetsService } from './pets.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { UserRole } from '@prisma/client';
 // import { Pet } from '@prisma/client'; // O tipo Pet não será reconhecido até o prisma generate
 
 @UseGuards(JwtAuthGuard) // Aplicar JwtAuthGuard a todas as rotas deste controller
@@ -30,8 +33,7 @@ export class PetsController {
     @Body() createPetDto: CreatePetDto,
     @Request() req: { user: JwtPayload },
   ) {
-    // req.user.sub é o ID do usuário logado (ownerId)
-    return this.petsService.create(createPetDto, req.user.userId);
+    return this.petsService.create({ ...createPetDto, clientId: req.user.userId });
   }
 
   @Get()
@@ -58,6 +60,8 @@ export class PetsController {
   }
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
   remove(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: { user: JwtPayload },

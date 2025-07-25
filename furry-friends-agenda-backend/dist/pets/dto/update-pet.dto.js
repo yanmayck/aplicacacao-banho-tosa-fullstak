@@ -11,11 +11,53 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdatePetDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
+class TickMedicineDto {
+    name;
+    date;
+}
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], TickMedicineDto.prototype, "name", void 0);
+__decorate([
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], TickMedicineDto.prototype, "date", void 0);
+class RabiesVaccineDto {
+    isUpToDate;
+    lastDate;
+}
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], RabiesVaccineDto.prototype, "isUpToDate", void 0);
+__decorate([
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], RabiesVaccineDto.prototype, "lastDate", void 0);
+class VaccineHistoryDto {
+    name;
+    date;
+}
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], VaccineHistoryDto.prototype, "name", void 0);
+__decorate([
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], VaccineHistoryDto.prototype, "date", void 0);
 class UpdatePetDto {
     name;
     species;
     breed;
     birthDate;
+    observations;
+    foodType;
+    lastTickMedicine;
+    rabiesVaccine;
+    vaccineHistory;
 }
 exports.UpdatePetDto = UpdatePetDto;
 __decorate([
@@ -38,4 +80,35 @@ __decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], UpdatePetDto.prototype, "birthDate", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdatePetDto.prototype, "observations", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdatePetDto.prototype, "foodType", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsObject)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => TickMedicineDto),
+    __metadata("design:type", TickMedicineDto)
+], UpdatePetDto.prototype, "lastTickMedicine", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsObject)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => RabiesVaccineDto),
+    __metadata("design:type", RabiesVaccineDto)
+], UpdatePetDto.prototype, "rabiesVaccine", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => VaccineHistoryDto),
+    __metadata("design:type", Array)
+], UpdatePetDto.prototype, "vaccineHistory", void 0);
 //# sourceMappingURL=update-pet.dto.js.map

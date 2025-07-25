@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { jwtConstants } from '../constants/jwt.constants';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -15,19 +16,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  // Torna validate síncrono e tipa o payload
-  validate(payload: { sub: string; username: string; roles?: string[] }): {
+  validate(payload: { sub: string; username: string; role: UserRole }): {
     userId: string;
     username: string;
-    roles: string[];
+    role: UserRole;
   } {
-    // Aqui você pode adicionar lógica para buscar o usuário no banco de dados
-    // ou verificar se o usuário ainda é válido, etc.
-    // O objeto retornado aqui será injetado no objeto Request como req.user
     return {
       userId: payload.sub,
       username: payload.username,
-      roles: payload.roles || [], // Garante que roles seja um array, mesmo que undefined no payload
+      role: payload.role,
     };
   }
 }

@@ -5,12 +5,10 @@ import { ServiceType, TransportType, AppointmentStatus } from "../StoreContext";
 // Client model
 export interface Client {
   id: string;
-  tutorName: string;
-  petName: string;
-  cpf: string;
-  phone: string;
-  email: string;
-  address: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
 }
 
 // Pet model
@@ -18,15 +16,19 @@ export interface Pet {
   id: string;
   clientId: string;
   name: string;
-  foodType: string;
-  lastTickMedicine: {
+  species: string;
+  breed?: string | null;
+  birthDate?: string | null;
+  observations?: string | null;
+  foodType?: string | null;
+  lastTickMedicine?: {
     name: string;
     date: string;
-  };
-  rabiesVaccine: {
+  } | null;
+  rabiesVaccine?: {
     isUpToDate: boolean;
     lastDate: string;
-  };
+  } | null;
   vaccineHistory: Array<{
     name: string;
     date: string;

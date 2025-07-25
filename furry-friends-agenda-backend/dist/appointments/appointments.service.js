@@ -12,53 +12,103 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppointmentsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-const create_appointment_dto_1 = require("./dto/create-appointment.dto");
+const client_1 = require("@prisma/client");
 let AppointmentsService = class AppointmentsService {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async create(createAppointmentDto, clientId) {
-        const { petId, serviceTypeId, appointmentDateTime, notes } = createAppointmentDto;
+    async create(createAppointmentDto, currentClientId) {
+        const { petId, serviceIds, dateTime, notes, groomerId, status } = createAppointmentDto;
         const pet = await this.prisma.pet.findUnique({ where: { id: petId } });
         if (!pet) {
             throw new common_1.NotFoundException(`Pet with ID "${petId}" not found.`);
         }
-        if (pet.ownerId !== clientId) {
+        if (pet.clientId !== currentClientId) {
             throw new common_1.ForbiddenException('You can only create appointments for your own pets.');
         }
-        const serviceType = await this.prisma.serviceType.findUnique({ where: { id: serviceTypeId } });
-        if (!serviceType) {
-            throw new common_1.NotFoundException(`ServiceType with ID "${serviceTypeId}" not found.`);
+        if (groomerId) {
+            const groomer = await this.prisma.groomer.findUnique({ where: { id: groomerId } });
+            if (!groomer) {
+                throw new common_1.NotFoundException(`Groomer with ID "${groomerId}" not found.`);
+            }
+        }
+        if (!serviceIds || serviceIds.length === 0) {
+            throw new common_1.BadRequestException('At least one service must be selected.');
+        }
+        let calculatedTotalPrice = 0;
+        const servicesToConnect = [];
+        for (const serviceId of serviceIds) {
+            const service = await this.prisma.servicePackage.findUnique({ where: { id: serviceId } });
+            if (!service) {
+                throw new common_1.NotFoundException(`Service with ID "${serviceId}" not found.`);
+            }
+            servicesToConnect.push(service);
+            calculatedTotalPrice += service.price;
         }
         try {
             return await this.prisma.appointment.create({
                 data: {
-                    appointmentDateTime: new Date(appointmentDateTime),
+                    dateTime: new Date(dateTime),
                     notes,
-                    status: create_appointment_dto_1.AppointmentStatus.SCHEDULED,
-                    petId,
-                    serviceTypeId,
-                    clientId,
+                    status: status || client_1.AppointmentStatus.SCHEDULED,
+                    totalPrice: calculatedTotalPrice,
+                    pet: { connect: { id: petId } },
+                    client: { connect: { id: currentClientId } },
+                    groomer: groomerId ? { connect: { id: groomerId } } : undefined,
+                    appointmentServices: {
+                        create: servicesToConnect.map(service => ({
+                            service: { connect: { id: service.id } },
+                            priceAtTime: service.price,
+                        })),
+                    },
+                },
+                include: {
+                    pet: true,
+                    client: true,
+                    groomer: true,
+                    appointmentServices: {
+                        include: {
+                            service: true,
+                        },
+                    },
                 },
             });
         }
         catch (error) {
-            console.error("Error creating appointment: ", error);
-            throw new common_1.BadRequestException('Could not create appointment.');
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
+                console.error("Prisma Error creating appointment: ", error.code, error.message);
+            }
+            throw new common_1.BadRequestException('Could not create appointment. Please check input data.');
         }
     }
     async findAllByClient(clientId) {
         return this.prisma.appointment.findMany({
             where: { clientId },
-            include: { pet: true, serviceType: true },
-            orderBy: { appointmentDateTime: 'asc' },
+            include: {
+                pet: true,
+                groomer: true,
+                appointmentServices: {
+                    include: {
+                        service: true,
+                    },
+                },
+            },
+            orderBy: { dateTime: 'asc' },
         });
     }
     async findOneByClient(id, clientId) {
         const appointment = await this.prisma.appointment.findUnique({
             where: { id },
-            include: { pet: true, serviceType: true },
+            include: {
+                pet: true,
+                groomer: true,
+                appointmentServices: {
+                    include: {
+                        service: true,
+                    },
+                },
+            },
         });
         if (!appointment) {
             throw new common_1.NotFoundException(`Appointment with ID "${id}" not found`);
@@ -68,14 +118,11 @@ let AppointmentsService = class AppointmentsService {
         }
         return appointment;
     }
-    async update(id, updateAppointmentDto, clientId) {
-        const appointment = await this.findOneByClient(id, clientId);
-        if (!appointment) {
-            throw new common_1.NotFoundException(`Appointment with ID "${id}" not found or not owned by user.`);
-        }
+    async update(id, updateAppointmentDto, currentClientId) {
+        const existingAppointment = await this.findOneByClient(id, currentClientId);
         const dataToUpdate = {};
-        if (updateAppointmentDto.appointmentDateTime) {
-            dataToUpdate.appointmentDateTime = new Date(updateAppointmentDto.appointmentDateTime);
+        if (updateAppointmentDto.dateTime) {
+            dataToUpdate.dateTime = new Date(updateAppointmentDto.dateTime);
         }
         if (updateAppointmentDto.status) {
             dataToUpdate.status = updateAppointmentDto.status;
@@ -83,19 +130,54 @@ let AppointmentsService = class AppointmentsService {
         if (updateAppointmentDto.notes !== undefined) {
             dataToUpdate.notes = updateAppointmentDto.notes;
         }
-        if (Object.keys(dataToUpdate).length === 0) {
-            return appointment;
+        if (updateAppointmentDto.groomerId) {
+            const groomerExists = await this.prisma.groomer.findUnique({ where: { id: updateAppointmentDto.groomerId } });
+            if (!groomerExists)
+                throw new common_1.NotFoundException(`Groomer with ID "${updateAppointmentDto.groomerId}" not found.`);
+            dataToUpdate.groomer = { connect: { id: updateAppointmentDto.groomerId } };
+        }
+        if (updateAppointmentDto.serviceIds) {
+            let newTotalPrice = 0;
+            const newServicesToConnect = [];
+            for (const serviceId of updateAppointmentDto.serviceIds) {
+                const service = await this.prisma.servicePackage.findUnique({ where: { id: serviceId } });
+                if (!service)
+                    throw new common_1.NotFoundException(`Service with ID "${serviceId}" not found.`);
+                newServicesToConnect.push(service);
+                newTotalPrice += service.price;
+            }
+            dataToUpdate.totalPrice = newTotalPrice;
+            await this.prisma.appointmentService.deleteMany({ where: { appointmentId: id } });
+            dataToUpdate.appointmentServices = {
+                create: newServicesToConnect.map(service => ({
+                    service: { connect: { id: service.id } },
+                    priceAtTime: service.price,
+                })),
+            };
+        }
+        if (!existingAppointment) {
+            throw new common_1.NotFoundException(`Appointment with ID "${id}" not found or not owned by client.`);
+        }
+        if (Object.keys(dataToUpdate).length === 0 && (!updateAppointmentDto.serviceIds || updateAppointmentDto.serviceIds.length === 0)) {
+            return existingAppointment;
         }
         return this.prisma.appointment.update({
             where: { id },
             data: dataToUpdate,
+            include: {
+                pet: true,
+                client: true,
+                groomer: true,
+                appointmentServices: {
+                    include: {
+                        service: true,
+                    },
+                },
+            },
         });
     }
     async remove(id, clientId) {
-        const appointment = await this.findOneByClient(id, clientId);
-        if (!appointment) {
-            throw new common_1.NotFoundException(`Appointment with ID "${id}" not found or not owned by user.`);
-        }
+        await this.findOneByClient(id, clientId);
         return this.prisma.appointment.delete({
             where: { id },
         });

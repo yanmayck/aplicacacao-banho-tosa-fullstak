@@ -5,9 +5,9 @@ import { Pet } from '@prisma/client';
 export declare class PetsService {
     private prisma;
     constructor(prisma: PrismaService);
-    create(createPetDto: CreatePetDto, ownerId: string): Promise<Pet>;
-    findAllByOwner(ownerId: string): Promise<Pet[]>;
-    findOneByOwner(id: string, ownerId: string): Promise<Pet | null>;
-    update(id: string, updatePetDto: UpdatePetDto, ownerId: string): Promise<Pet>;
-    remove(id: string, ownerId: string): Promise<Pet>;
+    create(createPetDto: CreatePetDto): Promise<Pet>;
+    findAllByOwner(clientId: string): Promise<Pet[]>;
+    findOneByOwner(id: string, clientId: string): Promise<Pet | null>;
+    update(id: string, updatePetDto: UpdatePetDto, clientId: string): Promise<Pet>;
+    remove(id: string, clientId: string): Promise<Pet>;
 }

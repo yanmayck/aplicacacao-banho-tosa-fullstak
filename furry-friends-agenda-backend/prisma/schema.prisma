@@ -48,38 +48,60 @@ model Client {
 }
 
 model Pet {
-  id            String        @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String
-  species       String // Ex: "Cachorro", "Gato" (era String? antes, tornando obrigatório como no frontend)
+  species       String
   breed         String?
   birthDate     DateTime?
-  clientId      String        // Alterado de ownerId
-  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade) // Alterado de User
+  clientId      String
+  client        Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   appointments  Appointment[]
-  observations  String?       // Adicionado
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  observations  String?
+
+  // Campos adicionados para alinhar com o frontend
+  foodType      String?   
+  lastTickMedicine Json?     // { "name": "string", "date": "string" }
+  rabiesVaccine    Json?     // { "isUpToDate": boolean, "lastDate": "string" }
+  vaccineHistory   Json[]    // Array de { "name": "string", "date": "string" }
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 // Novo Modelo Groomer (como no frontend)
 model Groomer {
-  id           String        @id @default(cuid())
-  name         String
-  phone        String?
-  email        String?       @unique
-  specialties  String[] // e.g., ["Tosa Bebê", "Banho Terapêutico"]
-  appointments Appointment[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id                    String        @id @default(cuid())
+  name                  String
+  phone                 String?
+  email                 String?       @unique
+  specialties           String[]
+  status                String        @default("available") // "available" or "busy"
+  commissionPercentage  Float         @default(20)
+  appointments          Appointment[]
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+}
+
+model Package {
+    id              String @id @default(cuid())
+    name            String
+    description     String?
+    includesBaths   Int
+    includesGrooming Boolean
+    includesHydration Boolean
+    basePrice       Float
+    pickupPrice     Float
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
 }
 
 // Renomeado de ServiceType para Service e ajustado (como no frontend)
-model Service {
+model ServicePackage {
   id                 String                 @id @default(cuid())
   name               String                 @unique
   description        String?
-  price              Float                  // Era Float?, tornando obrigatório
-  durationMin        Int                    // Renomeado de durationMinutes, era Int?, tornando obrigatório
+  price              Float
+  durationMin        Int
   appointmentServices AppointmentService[]
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
@@ -96,8 +118,8 @@ model Appointment {
   client       Client                 @relation(fields: [clientId], references: [id])
   petId        String
   pet          Pet                    @relation(fields: [petId], references: [id])
-  groomerId    String
-  groomer      Groomer                @relation(fields: [groomerId], references: [id]) // Adicionado
+  groomerId    String?
+  groomer      Groomer?                @relation(fields: [groomerId], references: [id]) // Adicionado
 
   appointmentServices AppointmentService[] // Adicionado para relação N-N com Service
 
@@ -115,7 +137,7 @@ model AppointmentService {
   appointmentId String
   appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   serviceId     String
-  service       Service     @relation(fields: [serviceId], references: [id])
+  service       ServicePackage     @relation(fields: [serviceId], references: [id])
   priceAtTime   Float // Preço do serviço no momento do agendamento
   quantity      Int         @default(1)
 

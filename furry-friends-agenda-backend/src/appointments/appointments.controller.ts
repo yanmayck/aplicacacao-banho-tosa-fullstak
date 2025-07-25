@@ -12,11 +12,14 @@ import {
   UsePipes,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { UserRole } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard)
 @Controller('appointments')
@@ -65,6 +68,8 @@ export class AppointmentsController {
   }
 
   @Delete(':id') // Ou talvez um PATCH para mudar status para CANCELLED
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
   remove(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: { user: JwtPayload },

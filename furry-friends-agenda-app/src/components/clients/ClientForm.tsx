@@ -19,83 +19,38 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onClose }) => {
   const isEditing = !!client;
   
   const [formData, setFormData] = useState({
-    tutorName: "",
-    petName: "",
-    cpf: "",
+    name: "",
     phone: "",
     email: "",
     address: "",
   });
   
-  // If editing, populate form with client data
   useEffect(() => {
     if (client) {
       setFormData({
-        tutorName: client.tutorName,
-        petName: client.petName,
-        cpf: client.cpf,
-        phone: client.phone,
-        email: client.email,
-        address: client.address,
+        name: client.name,
+        phone: client.phone || "",
+        email: client.email || "",
+        address: client.address || "",
       });
     }
   }, [client]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    if (name === "cpf") {
-      // Only allow numbers and limit to 11 characters
-      const numericValue = value.replace(/\D/g, '').slice(0, 11);
-      setFormData(prev => ({ ...prev, [name]: numericValue }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
-  
-  const formatCpf = (cpf: string): string => {
-    if (!cpf) return "";
-    cpf = cpf.replace(/\D/g, '');
-    
-    if (cpf.length <= 3) {
-      return cpf;
-    } else if (cpf.length <= 6) {
-      return `${cpf.slice(0, 3)}.${cpf.slice(3)}`;
-    } else if (cpf.length <= 9) {
-      return `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6)}`;
-    } else {
-      return `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9, 11)}`;
-    }
-  };
-
-  const validateCpf = (cpf: string): boolean => {
-    if (!cpf) return false;
-    cpf = cpf.replace(/\D/g, '');
-    return cpf.length === 11;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
   
   const handleSubmit = () => {
-    // Validate form
-    if (!formData.tutorName.trim() || !formData.petName.trim() || !formData.phone.trim()) {
+    if (!formData.name.trim() || !formData.phone.trim()) {
       toast({
         title: "Erro",
-        description: "Por favor, preencha os campos obrigatórios: Nome do Tutor, Nome do Pet e Telefone.",
+        description: "Por favor, preencha os campos obrigatórios: Nome e Telefone.",
         variant: "destructive"
       });
       return;
     }
 
-    // Validate CPF
-    if (!validateCpf(formData.cpf)) {
-      toast({
-        title: "CPF inválido",
-        description: "Por favor, informe um CPF válido com 11 dígitos.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Only allow admin to add/edit clients
     if (!isAdmin()) {
       toast({
         title: "Permissão negada",
@@ -136,40 +91,15 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onClose }) => {
       <h2 className="text-xl font-bold mb-4">{isEditing ? "Editar Cliente" : "Novo Cliente"}</h2>
       <div className="space-y-4">
         <div>
-          <Label htmlFor="tutorName">Nome do Tutor *</Label>
+          <Label htmlFor="name">Nome do Tutor *</Label>
           <Input 
-            id="tutorName" 
-            name="tutorName" 
-            value={formData.tutorName}
+            id="name" 
+            name="name" 
+            value={formData.name}
             onChange={handleChange} 
             placeholder="Nome completo do tutor" 
             required 
           />
-        </div>
-        
-        <div>
-          <Label htmlFor="petName">Nome do Pet *</Label>
-          <Input 
-            id="petName" 
-            name="petName" 
-            value={formData.petName}
-            onChange={handleChange} 
-            placeholder="Nome do pet" 
-            required 
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="cpf">CPF do Tutor *</Label>
-          <Input 
-            id="cpf" 
-            name="cpf" 
-            value={formatCpf(formData.cpf)}
-            onChange={handleChange} 
-            placeholder="000.000.000-00"
-            required 
-          />
-          <p className="text-xs text-gray-500 mt-1">Necessário para emissão de nota fiscal</p>
         </div>
         
         <div>

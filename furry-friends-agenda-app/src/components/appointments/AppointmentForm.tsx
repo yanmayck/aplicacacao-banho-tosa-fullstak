@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Appointment } from "@/context/StoreContext";
+import { Appointment } from "@/context/models/types";
 import { Card } from "@/components/ui/card";
 import { AppointmentClientField } from "./form/AppointmentClientField";
 import { PetNameField } from "./form/PetNameField";
@@ -21,7 +21,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, onClose 
   const {
     formData,
     isEditing,
-    showCpfWarning,
     handleInputChange,
     handleSelectChange,
     handleSubmit,
@@ -38,7 +37,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, onClose 
           handleInputChange={handleInputChange} 
           handleSelectChange={handleSelectChange} 
           onClientChange={handleClientChange}
-          showCpfWarning={showCpfWarning}
           isAdmin={isAdmin()}
         />
         

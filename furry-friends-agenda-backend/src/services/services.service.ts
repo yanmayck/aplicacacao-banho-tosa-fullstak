@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { Service, Prisma } from '@prisma/client';
+import { ServicePackage, Prisma } from '@prisma/client';
 
 @Injectable()
 export class ServicesService {
@@ -10,9 +10,9 @@ export class ServicesService {
 
   async create(
     createServiceDto: CreateServiceDto,
-  ): Promise<Service> {
+  ): Promise<ServicePackage> {
     try {
-      return await this.prisma.service.create({
+      return await this.prisma.servicePackage.create({
         data: createServiceDto,
       });
     } catch (error) {
@@ -28,12 +28,12 @@ export class ServicesService {
     }
   }
 
-  async findAll(): Promise<Service[]> {
-    return this.prisma.service.findMany();
+  async findAll(): Promise<ServicePackage[]> {
+    return this.prisma.servicePackage.findMany();
   }
 
-  async findOne(id: string): Promise<Service | null> {
-    const service = await this.prisma.service.findUnique({
+  async findOne(id: string): Promise<ServicePackage | null> {
+    const service = await this.prisma.servicePackage.findUnique({
       where: { id },
     });
     if (!service) {
@@ -45,9 +45,9 @@ export class ServicesService {
   async update(
     id: string,
     updateServiceDto: UpdateServiceDto,
-  ): Promise<Service> {
+  ): Promise<ServicePackage> {
     try {
-      return await this.prisma.service.update({
+      return await this.prisma.servicePackage.update({
         where: { id },
         data: updateServiceDto,
       });
@@ -66,9 +66,9 @@ export class ServicesService {
     }
   }
 
-  async remove(id: string): Promise<Service> {
+  async remove(id: string): Promise<ServicePackage> {
     try {
-      return await this.prisma.service.delete({
+      return await this.prisma.servicePackage.delete({
         where: { id },
       });
     } catch (error) {

@@ -15,6 +15,7 @@ const prisma_service_1 = require("../prisma/prisma.service");
 const jwt_1 = require("@nestjs/jwt");
 const users_service_1 = require("../users/users.service");
 const bcrypt = require("bcrypt");
+const client_1 = require("@prisma/client");
 let AuthService = class AuthService {
     prisma;
     jwtService;
@@ -26,7 +27,7 @@ let AuthService = class AuthService {
     }
     async validateUser(email, pass) {
         const user = await this.usersService.findOneByEmail(email);
-        if (user && await bcrypt.compare(pass, user.password)) {
+        if (user && (await bcrypt.compare(pass, user.password))) {
             const { password, ...result } = user;
             return result;
         }
@@ -37,15 +38,19 @@ let AuthService = class AuthService {
         if (!user) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
-        const payload = { username: user.email, sub: user.id, roles: user.roles };
+        const fullUser = await this.usersService.findOneById(user.id);
+        if (!fullUser) {
+            throw new common_1.InternalServerErrorException('User not found after validation.');
+        }
+        const payload = { username: fullUser.email, sub: fullUser.id, role: fullUser.role };
         return {
             access_token: this.jwtService.sign(payload),
             user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                roles: user.roles,
-            }
+                id: fullUser.id,
+                email: fullUser.email,
+                name: fullUser.name,
+                role: fullUser.role,
+            },
         };
     }
     async register(registerDto) {
@@ -54,7 +59,7 @@ let AuthService = class AuthService {
                 email: registerDto.email,
                 password: registerDto.password,
                 name: registerDto.name,
-                roles: registerDto.roles || ['USER'],
+                role: registerDto.role || client_1.UserRole.USER,
             });
             const { password, ...result } = newUser;
             return result;
@@ -63,7 +68,7 @@ let AuthService = class AuthService {
             if (error instanceof common_1.ConflictException) {
                 throw error;
             }
-            console.error("Error during registration: ", error);
+            console.error('Error during registration: ', error);
             throw new common_1.InternalServerErrorException('Could not register user');
         }
     }

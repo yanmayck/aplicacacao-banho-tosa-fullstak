@@ -58,10 +58,11 @@ let UsersService = class UsersService {
             return user;
         }
         catch (error) {
-            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError &&
+                error.code === 'P2025') {
                 throw new common_1.NotFoundException(`User with ID "${id}" not found`);
             }
-            console.error("Error updating user:", error);
+            console.error('Error updating user:', error);
             throw error;
         }
     }

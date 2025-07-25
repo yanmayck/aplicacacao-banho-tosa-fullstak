@@ -1,12 +1,9 @@
-export declare enum AppointmentStatus {
-    SCHEDULED = "SCHEDULED",
-    COMPLETED = "COMPLETED",
-    CANCELLED = "CANCELLED",
-    NO_SHOW = "NO_SHOW"
-}
+import { AppointmentStatus as PrismaAppointmentStatus } from '@prisma/client';
 export declare class CreateAppointmentDto {
     petId: string;
-    serviceTypeId: string;
-    appointmentDateTime: string;
+    serviceIds: string[];
+    groomerId: string;
+    dateTime: string;
     notes?: string;
+    status?: PrismaAppointmentStatus;
 }

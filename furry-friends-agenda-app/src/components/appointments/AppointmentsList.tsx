@@ -1,9 +1,9 @@
 
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
-import { useStore } from "@/context/StoreContext";
+import { useAppointments } from "@/context/appointments/AppointmentContext";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import AppointmentForm from "./AppointmentForm";
 import { AppointmentStatus } from "@/context/StoreContext";
 import { PointsEditDialog } from "./PointsEditDialog";
@@ -16,26 +16,18 @@ const AppointmentsList: React.FC = () => {
     deleteAppointment, 
     updateAppointment, 
     updateAppointmentPoints,
-    autoAssignGroomer
-  } = useStore();
+    autoAssignGroomer,
+    isLoading,
+    error
+  } = useAppointments();
   
   const [showForm, setShowForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<any>(undefined);
   
-  // Points editing
   const [isPointsDialogOpen, setIsPointsDialogOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   
-  // Get filtering logic and filtered appointments
-  const {
-    dateFilter,
-    statusFilter,
-    groomerFilter,
-    setDateFilter,
-    setStatusFilter,
-    setGroomerFilter,
-    filteredAppointments
-  } = useAppointmentsFilter();
+  const { filteredAppointments, ...filterProps } = useAppointmentsFilter();
 
   const handleEditAppointment = (appointment: any) => {
     setEditingAppointment(appointment);
@@ -56,10 +48,7 @@ const AppointmentsList: React.FC = () => {
   const handleStatusChange = (appointmentId: string, status: AppointmentStatus) => {
     const appointment = filteredAppointments.find(a => a.id === appointmentId);
     if (appointment) {
-      updateAppointment({
-        ...appointment,
-        status
-      });
+      updateAppointment({ ...appointment, status });
     }
   };
   
@@ -77,6 +66,24 @@ const AppointmentsList: React.FC = () => {
       updateAppointmentPoints(selectedAppointmentId, points);
     }
   };
+
+  if (isLoading) {
+    return (
+      <Layout activePage="appointments" setActivePage={() => {}}>
+        <div className="flex justify-center items-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout activePage="appointments" setActivePage={() => {}}>
+        <div className="text-red-500">Erro ao carregar agendamentos: {error.message}</div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout activePage="appointments" setActivePage={() => {}}>
@@ -86,14 +93,7 @@ const AppointmentsList: React.FC = () => {
         ) : (
           <>
             <div className="flex flex-col md:flex-row gap-3 justify-between items-start md:items-end">
-              <AppointmentFilters
-                dateFilter={dateFilter}
-                statusFilter={statusFilter}
-                groomerFilter={groomerFilter}
-                setDateFilter={setDateFilter}
-                setStatusFilter={setStatusFilter}
-                setGroomerFilter={setGroomerFilter}
-              />
+              <AppointmentFilters {...filterProps} />
               
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -103,9 +103,6 @@ const AppointmentsList: React.FC = () => {
             
             <AppointmentsTable 
               filteredAppointments={filteredAppointments}
-              dateFilter={dateFilter}
-              statusFilter={statusFilter}
-              groomerFilter={groomerFilter}
               handleEditAppointment={handleEditAppointment}
               handleDeleteAppointment={handleDeleteAppointment}
               handleStatusChange={handleStatusChange}
@@ -113,7 +110,6 @@ const AppointmentsList: React.FC = () => {
               handleEditPoints={handleEditPoints}
             />
             
-            {/* Points edit dialog */}
             <PointsEditDialog
               isOpen={isPointsDialogOpen}
               onClose={() => setIsPointsDialogOpen(false)}

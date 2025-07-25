@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
-import { useStore, Package } from "@/context/StoreContext";
+import { Package } from "@/context/models/types";
+import { usePackages } from "@/context/packages/PackageContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Edit, Trash2, Plus, Package as PackageIcon } from "lucide-react";
+import { Edit, Trash2, Plus, Package as PackageIcon, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import PackageForm from "./PackageForm";
 
 const PackagesList: React.FC = () => {
-  const { packages, deletePackage } = useStore();
+  const { packages, deletePackage, isLoading, error } = usePackages();
   const { isAdmin } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [editingPackage, setEditingPackage] = useState<Package | undefined>(undefined);
@@ -32,6 +33,24 @@ const PackagesList: React.FC = () => {
   const formatCurrency = (value: number): string => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
+
+  if (isLoading) {
+    return (
+      <Layout activePage="packages" setActivePage={() => {}}>
+        <div className="flex justify-center items-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout activePage="packages" setActivePage={() => {}}>
+        <div className="text-red-500">Erro ao carregar pacotes: {error.message}</div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout activePage="packages" setActivePage={() => {}}>

@@ -1,17 +1,18 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Groomer } from "../models/types";
-import { generateId } from "../models/types";
-import { loadFromStorage, saveToStorage } from "../utils/storage";
+import { groomerApi } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
 
 interface GroomerContextType {
   groomers: Groomer[];
-  addGroomer: (groomer: Omit<Groomer, "id">) => void;
-  updateGroomer: (groomer: Groomer) => void;
-  deleteGroomer: (id: string) => void;
+  isLoading: boolean;
+  error: Error | null;
+  addGroomer: (groomer: Omit<Groomer, "id">) => Promise<void>;
+  updateGroomer: (groomer: Groomer) => Promise<void>;
+  deleteGroomer: (id: string) => Promise<void>;
   getGroomerById: (id: string) => Groomer | undefined;
-  getGroomerWorkload: (groomerId: string, onlyCompletedAppointments?: boolean) => number;
 }
 
 const GroomerContext = createContext<GroomerContextType | undefined>(undefined);
@@ -25,73 +26,58 @@ export const useGroomers = () => {
 };
 
 export const GroomerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [groomers, setGroomers] = useState<Groomer[]>([]);
+  const queryClient = useQueryClient();
 
-  // Load groomers from localStorage on mount
-  useEffect(() => {
-    const storedGroomers = loadFromStorage<Groomer[]>("petshop-groomers", []);
-    setGroomers(storedGroomers);
-  }, []);
+  const { data: groomers = [], isLoading, error } = useQuery<Groomer[], Error>({
+    queryKey: ["groomers"],
+    queryFn: groomerApi.getGroomers,
+  });
 
-  // Save groomers to localStorage when they change
-  useEffect(() => {
-    saveToStorage("petshop-groomers", groomers);
-  }, [groomers]);
+  const addMutation = useMutation({
+    mutationFn: groomerApi.createGroomer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groomers'] });
+      toast({ title: "Tosador adicionado com sucesso!" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao adicionar tosador", description: error.message, variant: "destructive" });
+    },
+  });
 
-  const getGroomerById = (id: string) => {
-    return groomers.find(groomer => groomer.id === id);
-  };
-  
-  // This is a placeholder implementation. The actual implementation is in StoreContext
-  const getGroomerWorkload = (groomerId: string, onlyCompletedAppointments?: boolean) => {
-    // Since this is overridden in StoreContext, we return a default value here
-    return 0;
-  };
-  
-  const addGroomer = (groomer: Omit<Groomer, "id">) => {
-    const newGroomer = { ...groomer, id: generateId() };
-    setGroomers([...groomers, newGroomer]);
-    toast({
-      title: "Tosador adicionado",
-      description: `${groomer.name} foi cadastrado com sucesso.`
-    });
-  };
-  
-  const updateGroomer = (updatedGroomer: Groomer) => {
-    setGroomers(
-      groomers.map(groomer => 
-        groomer.id === updatedGroomer.id ? updatedGroomer : groomer
-      )
-    );
-    toast({
-      title: "Tosador atualizado",
-      description: `${updatedGroomer.name} foi atualizado com sucesso.`
-    });
-  };
-  
-  const deleteGroomer = (id: string) => {
-    // We don't check for appointments here to avoid circular dependency
-    // This check will be handled at a higher level in StoreProviderInner
-    const groomerToDelete = groomers.find(groomer => groomer.id === id);
-    setGroomers(groomers.filter(groomer => groomer.id !== id));
-    
-    if (groomerToDelete) {
-      toast({
-        title: "Tosador excluído",
-        description: `${groomerToDelete.name} foi removido com sucesso.`
-      });
-    }
-  };
+  const updateMutation = useMutation({
+    mutationFn: (groomer: Groomer) => groomerApi.updateGroomer(groomer.id, groomer),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groomers'] });
+      toast({ title: "Tosador atualizado com sucesso!" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao atualizar tosador", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: groomerApi.deleteGroomer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groomers'] });
+      toast({ title: "Tosador excluído com sucesso!" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao excluir tosador", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const getGroomerById = (id: string) => groomers.find((groomer) => groomer.id === id);
 
   return (
     <GroomerContext.Provider
       value={{
         groomers,
-        addGroomer,
-        updateGroomer,
-        deleteGroomer,
+        isLoading,
+        error,
+        addGroomer: async (groomer) => await addMutation.mutateAsync(groomer),
+        updateGroomer: async (groomer) => await updateMutation.mutateAsync(groomer),
+        deleteGroomer: async (id) => await deleteMutation.mutateAsync(id),
         getGroomerById,
-        getGroomerWorkload,
       }}
     >
       {children}

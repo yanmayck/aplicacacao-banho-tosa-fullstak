@@ -30,10 +30,10 @@ interface LoginResponse {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>; // Changed username to email
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  isAdmin: () => boolean; // This will need to check the roles array
-  // getAuthToken: () => string | null; // Helper to get token for API calls
+  isAdmin: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,6 +62,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (roles.includes("common")) return "common"; // Assuming "common" is a possible role string
     if (roles.length > 0) return roles[0] as UserRole; // Fallback to the first role
     return "user"; // Default fallback
+  };
+
+  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password, role: 'USER' }),
+      });
+
+      if (!response.ok) {
+        console.error('Registration failed:', response.status, response.statusText);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Registration error:', error);
+      return false;
+    }
   };
 
   // Login function
@@ -137,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     isAuthenticated: !!user,
     login,
+    register,
     logout,
     isAdmin
   };

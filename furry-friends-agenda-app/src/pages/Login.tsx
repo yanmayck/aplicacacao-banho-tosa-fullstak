@@ -8,13 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Scissors } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
+import { Link } from "react-router-dom";
+
 const Login: React.FC = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth();
   
   const handleLogin = () => {
-    if (!username || !password) {
+    if (!email || !password) {
       toast({
         title: "Erro",
         description: "Por favor, preencha todos os campos.",
@@ -23,7 +25,7 @@ const Login: React.FC = () => {
       return;
     }
     
-    const success = login(username, password);
+    const success = login(email, password);
     
     if (!success) {
       toast({
@@ -47,12 +49,12 @@ const Login: React.FC = () => {
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor="username">Usuário</Label>
+            <Label htmlFor="email">Email</Label>
             <Input 
-              id="username" 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)} 
-              placeholder="Digite seu usuário"
+              id="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)} 
+              placeholder="Digite seu email"
             />
           </div>
           
@@ -71,12 +73,6 @@ const Login: React.FC = () => {
             <Button onClick={handleLogin} className="w-full">
               Entrar
             </Button>
-          </div>
-          
-          <div className="text-center text-sm text-gray-500 mt-4">
-            <p>Usuários demonstração:</p>
-            <p>Admin: admin / admin123</p>
-            <p>Comum: comum / comum123</p>
           </div>
         </div>
       </Card>

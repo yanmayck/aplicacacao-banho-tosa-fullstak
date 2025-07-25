@@ -5,24 +5,25 @@ import { Client, useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Edit, Trash2, Plus, Search, Users } from "lucide-react";
+import { Edit, Trash2, Plus, Search, Users, Loader2 } from "lucide-react";
 import ClientForm from "./ClientForm";
 import { useAuth } from "@/context/AuthContext";
 import PetForm from "../pets/PetForm";
 import { toast } from "@/components/ui/use-toast";
+import { useClients } from "@/context/clients/ClientContext";
 
 const ClientsList: React.FC = () => {
-  const { clients, deleteClient, getPetsByClientId } = useStore();
+  const { deleteClient, getPetsByClientId } = useStore();
+  const { clients, isLoading, error } = useClients();
   const { isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showPetForm, setShowPetForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>(undefined);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
-  
+
   const filteredClients = clients.filter(client => 
-    client.tutorName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    client.petName.toLowerCase().includes(searchQuery.toLowerCase())
+    client.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
   const handleEditClient = (client: Client) => {
@@ -68,28 +69,24 @@ const ClientsList: React.FC = () => {
     setSelectedClientId(clientId);
     setShowPetForm(true);
   };
-  
-  // Format CPF for display
-  const formatCpf = (cpf: string): string => {
-    if (!cpf) return "Não informado";
-    cpf = cpf.replace(/\D/g, '');
-    
-    if (cpf.length <= 3) {
-      return cpf;
-    } else if (cpf.length <= 6) {
-      return `${cpf.slice(0, 3)}.${cpf.slice(3)}`;
-    } else if (cpf.length <= 9) {
-      return `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6)}`;
-    } else {
-      return `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9, 11)}`;
-    }
-  };
-  
-  // Mask CPF for non-admin users
-  const maskCpf = (cpf: string): string => {
-    if (!cpf) return "Não informado";
-    return "•••.•••.•••-••";
-  };
+
+  if (isLoading) {
+    return (
+      <Layout activePage="clients" setActivePage={() => {}}>
+        <div className="flex justify-center items-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout activePage="clients" setActivePage={() => {}}>
+        <div className="text-red-500">Erro ao carregar clientes: {error.message}</div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout activePage="clients" setActivePage={() => {}}>
@@ -124,13 +121,8 @@ const ClientsList: React.FC = () => {
                   <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Tutor / Pet
+                        Tutor
                       </th>
-                      {isAdmin() && (
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          CPF
-                        </th>
-                      )}
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Contato
                       </th>
@@ -150,14 +142,8 @@ const ClientsList: React.FC = () => {
                       filteredClients.map((client) => (
                         <tr key={client.id}>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{client.tutorName}</div>
-                            <div className="text-sm text-gray-500">{client.petName}</div>
+                            <div className="text-sm font-medium text-gray-900">{client.name}</div>
                           </td>
-                          {isAdmin() && (
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{formatCpf(client.cpf)}</div>
-                            </td>
-                          )}
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">{client.phone}</div>
                             <div className="text-sm text-gray-500">{client.email}</div>
@@ -204,7 +190,7 @@ const ClientsList: React.FC = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={isAdmin() ? 6 : 5} className="px-6 py-4 text-center text-sm text-gray-500">
+                        <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
                           {searchQuery ? "Nenhum cliente encontrado com esse termo de busca." : "Nenhum cliente cadastrado."}
                         </td>
                       </tr>
