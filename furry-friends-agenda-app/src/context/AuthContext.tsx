@@ -114,6 +114,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: data.user.role,
         };
 
+        console.log('FRONTEND: Dados do usuário recebidos no login:', mappedUser); // Log para depuração
+
         setToken(data.access_token);
         setUser(mappedUser);
         localStorage.setItem("petshop-token", data.access_token);
@@ -145,7 +147,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Helper function to check if user is admin
   const isAdmin = (): boolean => {
-    return user?.role === "admin" || false;
+    const result = user?.role === "admin" || user?.role === "ADMIN";
+    console.log(`FRONTEND: Verificando se é admin. Papel do usuário: ${user?.role}, Resultado: ${result}`); // Log para depuração
+    return result;
   };
   
   const value = {

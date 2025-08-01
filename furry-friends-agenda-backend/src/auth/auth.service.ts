@@ -48,6 +48,7 @@ export class AuthService {
     }
 
     const payload = { username: fullUser.email, sub: fullUser.id, role: fullUser.role }; // Alterado de roles para role
+    console.log('BACKEND: Gerando token com payload:', payload); // Log para depuração
     return {
       access_token: this.jwtService.sign(payload),
       user: {

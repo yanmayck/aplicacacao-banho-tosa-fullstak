@@ -80,6 +80,21 @@ services:
       - backend
     networks:
       - furry_friends_network
+  
+  studio:
+    build:
+      context: ./furry-friends-agenda-backend
+      dockerfile: Dockerfile
+    container_name: furry_friends_studio
+    env_file:
+      - .env
+    ports:
+      - "5555:5555"
+    depends_on:
+      - db
+    networks:
+      - furry_friends_network
+    command: ["npx", "prisma", "studio"]
 
 networks:
   furry_friends_network:
