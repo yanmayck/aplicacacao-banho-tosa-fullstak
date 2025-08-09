@@ -12,13 +12,20 @@ import { Pet, Prisma } from '@prisma/client';
 export class PetsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createPetDto: CreatePetDto): Promise<Pet> {
+  async create(createPetDto: CreatePetDto, userId: string): Promise<Pet> {
+    const client = await this.prisma.client.findUnique({
+      where: { userId },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Client for user ID "${userId}" not found. Cannot create pet.`);
+    }
+
     const { clientId, ...petData } = createPetDto;
 
-    // Prisma espera que campos Json sejam `JsonValue`. Convertemos os objetos.
     const data: Prisma.PetCreateInput = {
       ...petData,
-      client: { connect: { id: clientId } },
+      client: { connect: { id: client.id } }, // Use the found client.id
       lastTickMedicine: petData.lastTickMedicine ? (JSON.parse(JSON.stringify(petData.lastTickMedicine))) : undefined,
       rabiesVaccine: petData.rabiesVaccine ? (JSON.parse(JSON.stringify(petData.rabiesVaccine))) : undefined,
       vaccineHistory: petData.vaccineHistory ? (JSON.parse(JSON.stringify(petData.vaccineHistory))) : undefined,

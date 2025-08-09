@@ -33,7 +33,7 @@ export class PetsController {
     @Body() createPetDto: CreatePetDto,
     @Request() req: { user: JwtPayload },
   ) {
-    return this.petsService.create({ ...createPetDto, clientId: req.user.userId });
+    return this.petsService.create(createPetDto, req.user.userId);
   }
 
   @Get()

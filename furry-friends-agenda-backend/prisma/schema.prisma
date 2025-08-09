@@ -52,7 +52,7 @@ model Pet {
   name          String
   species       String
   breed         String?
-  birthDate     DateTime?
+  birthDate     String?
   clientId      String
   client        Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   appointments  Appointment[]
