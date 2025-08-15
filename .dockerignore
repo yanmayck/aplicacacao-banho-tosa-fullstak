@@ -9,14 +9,11 @@ docker-compose.yml
 README.md
 
 # Dependencies
-**/node_modules
-node_modules
+**/node_modules/
 
 # Build artifacts
-**/dist
-dist
-**/build
-build
+**/dist/
+**/build/
 
 # Environment variables
 .env
@@ -45,7 +42,8 @@ Desktop.ini
 
 # Prisma
 **/prisma/dev.db
-# **/prisma/migration_lock.toml # Usually committed
+**/prisma/dev.db-journal
+# migration_lock.toml should usually be committed to git.
 
 # Specific project files that are not needed in the final image if using multi-stage builds
 # These assume that build artifacts are copied from a builder stage
@@ -53,7 +51,7 @@ Desktop.ini
 # Frontend app development files
 furry-friends-agenda-app/src/
 furry-friends-agenda-app/public/ # Static assets might be needed, depends on serving strategy
-furry-friends-agenda-app/prisma/ # Schema itself not needed in runtime image if client is built
+furry-friends-agenda-app/prisma/ # Schema not needed in runtime image if client is built
 furry-friends-agenda-app/components.json
 furry-friends-agenda-app/eslint.config.js
 furry-friends-agenda-app/postcss.config.js
@@ -72,7 +70,10 @@ furry-friends-agenda-app/.gitignore # Original, now redundant
 # Backend app development files
 furry-friends-agenda-backend/src/
 furry-friends-agenda-backend/test/
-furry-friends-agenda-backend/prisma/ # Schema itself not needed in runtime image if client is built
+# The backend likely needs the prisma schema and migrations folder in the final image
+# to run commands like `prisma migrate deploy`.
+# The dev database file `dev.db` is already ignored globally above.
+# furry-friends-agenda-backend/prisma/
 furry-friends-agenda-backend/.prettierrc
 furry-friends-agenda-backend/nest-cli.json
 furry-friends-agenda-backend/tsconfig.json

@@ -36,6 +36,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export { AuthContext };
+
 // API Base URL - Vite handles .env files automatically.
 // VITE_API_BASE_URL should be set in .env.development or .env.production
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3333";

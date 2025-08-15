@@ -56,6 +56,8 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | null>(null);
 
+export { StoreContext };
+
 export const useStore = () => {
   const context = useContext(StoreContext);
   if (!context) {
