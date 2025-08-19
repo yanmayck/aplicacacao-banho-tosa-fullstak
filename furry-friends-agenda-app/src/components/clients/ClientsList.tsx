@@ -22,9 +22,9 @@ const ClientsList: React.FC = () => {
   const [editingClient, setEditingClient] = useState<Client | undefined>(undefined);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
 
-  const filteredClients = clients.filter(client => 
+  const filteredClients = clients ? clients.filter(client => 
     client.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) : [];
   
   const handleEditClient = (client: Client) => {
     if (!isAdmin()) {
@@ -73,7 +73,7 @@ const ClientsList: React.FC = () => {
   if (isLoading) {
     return (
       <Layout activePage="clients" setActivePage={() => {}}>
-        <div className="flex justify-center items-center h-full">
+        <div className="flex justify-center items-center h-full" data-testid="loader">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </Layout>
@@ -170,8 +170,9 @@ const ClientsList: React.FC = () => {
                                 size="sm" 
                                 variant="outline" 
                                 onClick={() => handleEditClient(client)}
-                                disabled={!isAdmin()}
+
                                 title={!isAdmin() ? "Apenas administradores podem editar" : ""}
+                                data-testid="edit-button"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -179,8 +180,9 @@ const ClientsList: React.FC = () => {
                                 size="sm" 
                                 variant="destructive" 
                                 onClick={() => handleDeleteClient(client.id)}
-                                disabled={!isAdmin()}
+
                                 title={!isAdmin() ? "Apenas administradores podem excluir" : ""}
+                                data-testid="delete-button"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

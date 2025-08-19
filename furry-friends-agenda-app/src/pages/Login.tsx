@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -25,15 +24,15 @@ const Login: React.FC = () => {
       return;
     }
     
-    const success = login(email, password);
-    
-    if (!success) {
-      toast({
-        title: "Erro de autenticação",
-        description: "Usuário ou senha incorretos.",
-        variant: "destructive"
-      });
-    }
+    login(email, password).then(success => {
+        if (!success) {
+            toast({
+              title: "Erro de autenticação",
+              description: "Usuário ou senha incorretos.",
+              variant: "destructive"
+            });
+          }
+    });
   };
   
   return (
