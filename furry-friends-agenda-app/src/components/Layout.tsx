@@ -45,7 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activePage, setActivePage }) 
   ];
   
   // Adicionar item de menu Relatórios apenas para administradores
-  if (isAdmin) {
+  if (isAdmin()) {
     menuItems.push({ id: "reports", label: "Relatórios", icon: <BarChart className="h-4 w-4" /> });
   }
 

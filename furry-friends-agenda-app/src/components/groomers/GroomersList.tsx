@@ -168,7 +168,7 @@ const GroomersList: React.FC = () => {
                             <Button size="sm" variant="outline" onClick={() => handleEditGroomer(groomer)}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteGroomer(groomer.id)}>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteGroomer(groomer.id)} aria-label={`Excluir ${groomer.name}`}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </>

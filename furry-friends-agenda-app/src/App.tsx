@@ -50,7 +50,7 @@ const AppContent = () => {
         <Route path="/banho-tosa" element={<ProtectedRoute><BanhoTosa /></ProtectedRoute>} />
         <Route path="/reports" element={
           <ProtectedRoute>
-            {isAdmin ? <Reports /> : <Navigate to="/" replace />}
+            {isAdmin() ? <Reports /> : <Navigate to="/" replace />}
           </ProtectedRoute>
         } />
         

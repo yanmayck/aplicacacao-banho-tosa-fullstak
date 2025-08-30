@@ -118,7 +118,7 @@ const PackagesList: React.FC = () => {
                         <Button size="sm" variant="outline" onClick={() => handleEditPackage(pkg)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDeletePackage(pkg.id)}>
+                        <Button size="sm" variant="destructive" onClick={() => handleDeletePackage(pkg.id)} aria-label={`Excluir ${pkg.name}`}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
