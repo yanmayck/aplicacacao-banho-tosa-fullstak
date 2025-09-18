@@ -5,7 +5,7 @@ import { Pet } from '@prisma/client';
 export declare class PetsService {
     private prisma;
     constructor(prisma: PrismaService);
-    create(createPetDto: CreatePetDto): Promise<Pet>;
+    create(createPetDto: CreatePetDto, userId: string): Promise<Pet>;
     findAllByOwner(clientId: string): Promise<Pet[]>;
     findOneByOwner(id: string, clientId: string): Promise<Pet | null>;
     update(id: string, updatePetDto: UpdatePetDto, clientId: string): Promise<Pet>;

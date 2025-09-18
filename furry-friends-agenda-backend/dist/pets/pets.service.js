@@ -17,11 +17,17 @@ let PetsService = class PetsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async create(createPetDto) {
+    async create(createPetDto, userId) {
+        const client = await this.prisma.client.findUnique({
+            where: { userId },
+        });
+        if (!client) {
+            throw new common_1.NotFoundException(`Client for user ID "${userId}" not found. Cannot create pet.`);
+        }
         const { clientId, ...petData } = createPetDto;
         const data = {
             ...petData,
-            client: { connect: { id: clientId } },
+            client: { connect: { id: client.id } },
             lastTickMedicine: petData.lastTickMedicine ? (JSON.parse(JSON.stringify(petData.lastTickMedicine))) : undefined,
             rabiesVaccine: petData.rabiesVaccine ? (JSON.parse(JSON.stringify(petData.rabiesVaccine))) : undefined,
             vaccineHistory: petData.vaccineHistory ? (JSON.parse(JSON.stringify(petData.vaccineHistory))) : undefined,

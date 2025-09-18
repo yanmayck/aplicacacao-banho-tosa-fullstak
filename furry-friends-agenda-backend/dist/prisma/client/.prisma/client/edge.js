@@ -246,7 +246,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\yan\\Desktop\\aprender_js\\petshop\\aplicacacao-banho-tosa-fullstak\\furry-friends-agenda-backend\\node_modules\\@prisma\\client",
+      "value": "C:\\Users\\Dog Center\\Desktop\\aplicacao-banho_e_tosa\\fullstack\\aplicacacao-banho-tosa-fullstak\\furry-friends-agenda-backend\\node_modules\\@prisma\\client",
       "fromEnvVar": null
     },
     "config": {
@@ -264,7 +264,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\yan\\Desktop\\aprender_js\\petshop\\aplicacacao-banho-tosa-fullstak\\furry-friends-agenda-backend\\prisma\\schema.prisma"
+    "sourceFilePath": "C:\\Users\\Dog Center\\Desktop\\aplicacao-banho_e_tosa\\fullstack\\aplicacacao-banho-tosa-fullstak\\furry-friends-agenda-backend\\prisma\\schema.prisma"
   },
   "relativeEnvPaths": {
     "rootEnvPath": null

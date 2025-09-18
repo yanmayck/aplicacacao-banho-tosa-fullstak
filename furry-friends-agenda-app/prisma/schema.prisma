@@ -1,11 +1,10 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
+  // output   = "../node_modules/.prisma/client" // Removido para usar o default
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -18,59 +17,91 @@ model User {
   email     String   @unique
   password  String
   name      String?
-  role      UserRole @default(USER)
+  role      UserRole @default(USER) // Alterado de roles String[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  // Relação com Client (um User pode ser um Client)
+  client    Client?
 }
 
+// Novo Enum UserRole (como no frontend)
 enum UserRole {
   USER
   ADMIN
 }
 
+// Novo Modelo Client (como no frontend)
 model Client {
   id           String        @id @default(cuid())
   name         String
   phone        String?
-  email        String?       @unique
+  email        String?       @unique // Pode ser diferente do User.email ou o mesmo se logado
   address      String?
   pets         Pet[]
   appointments Appointment[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+
+  // Opcional: se um cliente está associado a uma conta de usuário do sistema
+  userId       String?       @unique
+  user         User?         @relation(fields: [userId], references: [id])
 }
 
 model Pet {
-  id            String        @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String
-  species       String // Ex: "Cachorro", "Gato"
+  species       String
   breed         String?
-  birthDate     DateTime?
+  birthDate     String?
   clientId      String
-  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client        Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   appointments  Appointment[]
   observations  String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+
+  // Campos adicionados para alinhar com o frontend
+  foodType      String?   
+  lastTickMedicine Json?     // { "name": "string", "date": "string" }
+  rabiesVaccine    Json?     // { "isUpToDate": boolean, "lastDate": "string" }
+  vaccineHistory   Json[]    // Array de { "name": "string", "date": "string" }
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
+// Novo Modelo Groomer (como no frontend)
 model Groomer {
-  id           String        @id @default(cuid())
-  name         String
-  phone        String?
-  email        String?       @unique
-  specialties  String[] // e.g., ["Tosa Bebê", "Banho Terapêutico"]
-  appointments Appointment[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id                    String        @id @default(cuid())
+  name                  String
+  phone                 String?
+  email                 String?       @unique
+  specialties           String[]
+  status                String        @default("available") // "available" or "busy"
+  commissionPercentage  Float         @default(20)
+  appointments          Appointment[]
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 }
 
-model Service {
+model Package {
+    id              String @id @default(cuid())
+    name            String
+    description     String?
+    includesBaths   Int
+    includesGrooming Boolean
+    includesHydration Boolean
+    basePrice       Float
+    pickupPrice     Float
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+}
+
+// Renomeado de ServiceType para Service e ajustado (como no frontend)
+model ServicePackage {
   id                 String                 @id @default(cuid())
   name               String                 @unique
   description        String?
   price              Float
-  durationMin        Int // Duração em minutos
+  durationMin        Int
   appointmentServices AppointmentService[]
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
@@ -78,43 +109,48 @@ model Service {
 
 model Appointment {
   id           String                 @id @default(cuid())
-  dateTime     DateTime
-  status       AppointmentStatus      @default(SCHEDULED)
+  dateTime     DateTime               // Renomeado de appointmentDateTime
+  status       AppointmentStatus      @default(SCHEDULED) // Alterado de String e adicionado enum
   notes        String?
-  totalPrice   Float
+  totalPrice   Float                  // Adicionado
 
   clientId     String
   client       Client                 @relation(fields: [clientId], references: [id])
   petId        String
   pet          Pet                    @relation(fields: [petId], references: [id])
-  groomerId    String
-  groomer      Groomer                @relation(fields: [groomerId], references: [id])
+  groomerId    String?
+  groomer      Groomer?                @relation(fields: [groomerId], references: [id]) // Adicionado
 
-  appointmentServices AppointmentService[]
+  appointmentServices AppointmentService[] // Adicionado para relação N-N com Service
 
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
+
+  // Removida relação direta com ServiceType:
+  // serviceType         ServiceType @relation(fields: [serviceTypeId], references: [id])
+  // serviceTypeId       String
 }
 
-// Tabela de junção para Appointment e Service (muitos-para-muitos)
+// Novo: Tabela de junção para Appointment e Service (como no frontend)
 model AppointmentService {
   id            String      @id @default(cuid())
   appointmentId String
   appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   serviceId     String
-  service       Service     @relation(fields: [serviceId], references: [id])
+  service       ServicePackage     @relation(fields: [serviceId], references: [id])
   priceAtTime   Float // Preço do serviço no momento do agendamento
   quantity      Int         @default(1)
 
-  @@unique([appointmentId, serviceId]) // Garante que um serviço não seja adicionado duas vezes ao mesmo agendamento
+  @@unique([appointmentId, serviceId])
   createdAt DateTime @default(now())
 }
 
+// Novo Enum AppointmentStatus (como no frontend)
 enum AppointmentStatus {
-  SCHEDULED // Agendado
-  CONFIRMED // Confirmado pelo cliente/admin
-  IN_PROGRESS // Em andamento
-  COMPLETED // Concluído
-  CANCELLED // Cancelado
-  NO_SHOW   // Não compareceu
-} 
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}

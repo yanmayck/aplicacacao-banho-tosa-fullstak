@@ -27,7 +27,7 @@ let PetsController = class PetsController {
         this.petsService = petsService;
     }
     create(createPetDto, req) {
-        return this.petsService.create({ ...createPetDto, clientId: req.user.userId });
+        return this.petsService.create(createPetDto, req.user.userId);
     }
     findAll(req) {
         return this.petsService.findAllByOwner(req.user.userId);
