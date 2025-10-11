@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +16,8 @@ async function bootstrap() {
       },
     }),
   );
+
+  app.useGlobalFilters(new PrismaExceptionFilter());
 
   const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:8080'];
   const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS

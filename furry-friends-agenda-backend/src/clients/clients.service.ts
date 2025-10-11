@@ -27,27 +27,15 @@ export class ClientsService {
   }
 
   async update(id: string, updateClientDto: UpdateClientDto): Promise<Client> {
-    try {
-      return await this.prisma.client.update({
-        where: { id },
-        data: updateClientDto,
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new NotFoundException(`Client with ID "${id}" not found`);
-      }
-      throw error;
-    }
+    // O PrismaExceptionFilter global irá capturar o erro P2025 se o cliente não for encontrado
+    return this.prisma.client.update({
+      where: { id },
+      data: updateClientDto,
+    });
   }
 
   async remove(id: string): Promise<Client> {
-     try {
-      return await this.prisma.client.delete({ where: { id } });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new NotFoundException(`Client with ID "${id}" not found`);
-      }
-      throw error;
-    }
+    // O PrismaExceptionFilter global irá capturar o erro P2025 se o cliente não for encontrado
+    return this.prisma.client.delete({ where: { id } });
   }
 }
