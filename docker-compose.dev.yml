@@ -3,7 +3,7 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine # Usando uma imagem PostgreSQL mais recente
-    container_name: furry_friends_db
+    container_name: furry_friends_db_dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER?ERRO_POSTGRES_USER_NAO_DEFINIDO_NO_ENV}
@@ -12,7 +12,7 @@ services:
     ports:
       - "5433:5432" # Mapeia a porta do container para o host
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
     networks:
       - furry_friends_network
 
@@ -20,24 +20,23 @@ services:
     build:
       context: ./furry-friends-agenda-backend # Caminho para o Dockerfile do backend
       dockerfile: Dockerfile
-    container_name: furry_friends_backend
+      target: development # Usa o estágio de desenvolvimento para hot-reloading
+    container_name: furry_friends_backend_dev
     restart: unless-stopped
     env_file:
       - .env # Use the root .env file
     depends_on:
-      db: # Espera o serviço db estar saudável antes de iniciar
-        condition: service_started # Para um healthcheck mais robusto, o db precisaria de um script de healthcheck
+      db:
+        condition: service_started
     environment:
-      NODE_ENV: ${NODE_ENV:-development} # Default to development if not set
-      PORT: ${BACKEND_PORT:-3333} # Default backend port
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${BACKEND_PORT:-3333}
       DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
       JWT_SECRET: ${JWT_SECRET?ERRO_JWT_SECRET_NAO_DEFINIDO_NO_ENV}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN?ERRO_JWT_EXPIRES_IN_NAO_DEFINIDO_NO_ENV}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8080,http://localhost:5173,http://127.0.0.1:8080,http://frontend:8080} # Added 127.0.0.1 and frontend service name
-      # Prisma specific env var, if needed for migrations in entrypoint script
-      # PRISMA_MIGRATE_EXPERIMENTAL: 'true' # Se for usar migrate no entrypoint
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8080,http://localhost:5173,http://127.0.0.1:8080,http://frontend:8080}
     ports:
-      - "${BACKEND_PORT:-3333}:${BACKEND_PORT:-3333}" # Map to host, use default if not set
+      - "${BACKEND_PORT:-3333}:${BACKEND_PORT:-3333}"
     volumes:
       # Mount source code for development to enable hot-reloading for the backend
       - ./furry-friends-agenda-backend:/usr/src/app
@@ -45,19 +44,13 @@ services:
       - /usr/src/app/node_modules
     networks:
       - furry_friends_network
-    # For development, use a command that supports hot-reloading (e.g., `npm run start:dev`)
-    # The Dockerfile CMD will be used if not overridden here.
-    # For NestJS, `npm run start:dev` is common.
-    # command: ["npm", "run", "start:dev"] # This requires devDependencies to be in the production image or a dev stage.
-                                         # The current backend Dockerfile prunes devDependencies.
-                                         # For dev, it's better to run `npm install` in the container with volumes.
 
   frontend:
     build:
       context: ./furry-friends-agenda-app
       dockerfile: Dockerfile
       target: development-server # Use the development-server stage from the Dockerfile
-    container_name: furry_friends_frontend
+    container_name: furry_friends_frontend_dev
     env_file:
       - .env # Use the root .env file
     ports:
@@ -68,13 +61,7 @@ services:
       # Prevent node_modules from host overwriting container's node_modules
       - /app/node_modules
     environment:
-      # Important: Use the backend service name for API calls from within Docker network
-      # VITE_API_BASE_URL is now sourced from the root .env file, but we need to ensure it's correctly set for Docker internal communication.
-      # The value in .env might be http://localhost:3333, which won't work from container to container.
-      # VITE_API_BASE_URL should be defined in the .env file to point to the correct backend URL
-      # accessible from the user's browser (e.g., http://localhost:3333 or Codespace URL).
-      # Forcing http://backend:... here makes it unusable from the browser.
-      NODE_ENV: ${NODE_ENV:-development} # Source from .env, default to development
+      NODE_ENV: ${NODE_ENV:-development}
       # CHOKIDAR_USEPOLLING: "true" # Uncomment if HMR isn't working in some environments
     depends_on:
       - backend
@@ -85,7 +72,8 @@ services:
     build:
       context: ./furry-friends-agenda-backend
       dockerfile: Dockerfile
-    container_name: furry_friends_studio
+      target: development # Prisma Studio needs dev dependencies
+    container_name: furry_friends_studio_dev
     env_file:
       - .env
     ports:
@@ -101,4 +89,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data: # Volume nomeado para persistir dados do PostgreSQL 
+  postgres_data_dev: # Volume para desenvolvimento

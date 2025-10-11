@@ -1,5 +1,27 @@
 # Dockerfile para Furry Friends Agenda Backend
 
+# ---- Estágio de Desenvolvimento ----
+FROM node:20-slim AS development
+
+WORKDIR /usr/src/app
+
+# Instalar dependências do sistema para o Prisma (libssl)
+RUN apt-get update -y && apt-get install -y openssl libssl-dev
+
+# Copiar package.json e package-lock.json
+COPY package*.json ./
+
+# Instalar todas as dependências (incluindo devDependencies)
+# Isso garante que ferramentas como o NestJS CLI em modo watch funcionem
+RUN npm install
+
+# Copiar o restante do código-fonte (será sobreposto pelo volume no docker-compose, mas é bom ter para consistência)
+COPY . .
+
+# Comando para iniciar em modo de desenvolvimento com hot-reload
+CMD ["npm", "run", "start:dev"]
+
+
 # ---- Estágio de Build ----
 FROM node:20-slim AS builder
 
