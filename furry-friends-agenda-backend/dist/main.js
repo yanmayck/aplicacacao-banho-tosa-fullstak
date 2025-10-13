@@ -44,7 +44,7 @@ async function bootstrap() {
         credentials: true,
     });
     const port = process.env.PORT || 3333;
-    await app.listen(port, 'localhost');
+    await app.listen(port, '0.0.0.0');
     console.log(`Application is running on: ${await app.getUrl()} - accessible externally if port is mapped.`);
 }
 bootstrap().catch((err) => {

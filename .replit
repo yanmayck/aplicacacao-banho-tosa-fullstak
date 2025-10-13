@@ -30,9 +30,18 @@ waitForPort = 5000
 outputType = "webview"
 
 [[ports]]
+localPort = 3333
+externalPort = 3001
+
+[[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
 localPort = 33709
 externalPort = 3000
+
+[deployment]
+deploymentTarget = "vm"
+run = ["bash", "start.sh"]
+build = ["bash", "-c", "cd furry-friends-agenda-backend && npm run build"]

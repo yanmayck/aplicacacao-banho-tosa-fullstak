@@ -1,6 +1,18 @@
 import { useAuth } from '@/context/AuthContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3333';
+// Determine API base URL based on environment
+const getApiBaseUrl = () => {
+  // If explicitly set in environment, use that
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Use /api prefix which will be proxied by Vite dev server to backend
+  // In production, this should be configured to point to the deployed backend
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Função para obter o token de autenticação
 const getAuthToken = () => {
