@@ -14,7 +14,7 @@ export declare class PetsController {
         updatedAt: Date;
         species: string;
         breed: string | null;
-        birthDate: Date | null;
+        birthDate: string | null;
         observations: string | null;
         foodType: string | null;
         lastTickMedicine: import("@prisma/client/runtime/library").JsonValue | null;
@@ -31,7 +31,7 @@ export declare class PetsController {
         updatedAt: Date;
         species: string;
         breed: string | null;
-        birthDate: Date | null;
+        birthDate: string | null;
         observations: string | null;
         foodType: string | null;
         lastTickMedicine: import("@prisma/client/runtime/library").JsonValue | null;
@@ -48,7 +48,7 @@ export declare class PetsController {
         updatedAt: Date;
         species: string;
         breed: string | null;
-        birthDate: Date | null;
+        birthDate: string | null;
         observations: string | null;
         foodType: string | null;
         lastTickMedicine: import("@prisma/client/runtime/library").JsonValue | null;
@@ -65,7 +65,7 @@ export declare class PetsController {
         updatedAt: Date;
         species: string;
         breed: string | null;
-        birthDate: Date | null;
+        birthDate: string | null;
         observations: string | null;
         foodType: string | null;
         lastTickMedicine: import("@prisma/client/runtime/library").JsonValue | null;
@@ -82,7 +82,7 @@ export declare class PetsController {
         updatedAt: Date;
         species: string;
         breed: string | null;
-        birthDate: Date | null;
+        birthDate: string | null;
         observations: string | null;
         foodType: string | null;
         lastTickMedicine: import("@prisma/client/runtime/library").JsonValue | null;

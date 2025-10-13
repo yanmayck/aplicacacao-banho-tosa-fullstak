@@ -3980,7 +3980,7 @@ export namespace Prisma {
     name: string | null
     species: string | null
     breed: string | null
-    birthDate: Date | null
+    birthDate: string | null
     clientId: string | null
     observations: string | null
     foodType: string | null
@@ -3993,7 +3993,7 @@ export namespace Prisma {
     name: string | null
     species: string | null
     breed: string | null
-    birthDate: Date | null
+    birthDate: string | null
     clientId: string | null
     observations: string | null
     foodType: string | null
@@ -4139,7 +4139,7 @@ export namespace Prisma {
     name: string
     species: string
     breed: string | null
-    birthDate: Date | null
+    birthDate: string | null
     clientId: string
     observations: string | null
     foodType: string | null
@@ -4260,7 +4260,7 @@ export namespace Prisma {
       name: string
       species: string
       breed: string | null
-      birthDate: Date | null
+      birthDate: string | null
       clientId: string
       observations: string | null
       foodType: string | null
@@ -4698,7 +4698,7 @@ export namespace Prisma {
     readonly name: FieldRef<"Pet", 'String'>
     readonly species: FieldRef<"Pet", 'String'>
     readonly breed: FieldRef<"Pet", 'String'>
-    readonly birthDate: FieldRef<"Pet", 'DateTime'>
+    readonly birthDate: FieldRef<"Pet", 'String'>
     readonly clientId: FieldRef<"Pet", 'String'>
     readonly observations: FieldRef<"Pet", 'String'>
     readonly foodType: FieldRef<"Pet", 'String'>
@@ -11314,7 +11314,7 @@ export namespace Prisma {
     name?: StringFilter<"Pet"> | string
     species?: StringFilter<"Pet"> | string
     breed?: StringNullableFilter<"Pet"> | string | null
-    birthDate?: DateTimeNullableFilter<"Pet"> | Date | string | null
+    birthDate?: StringNullableFilter<"Pet"> | string | null
     clientId?: StringFilter<"Pet"> | string
     observations?: StringNullableFilter<"Pet"> | string | null
     foodType?: StringNullableFilter<"Pet"> | string | null
@@ -11353,7 +11353,7 @@ export namespace Prisma {
     name?: StringFilter<"Pet"> | string
     species?: StringFilter<"Pet"> | string
     breed?: StringNullableFilter<"Pet"> | string | null
-    birthDate?: DateTimeNullableFilter<"Pet"> | Date | string | null
+    birthDate?: StringNullableFilter<"Pet"> | string | null
     clientId?: StringFilter<"Pet"> | string
     observations?: StringNullableFilter<"Pet"> | string | null
     foodType?: StringNullableFilter<"Pet"> | string | null
@@ -11393,7 +11393,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Pet"> | string
     species?: StringWithAggregatesFilter<"Pet"> | string
     breed?: StringNullableWithAggregatesFilter<"Pet"> | string | null
-    birthDate?: DateTimeNullableWithAggregatesFilter<"Pet"> | Date | string | null
+    birthDate?: StringNullableWithAggregatesFilter<"Pet"> | string | null
     clientId?: StringWithAggregatesFilter<"Pet"> | string
     observations?: StringNullableWithAggregatesFilter<"Pet"> | string | null
     foodType?: StringNullableWithAggregatesFilter<"Pet"> | string | null
@@ -11947,7 +11947,7 @@ export namespace Prisma {
     name: string
     species: string
     breed?: string | null
-    birthDate?: Date | string | null
+    birthDate?: string | null
     observations?: string | null
     foodType?: string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue
@@ -11964,7 +11964,7 @@ export namespace Prisma {
     name: string
     species: string
     breed?: string | null
-    birthDate?: Date | string | null
+    birthDate?: string | null
     clientId: string
     observations?: string | null
     foodType?: string | null
@@ -11981,7 +11981,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     species?: StringFieldUpdateOperationsInput | string
     breed?: NullableStringFieldUpdateOperationsInput | string | null
-    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthDate?: NullableStringFieldUpdateOperationsInput | string | null
     observations?: NullableStringFieldUpdateOperationsInput | string | null
     foodType?: NullableStringFieldUpdateOperationsInput | string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue
@@ -11998,7 +11998,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     species?: StringFieldUpdateOperationsInput | string
     breed?: NullableStringFieldUpdateOperationsInput | string | null
-    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthDate?: NullableStringFieldUpdateOperationsInput | string | null
     clientId?: StringFieldUpdateOperationsInput | string
     observations?: NullableStringFieldUpdateOperationsInput | string | null
     foodType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -12015,7 +12015,7 @@ export namespace Prisma {
     name: string
     species: string
     breed?: string | null
-    birthDate?: Date | string | null
+    birthDate?: string | null
     clientId: string
     observations?: string | null
     foodType?: string | null
@@ -12031,7 +12031,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     species?: StringFieldUpdateOperationsInput | string
     breed?: NullableStringFieldUpdateOperationsInput | string | null
-    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthDate?: NullableStringFieldUpdateOperationsInput | string | null
     observations?: NullableStringFieldUpdateOperationsInput | string | null
     foodType?: NullableStringFieldUpdateOperationsInput | string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue
@@ -12046,7 +12046,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     species?: StringFieldUpdateOperationsInput | string
     breed?: NullableStringFieldUpdateOperationsInput | string | null
-    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthDate?: NullableStringFieldUpdateOperationsInput | string | null
     clientId?: StringFieldUpdateOperationsInput | string
     observations?: NullableStringFieldUpdateOperationsInput | string | null
     foodType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -12668,17 +12668,6 @@ export namespace Prisma {
     updatedAt?: SortOrder
     userId?: SortOrder
   }
-
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
   export type JsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -12762,20 +12751,6 @@ export namespace Prisma {
     foodType?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
   export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -13320,10 +13295,6 @@ export namespace Prisma {
     connect?: AppointmentWhereUniqueInput | AppointmentWhereUniqueInput[]
   }
 
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
-  }
-
   export type PetUpdatevaccineHistoryInput = {
     set?: InputJsonValue[]
     push?: InputJsonValue | InputJsonValue[]
@@ -13721,31 +13692,6 @@ export namespace Prisma {
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
-
-  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
-  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
-  }
   export type NestedJsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -13912,7 +13858,7 @@ export namespace Prisma {
     name: string
     species: string
     breed?: string | null
-    birthDate?: Date | string | null
+    birthDate?: string | null
     observations?: string | null
     foodType?: string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue
@@ -13928,7 +13874,7 @@ export namespace Prisma {
     name: string
     species: string
     breed?: string | null
-    birthDate?: Date | string | null
+    birthDate?: string | null
     observations?: string | null
     foodType?: string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue
@@ -14034,7 +13980,7 @@ export namespace Prisma {
     name?: StringFilter<"Pet"> | string
     species?: StringFilter<"Pet"> | string
     breed?: StringNullableFilter<"Pet"> | string | null
-    birthDate?: DateTimeNullableFilter<"Pet"> | Date | string | null
+    birthDate?: StringNullableFilter<"Pet"> | string | null
     clientId?: StringFilter<"Pet"> | string
     observations?: StringNullableFilter<"Pet"> | string | null
     foodType?: StringNullableFilter<"Pet"> | string | null
@@ -14364,7 +14310,7 @@ export namespace Prisma {
     name: string
     species: string
     breed?: string | null
-    birthDate?: Date | string | null
+    birthDate?: string | null
     observations?: string | null
     foodType?: string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue
@@ -14380,7 +14326,7 @@ export namespace Prisma {
     name: string
     species: string
     breed?: string | null
-    birthDate?: Date | string | null
+    birthDate?: string | null
     clientId: string
     observations?: string | null
     foodType?: string | null
@@ -14502,7 +14448,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     species?: StringFieldUpdateOperationsInput | string
     breed?: NullableStringFieldUpdateOperationsInput | string | null
-    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthDate?: NullableStringFieldUpdateOperationsInput | string | null
     observations?: NullableStringFieldUpdateOperationsInput | string | null
     foodType?: NullableStringFieldUpdateOperationsInput | string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue
@@ -14518,7 +14464,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     species?: StringFieldUpdateOperationsInput | string
     breed?: NullableStringFieldUpdateOperationsInput | string | null
-    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthDate?: NullableStringFieldUpdateOperationsInput | string | null
     clientId?: StringFieldUpdateOperationsInput | string
     observations?: NullableStringFieldUpdateOperationsInput | string | null
     foodType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14709,7 +14655,7 @@ export namespace Prisma {
     name: string
     species: string
     breed?: string | null
-    birthDate?: Date | string | null
+    birthDate?: string | null
     observations?: string | null
     foodType?: string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue
@@ -14736,7 +14682,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     species?: StringFieldUpdateOperationsInput | string
     breed?: NullableStringFieldUpdateOperationsInput | string | null
-    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthDate?: NullableStringFieldUpdateOperationsInput | string | null
     observations?: NullableStringFieldUpdateOperationsInput | string | null
     foodType?: NullableStringFieldUpdateOperationsInput | string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue
@@ -14752,7 +14698,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     species?: StringFieldUpdateOperationsInput | string
     breed?: NullableStringFieldUpdateOperationsInput | string | null
-    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthDate?: NullableStringFieldUpdateOperationsInput | string | null
     observations?: NullableStringFieldUpdateOperationsInput | string | null
     foodType?: NullableStringFieldUpdateOperationsInput | string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue
@@ -14768,7 +14714,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     species?: StringFieldUpdateOperationsInput | string
     breed?: NullableStringFieldUpdateOperationsInput | string | null
-    birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthDate?: NullableStringFieldUpdateOperationsInput | string | null
     observations?: NullableStringFieldUpdateOperationsInput | string | null
     foodType?: NullableStringFieldUpdateOperationsInput | string | null
     lastTickMedicine?: NullableJsonNullValueInput | InputJsonValue

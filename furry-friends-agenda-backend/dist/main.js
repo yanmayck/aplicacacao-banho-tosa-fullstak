@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const common_1 = require("@nestjs/common");
+const prisma_exception_filter_1 = require("./prisma/prisma-exception.filter");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.useGlobalPipes(new common_1.ValidationPipe({
@@ -13,7 +14,16 @@ async function bootstrap() {
             enableImplicitConversion: true,
         },
     }));
-    const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:8080'];
+    app.useGlobalFilters(new prisma_exception_filter_1.PrismaExceptionFilter());
+    const replitDomain = process.env.REPLIT_DEV_DOMAIN;
+    const defaultAllowedOrigins = [
+        'http://localhost:5173',
+        'http://localhost:5000',
+        'http://localhost:8080'
+    ];
+    if (replitDomain) {
+        defaultAllowedOrigins.push(`https://${replitDomain}`);
+    }
     const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
         ? process.env.CORS_ALLOWED_ORIGINS.split(',')
         : defaultAllowedOrigins;
@@ -32,8 +42,8 @@ async function bootstrap() {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         credentials: true,
     });
-    const port = process.env.PORT || 3000;
-    await app.listen(port, '0.0.0.0');
+    const port = process.env.PORT || 3333;
+    await app.listen(port, 'localhost');
     console.log(`Application is running on: ${await app.getUrl()} - accessible externally if port is mapped.`);
 }
 bootstrap().catch((err) => {
