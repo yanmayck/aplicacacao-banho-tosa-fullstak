@@ -19,7 +19,17 @@ async function bootstrap() {
 
   app.useGlobalFilters(new PrismaExceptionFilter());
 
-  const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:8080'];
+  const replitDomain = process.env.REPLIT_DEV_DOMAIN;
+  const defaultAllowedOrigins = [
+    'http://localhost:5173', 
+    'http://localhost:5000',
+    'http://localhost:8080'
+  ];
+  
+  if (replitDomain) {
+    defaultAllowedOrigins.push(`https://${replitDomain}`);
+  }
+  
   const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
     ? process.env.CORS_ALLOWED_ORIGINS.split(',')
     : defaultAllowedOrigins;
@@ -40,8 +50,8 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port, '0.0.0.0'); // Listen on all network interfaces
+  const port = process.env.PORT || 3333;
+  await app.listen(port, 'localhost');
   console.log(`Application is running on: ${await app.getUrl()} - accessible externally if port is mapped.`);
 }
 bootstrap().catch((err) => {
