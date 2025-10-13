@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { Client, Pet, Groomer, Appointment, Package } from '@/context/models/types';
 
-<<<<<<< HEAD
 // Determine API base URL based on environment
 const getApiBaseUrl = () => {
   // If explicitly set in environment, use that
@@ -15,12 +14,11 @@ const getApiBaseUrl = () => {
 };
 
 const API_BASE_URL = getApiBaseUrl();
-=======
+
 // 1. Cria uma instância do Axios com configurações globais
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3333',
+  baseURL: API_BASE_URL,
 });
->>>>>>> acb8cde (Adiciona a biblioteca Axios e atualiza o package-lock.json)
 
 // 2. Adiciona um interceptor para injetar o token de autenticação em cada requisição
 api.interceptors.request.use(
