@@ -22,18 +22,18 @@ class CreateAppointmentDto {
 }
 exports.CreateAppointmentDto = CreateAppointmentDto;
 __decorate([
-    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateAppointmentDto.prototype, "petId", void 0);
 __decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.ArrayNotEmpty)(),
-    (0, class_validator_1.IsUUID)('all', { each: true }),
+    (0, class_validator_1.IsString)({ each: true }),
     __metadata("design:type", Array)
 ], CreateAppointmentDto.prototype, "serviceIds", void 0);
 __decorate([
-    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateAppointmentDto.prototype, "groomerId", void 0);

@@ -20,7 +20,7 @@ import { AppointmentStatus as PrismaAppointmentStatus } from '@prisma/client'; /
 // }
 
 export class CreateAppointmentDto {
-  @IsUUID() // Assumindo que petId é um UUID
+  @IsString()
   @IsNotEmpty()
   petId: string;
 
@@ -28,10 +28,10 @@ export class CreateAppointmentDto {
   // Adicionado serviceIds
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('all', { each: true }) // Validar cada ID no array como UUID
+  @IsString({ each: true })
   serviceIds: string[];
 
-  @IsUUID() // Assumindo que groomerId é um UUID
+  @IsString()
   @IsNotEmpty()
   groomerId: string;
 

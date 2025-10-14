@@ -47,7 +47,7 @@ export class AppointmentsController {
 
   @Get(':id')
   findOne(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @Request() req: { user: JwtPayload },
   ) {
     return this.appointmentsService.findOneByClient(id, req.user.userId);
@@ -56,7 +56,7 @@ export class AppointmentsController {
   @Patch(':id')
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
     @Request() req: { user: JwtPayload },
   ) {
@@ -71,7 +71,7 @@ export class AppointmentsController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
   remove(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @Request() req: { user: JwtPayload },
   ) {
     return this.appointmentsService.remove(id, req.user.userId);

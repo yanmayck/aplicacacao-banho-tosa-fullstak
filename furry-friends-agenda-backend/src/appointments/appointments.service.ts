@@ -8,14 +8,19 @@ import { Appointment, Prisma, AppointmentStatus as PrismaAppointmentStatus, Serv
 export class AppointmentsService {
     constructor(private prisma: PrismaService) { }
 
-    async create(createAppointmentDto: CreateAppointmentDto, currentClientId: string): Promise<Appointment> {
+    async create(createAppointmentDto: CreateAppointmentDto, userId: string): Promise<Appointment> {
         const { petId, serviceIds, dateTime, notes, groomerId, status } = createAppointmentDto;
+
+        const client = await this.prisma.client.findUnique({ where: { userId } });
+        if (!client) {
+            throw new NotFoundException(`Client for user ID "${userId}" not found.`);
+        }
 
         const pet = await this.prisma.pet.findUnique({ where: { id: petId } });
         if (!pet) {
             throw new NotFoundException(`Pet with ID "${petId}" not found.`);
         }
-        if (pet.clientId !== currentClientId) {
+        if (pet.clientId !== client.id) {
             throw new ForbiddenException('You can only create appointments for your own pets.');
         }
 
@@ -49,7 +54,7 @@ export class AppointmentsService {
                     status: status || PrismaAppointmentStatus.SCHEDULED,
                     totalPrice: calculatedTotalPrice,
                     pet: { connect: { id: petId } },
-                    client: { connect: { id: currentClientId } },
+                    client: { connect: { id: client.id } },
                     groomer: groomerId ? { connect: { id: groomerId } } : undefined,
                     appointmentServices: {
                         create: servicesToConnect.map(service => ({
@@ -77,9 +82,14 @@ export class AppointmentsService {
         }
     }
 
-    async findAllByClient(clientId: string): Promise<Appointment[]> {
+    async findAllByClient(userId: string): Promise<Appointment[]> {
+        const client = await this.prisma.client.findUnique({ where: { userId } });
+        if (!client) {
+            throw new NotFoundException(`Client for user ID "${userId}" not found.`);
+        }
+
         return this.prisma.appointment.findMany({
-            where: { clientId },
+            where: { clientId: client.id },
             include: {
                 pet: true,
                 groomer: true,
@@ -93,7 +103,12 @@ export class AppointmentsService {
         });
     }
 
-    async findOneByClient(id: string, clientId: string): Promise<Appointment | null> {
+    async findOneByClient(id: string, userId: string): Promise<Appointment | null> {
+        const client = await this.prisma.client.findUnique({ where: { userId } });
+        if (!client) {
+            throw new NotFoundException(`Client for user ID "${userId}" not found.`);
+        }
+
         const appointment = await this.prisma.appointment.findUnique({
             where: { id },
             include: {
@@ -111,7 +126,7 @@ export class AppointmentsService {
             throw new NotFoundException(`Appointment with ID "${id}" not found`);
         }
 
-        if (appointment.clientId !== clientId) {
+        if (appointment.clientId !== client.id) {
             throw new ForbiddenException('You are not allowed to access this appointment');
         }
         return appointment;
@@ -120,9 +135,9 @@ export class AppointmentsService {
     async update(
         id: string,
         updateAppointmentDto: UpdateAppointmentDto,
-        currentClientId: string,
+        userId: string,
     ): Promise<Appointment> {
-        const existingAppointment = await this.findOneByClient(id, currentClientId);
+        const existingAppointment = await this.findOneByClient(id, userId);
 
         const dataToUpdate: Prisma.AppointmentUpdateInput = {};
         if (updateAppointmentDto.dateTime) {
@@ -183,8 +198,8 @@ export class AppointmentsService {
         });
     }
 
-    async remove(id: string, clientId: string): Promise<Appointment> {
-        await this.findOneByClient(id, clientId);
+    async remove(id: string, userId: string): Promise<Appointment> {
+        await this.findOneByClient(id, userId);
         return this.prisma.appointment.delete({
             where: { id },
         });

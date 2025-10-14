@@ -18,13 +18,17 @@ let AppointmentsService = class AppointmentsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async create(createAppointmentDto, currentClientId) {
+    async create(createAppointmentDto, userId) {
         const { petId, serviceIds, dateTime, notes, groomerId, status } = createAppointmentDto;
+        const client = await this.prisma.client.findUnique({ where: { userId } });
+        if (!client) {
+            throw new common_1.NotFoundException(`Client for user ID "${userId}" not found.`);
+        }
         const pet = await this.prisma.pet.findUnique({ where: { id: petId } });
         if (!pet) {
             throw new common_1.NotFoundException(`Pet with ID "${petId}" not found.`);
         }
-        if (pet.clientId !== currentClientId) {
+        if (pet.clientId !== client.id) {
             throw new common_1.ForbiddenException('You can only create appointments for your own pets.');
         }
         if (groomerId) {
@@ -54,7 +58,7 @@ let AppointmentsService = class AppointmentsService {
                     status: status || client_1.AppointmentStatus.SCHEDULED,
                     totalPrice: calculatedTotalPrice,
                     pet: { connect: { id: petId } },
-                    client: { connect: { id: currentClientId } },
+                    client: { connect: { id: client.id } },
                     groomer: groomerId ? { connect: { id: groomerId } } : undefined,
                     appointmentServices: {
                         create: servicesToConnect.map(service => ({
@@ -82,9 +86,13 @@ let AppointmentsService = class AppointmentsService {
             throw new common_1.BadRequestException('Could not create appointment. Please check input data.');
         }
     }
-    async findAllByClient(clientId) {
+    async findAllByClient(userId) {
+        const client = await this.prisma.client.findUnique({ where: { userId } });
+        if (!client) {
+            throw new common_1.NotFoundException(`Client for user ID "${userId}" not found.`);
+        }
         return this.prisma.appointment.findMany({
-            where: { clientId },
+            where: { clientId: client.id },
             include: {
                 pet: true,
                 groomer: true,
@@ -97,7 +105,11 @@ let AppointmentsService = class AppointmentsService {
             orderBy: { dateTime: 'asc' },
         });
     }
-    async findOneByClient(id, clientId) {
+    async findOneByClient(id, userId) {
+        const client = await this.prisma.client.findUnique({ where: { userId } });
+        if (!client) {
+            throw new common_1.NotFoundException(`Client for user ID "${userId}" not found.`);
+        }
         const appointment = await this.prisma.appointment.findUnique({
             where: { id },
             include: {
@@ -113,13 +125,13 @@ let AppointmentsService = class AppointmentsService {
         if (!appointment) {
             throw new common_1.NotFoundException(`Appointment with ID "${id}" not found`);
         }
-        if (appointment.clientId !== clientId) {
+        if (appointment.clientId !== client.id) {
             throw new common_1.ForbiddenException('You are not allowed to access this appointment');
         }
         return appointment;
     }
-    async update(id, updateAppointmentDto, currentClientId) {
-        const existingAppointment = await this.findOneByClient(id, currentClientId);
+    async update(id, updateAppointmentDto, userId) {
+        const existingAppointment = await this.findOneByClient(id, userId);
         const dataToUpdate = {};
         if (updateAppointmentDto.dateTime) {
             dataToUpdate.dateTime = new Date(updateAppointmentDto.dateTime);
@@ -176,8 +188,8 @@ let AppointmentsService = class AppointmentsService {
             },
         });
     }
-    async remove(id, clientId) {
-        await this.findOneByClient(id, clientId);
+    async remove(id, userId) {
+        await this.findOneByClient(id, userId);
         return this.prisma.appointment.delete({
             where: { id },
         });
