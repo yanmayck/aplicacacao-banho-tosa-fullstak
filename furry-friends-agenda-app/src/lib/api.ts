@@ -1,5 +1,17 @@
 import axios from 'axios';
-import { Client, Pet, Groomer, Appointment, Package } from '@/context/models/types';
+import {
+  Client,
+  Pet,
+  Groomer,
+  Appointment,
+  Package,
+  Transaction,
+  FinancialCategory,
+  CashRegister,
+  FinancialReport,
+  FinancialSummary,
+  FinancialFilters
+} from '@/context/models/types';
 
 // Determine API base URL based on environment
 const getApiBaseUrl = () => {
@@ -149,4 +161,143 @@ export const packageApi = {
         const { data } = await api.patch(`/packages/${id}`, packageData);
         return data;
     }
+};
+
+// ========== FINANCIAL API ==========
+
+// Tipos para dados financeiros
+type CreateTransactionData = Omit<Transaction, 'id' | 'createdAt' | 'updatedAt' | 'category' | 'appointment' | 'groomer'>;
+type UpdateTransactionData = Partial<CreateTransactionData>;
+
+type CreateCategoryData = Omit<FinancialCategory, 'id' | 'createdAt' | 'updatedAt'>;
+type UpdateCategoryData = Partial<CreateCategoryData>;
+
+type CreateCashRegisterData = Omit<CashRegister, 'id' | 'createdAt' | 'updatedAt'>;
+
+export const financialApi = {
+  // ========== TRANSAÇÕES ==========
+  getTransactions: async (filters?: {
+    type?: string;
+    startDate?: string;
+    endDate?: string;
+    categoryId?: string;
+    groomerId?: string;
+  }): Promise<Transaction[]> => {
+    const params = new URLSearchParams();
+    if (filters?.type) params.append('type', filters.type);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+    if (filters?.categoryId) params.append('categoryId', filters.categoryId);
+    if (filters?.groomerId) params.append('groomerId', filters.groomerId);
+
+    const queryString = params.toString();
+    const { data } = await api.get(`/financial/transactions${queryString ? `?${queryString}` : ''}`);
+    return data;
+  },
+
+  getTransaction: async (id: string): Promise<Transaction> => {
+    const { data } = await api.get(`/financial/transactions/${id}`);
+    return data;
+  },
+
+  createTransaction: async (transactionData: CreateTransactionData): Promise<Transaction> => {
+    const { data } = await api.post('/financial/transactions', transactionData);
+    return data;
+  },
+
+  updateTransaction: async (id: string, transactionData: UpdateTransactionData): Promise<Transaction> => {
+    const { data } = await api.patch(`/financial/transactions/${id}`, transactionData);
+    return data;
+  },
+
+  deleteTransaction: async (id: string): Promise<void> => {
+    await api.delete(`/financial/transactions/${id}`);
+  },
+
+  // ========== CATEGORIAS ==========
+  getCategories: async (activeOnly = true): Promise<FinancialCategory[]> => {
+    const { data } = await api.get(`/financial/categories?activeOnly=${activeOnly}`);
+    return data;
+  },
+
+  getCategoriesByType: async (type: string): Promise<FinancialCategory[]> => {
+    const { data } = await api.get(`/financial/categories/type/${type}`);
+    return data;
+  },
+
+  createCategory: async (categoryData: CreateCategoryData): Promise<FinancialCategory> => {
+    const { data } = await api.post('/financial/categories', categoryData);
+    return data;
+  },
+
+  updateCategory: async (id: string, categoryData: UpdateCategoryData): Promise<FinancialCategory> => {
+    const { data } = await api.patch(`/financial/categories/${id}`, categoryData);
+    return data;
+  },
+
+  deleteCategory: async (id: string): Promise<void> => {
+    await api.delete(`/financial/categories/${id}`);
+  },
+
+  // ========== CONTROLE DE CAIXA ==========
+  getCashRegister: async (date: string): Promise<CashRegister> => {
+    const { data } = await api.get(`/financial/cash-register/${date}`);
+    return data;
+  },
+
+  createCashRegister: async (cashRegisterData: CreateCashRegisterData): Promise<CashRegister> => {
+    const { data } = await api.post('/financial/cash-register', cashRegisterData);
+    return data;
+  },
+
+  closeCashRegister: async (date: string, notes?: string): Promise<CashRegister> => {
+    const { data } = await api.patch(`/financial/cash-register/${date}/close`, { notes });
+    return data;
+  },
+
+  // ========== RELATÓRIOS ==========
+  getReport: async (filters: FinancialFilters): Promise<FinancialReport> => {
+    const params = new URLSearchParams();
+    if (filters.type) params.append('type', filters.type);
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    if (filters.categoryId) params.append('categoryId', filters.categoryId);
+    if (filters.groomerId) params.append('groomerId', filters.groomerId);
+    if (filters.groupBy) params.append('groupBy', filters.groupBy);
+    if (filters.sortBy) params.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+
+    const queryString = params.toString();
+    const { data } = await api.get(`/financial/reports?${queryString}`);
+    return data;
+  },
+
+  getSummary: async (startDate?: string, endDate?: string): Promise<FinancialSummary> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    const queryString = params.toString();
+    const { data } = await api.get(`/financial/reports/summary${queryString ? `?${queryString}` : ''}`);
+    return data;
+  },
+
+  // ========== DASHBOARD ==========
+  getDashboardSummary: async (days?: number): Promise<FinancialSummary> => {
+    const params = days ? `?days=${days}` : '';
+    const { data } = await api.get(`/financial/dashboard/summary${params}`);
+    return data;
+  },
+
+  getRecentTransactions: async (limit?: number): Promise<Transaction[]> => {
+    const params = limit ? `?limit=${limit}` : '';
+    const { data } = await api.get(`/financial/dashboard/recent-transactions${params}`);
+    return data;
+  },
+
+  // ========== RECEITAS AUTOMÁTICAS ==========
+  createAutomaticIncome: async (appointmentId: string): Promise<Transaction> => {
+    const { data } = await api.post(`/financial/appointments/${appointmentId}/automatic-income`);
+    return data;
+  },
 };

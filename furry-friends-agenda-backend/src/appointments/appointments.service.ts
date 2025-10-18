@@ -3,10 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Appointment, Prisma, AppointmentStatus as PrismaAppointmentStatus, ServicePackage } from '@prisma/client';
+import { FinancialService } from '../financial/financial.service';
 
 @Injectable()
 export class AppointmentsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private financialService: FinancialService
+    ) { }
 
     async create(createAppointmentDto: CreateAppointmentDto, currentClientId: string): Promise<Appointment> {
         const { petId, serviceIds, dateTime, notes, groomerId, status } = createAppointmentDto;
@@ -188,5 +192,81 @@ export class AppointmentsService {
         return this.prisma.appointment.delete({
             where: { id },
         });
+    }
+
+    // ========== INTEGRAÇÃO FINANCEIRA ==========
+
+    async updateAppointmentStatus(
+        id: string,
+        status: PrismaAppointmentStatus,
+        currentClientId: string,
+    ): Promise<Appointment> {
+        const existingAppointment = await this.findOneByClient(id, currentClientId);
+
+        // Atualizar status do agendamento
+        const updatedAppointment = await this.prisma.appointment.update({
+            where: { id },
+            data: { status },
+            include: {
+                pet: true,
+                client: true,
+                groomer: true,
+                appointmentServices: {
+                    include: {
+                        service: true,
+                    },
+                },
+            },
+        });
+
+        // Se o agendamento foi concluído, criar receita automática
+        if (status === PrismaAppointmentStatus.COMPLETED) {
+            try {
+                await this.financialService.createAutomaticIncomeFromAppointment(id);
+                console.log(`Receita automática criada para agendamento ${id}`);
+            } catch (error) {
+                console.error(`Erro ao criar receita automática para agendamento ${id}:`, error);
+                // Não falhar a operação principal se a receita automática falhar
+            }
+        }
+
+        return updatedAppointment;
+    }
+
+    async getAppointmentFinancialSummary(appointmentId: string): Promise<{
+        appointment: Appointment;
+        estimatedRevenue: number;
+        commission: number;
+        netRevenue: number;
+    }> {
+        const appointment = await this.prisma.appointment.findUnique({
+            where: { id: appointmentId },
+            include: {
+                pet: true,
+                client: true,
+                groomer: true,
+                appointmentServices: {
+                    include: {
+                        service: true,
+                    },
+                },
+            },
+        });
+
+        if (!appointment) {
+            throw new NotFoundException(`Agendamento com ID "${appointmentId}" não encontrado`);
+        }
+
+        const estimatedRevenue = appointment.totalPrice;
+        const commissionPercentage = appointment.groomer?.commissionPercentage || 0;
+        const commission = estimatedRevenue * (commissionPercentage / 100);
+        const netRevenue = estimatedRevenue - commission;
+
+        return {
+            appointment,
+            estimatedRevenue,
+            commission,
+            netRevenue,
+        };
     }
 }

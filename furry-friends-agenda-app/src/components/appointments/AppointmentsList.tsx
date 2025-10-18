@@ -10,6 +10,8 @@ import { PointsEditDialog } from "./PointsEditDialog";
 import { AppointmentFilters } from "./filters/AppointmentFilters";
 import { AppointmentsTable } from "./table/AppointmentsTable";
 import { useAppointmentsFilter } from "./hooks/useAppointmentsFilter";
+import { usePagination } from "@/hooks/usePagination";
+import { Pagination } from "@/components/ui/pagination-component";
 
 const AppointmentsList: React.FC = () => {
   const { 
@@ -28,6 +30,18 @@ const AppointmentsList: React.FC = () => {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   
   const { filteredAppointments, ...filterProps } = useAppointmentsFilter();
+
+  // Pagination logic
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    hasNextPage,
+    hasPrevPage,
+    totalItems,
+    itemsPerPage,
+  } = usePagination({ data: filteredAppointments, itemsPerPage: 10 });
 
   const handleEditAppointment = (appointment: any) => {
     setEditingAppointment(appointment);
@@ -101,13 +115,23 @@ const AppointmentsList: React.FC = () => {
               </Button>
             </div>
             
-            <AppointmentsTable 
-              filteredAppointments={filteredAppointments}
+            <AppointmentsTable
+              filteredAppointments={paginatedData}
               handleEditAppointment={handleEditAppointment}
               handleDeleteAppointment={handleDeleteAppointment}
               handleStatusChange={handleStatusChange}
               handleAutoAssign={handleAutoAssign}
               handleEditPoints={handleEditPoints}
+            />
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              hasNextPage={hasNextPage}
+              hasPrevPage={hasPrevPage}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
             />
             
             <PointsEditDialog

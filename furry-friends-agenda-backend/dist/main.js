@@ -4,8 +4,18 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const common_1 = require("@nestjs/common");
 const prisma_exception_filter_1 = require("./prisma/prisma-exception.filter");
+const helmet = require("helmet");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.use(helmet.contentSecurityPolicy({
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "https:"],
+        },
+    }));
+    app.use(helmet.crossOriginEmbedderPolicy({ policy: "credentialless" }));
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
@@ -13,8 +23,18 @@ async function bootstrap() {
         transformOptions: {
             enableImplicitConversion: true,
         },
+        stopAtFirstError: true,
+        disableErrorMessages: process.env.NODE_ENV === 'production',
     }));
     app.useGlobalFilters(new prisma_exception_filter_1.PrismaExceptionFilter());
+    app.use((req, res, next) => {
+        const clientIP = req.ip || req.connection.remoteAddress;
+        const key = `rate_limit:${clientIP}`;
+        const now = Date.now();
+        const windowMs = 60000;
+        const maxRequests = 100;
+        next();
+    });
     const replitDomain = process.env.REPLIT_DEV_DOMAIN;
     const defaultAllowedOrigins = [
         'http://localhost:5173',
@@ -30,10 +50,7 @@ async function bootstrap() {
         : defaultAllowedOrigins;
     app.enableCors({
         origin: (origin, callback) => {
-            if (!origin) {
-                return callback(null, true);
-            }
-            if (allowedOrigins.includes(origin)) {
+            if (allowedOrigins.includes(origin || '')) {
                 return callback(null, true);
             }
             else {
@@ -42,6 +59,15 @@ async function bootstrap() {
         },
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         credentials: true,
+        optionsSuccessStatus: 200,
+    });
+    app.use((req, res, next) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        res.setHeader('Content-Security-Policy', "default-src 'self'");
+        next();
     });
     const port = process.env.PORT || 3333;
     await app.listen(port, '0.0.0.0');

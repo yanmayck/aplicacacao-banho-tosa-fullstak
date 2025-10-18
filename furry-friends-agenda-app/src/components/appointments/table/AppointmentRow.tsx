@@ -16,7 +16,7 @@ interface AppointmentRowProps {
   handleEditPoints: (appointmentId: string) => void;
 }
 
-export const AppointmentRow: React.FC<AppointmentRowProps> = ({
+export const AppointmentRow: React.FC<AppointmentRowProps> = React.memo(({
   appointment,
   handleEditAppointment,
   handleDeleteAppointment,
@@ -108,4 +108,4 @@ export const AppointmentRow: React.FC<AppointmentRowProps> = ({
       </td>
     </tr>
   );
-};
+});

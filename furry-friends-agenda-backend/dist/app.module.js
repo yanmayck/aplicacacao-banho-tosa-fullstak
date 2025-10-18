@@ -20,6 +20,7 @@ const appointments_module_1 = require("./appointments/appointments.module");
 const clients_module_1 = require("./clients/clients.module");
 const groomers_module_1 = require("./groomers/groomers.module");
 const packages_module_1 = require("./packages/packages.module");
+const financial_module_1 = require("./financial/financial.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -36,6 +37,7 @@ exports.AppModule = AppModule = __decorate([
             clients_module_1.ClientsModule,
             groomers_module_1.GroomersModule,
             packages_module_1.PackagesModule,
+            financial_module_1.FinancialModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

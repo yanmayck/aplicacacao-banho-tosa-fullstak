@@ -13,10 +13,13 @@ exports.AppointmentsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
+const financial_service_1 = require("../financial/financial.service");
 let AppointmentsService = class AppointmentsService {
     prisma;
-    constructor(prisma) {
+    financialService;
+    constructor(prisma, financialService) {
         this.prisma = prisma;
+        this.financialService = financialService;
     }
     async create(createAppointmentDto, currentClientId) {
         const { petId, serviceIds, dateTime, notes, groomerId, status } = createAppointmentDto;
@@ -182,10 +185,66 @@ let AppointmentsService = class AppointmentsService {
             where: { id },
         });
     }
+    async updateAppointmentStatus(id, status, currentClientId) {
+        const existingAppointment = await this.findOneByClient(id, currentClientId);
+        const updatedAppointment = await this.prisma.appointment.update({
+            where: { id },
+            data: { status },
+            include: {
+                pet: true,
+                client: true,
+                groomer: true,
+                appointmentServices: {
+                    include: {
+                        service: true,
+                    },
+                },
+            },
+        });
+        if (status === client_1.AppointmentStatus.COMPLETED) {
+            try {
+                await this.financialService.createAutomaticIncomeFromAppointment(id);
+                console.log(`Receita automática criada para agendamento ${id}`);
+            }
+            catch (error) {
+                console.error(`Erro ao criar receita automática para agendamento ${id}:`, error);
+            }
+        }
+        return updatedAppointment;
+    }
+    async getAppointmentFinancialSummary(appointmentId) {
+        const appointment = await this.prisma.appointment.findUnique({
+            where: { id: appointmentId },
+            include: {
+                pet: true,
+                client: true,
+                groomer: true,
+                appointmentServices: {
+                    include: {
+                        service: true,
+                    },
+                },
+            },
+        });
+        if (!appointment) {
+            throw new common_1.NotFoundException(`Agendamento com ID "${appointmentId}" não encontrado`);
+        }
+        const estimatedRevenue = appointment.totalPrice;
+        const commissionPercentage = appointment.groomer?.commissionPercentage || 0;
+        const commission = estimatedRevenue * (commissionPercentage / 100);
+        const netRevenue = estimatedRevenue - commission;
+        return {
+            appointment,
+            estimatedRevenue,
+            commission,
+            netRevenue,
+        };
+    }
 };
 exports.AppointmentsService = AppointmentsService;
 exports.AppointmentsService = AppointmentsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        financial_service_1.FinancialService])
 ], AppointmentsService);
 //# sourceMappingURL=appointments.service.js.map

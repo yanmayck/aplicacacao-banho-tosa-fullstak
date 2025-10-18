@@ -1,61 +1,123 @@
 
-import React from "react";
+import React, { useMemo, useCallback } from "react";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useStore } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
+
+// Loading skeleton component
+const DashboardSkeleton = () => (
+  <div className="space-y-6">
+    <div className="space-y-2">
+      <Skeleton className="h-8 w-64" />
+      <Skeleton className="h-4 w-96" />
+    </div>
+
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card key={i} className="p-4">
+          <div className="flex flex-col space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-8 w-16" />
+          </div>
+        </Card>
+      ))}
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Card key={i} className="p-4">
+          <div className="flex flex-col space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-12" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </Card>
+      ))}
+    </div>
+
+    <Card className="p-4">
+      <Skeleton className="h-6 w-48 mb-4" />
+      <div className="space-y-2">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-4 w-full" />
+        ))}
+      </div>
+    </Card>
+  </div>
+);
 
 const Dashboard: React.FC = () => {
   const { appointments, groomers, clients, pets, commissions } = useStore();
   const { user, isAdmin } = useAuth();
-  
-  // Calculate counts
-  const waitingAppointments = appointments.filter(a => a.status === "waiting").length;
-  const inProgressAppointments = appointments.filter(a => a.status === "progress").length;
-  const completedAppointments = appointments.filter(a => a.status === "completed").length;
-  
-  const availableGroomers = groomers.filter(g => g.status === "available").length;
-  
-  // Get current month commissions for admins
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  
-  const currentMonthCommissions = commissions.filter(commission => {
-    const commissionDate = new Date(commission.date);
-    return commissionDate.getMonth() === currentMonth && commissionDate.getFullYear() === currentYear;
-  });
-  
-  const totalCurrentMonthCommissions = currentMonthCommissions.reduce(
-    (sum, commission) => sum + commission.value, 0
+
+  // Show loading state while data is being fetched
+  const isLoading = !appointments || !groomers || !clients || !pets || !commissions;
+
+  // Memoize appointment counts to avoid recalculation on every render
+  const appointmentCounts = useMemo(() => ({
+    waiting: appointments.filter(a => a.status === "waiting").length,
+    inProgress: appointments.filter(a => a.status === "progress").length,
+    completed: appointments.filter(a => a.status === "completed").length,
+  }), [appointments]);
+
+  // Memoize available groomers count
+  const availableGroomers = useMemo(() =>
+    groomers.filter(g => g.status === "available").length,
+    [groomers]
   );
-  
-  const formatCurrency = (value: number): string => {
+
+  // Memoize current month and year
+  const { currentMonth, currentYear } = useMemo(() => ({
+    currentMonth: new Date().getMonth(),
+    currentYear: new Date().getFullYear(),
+  }), []);
+
+  // Memoize current month commissions for admins
+  const currentMonthCommissions = useMemo(() =>
+    commissions.filter(commission => {
+      const commissionDate = new Date(commission.date);
+      return commissionDate.getMonth() === currentMonth && commissionDate.getFullYear() === currentYear;
+    }),
+    [commissions, currentMonth, currentYear]
+  );
+
+  // Memoize total current month commissions
+  const totalCurrentMonthCommissions = useMemo(() =>
+    currentMonthCommissions.reduce((sum, commission) => sum + commission.value, 0),
+    [currentMonthCommissions]
+  );
+
+  // Memoize currency formatter
+  const formatCurrency = useCallback((value: number): string => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
-  
-  // Function to check for pets with expired vaccinations
-  const checkForExpiredVaccines = () => {
+  }, []);
+
+  // Memoize function to check for pets with expired vaccinations
+  const expiredVaccines = useMemo(() => {
     const currentDate = new Date();
-    
-    const petsWithExpiredVaccines = pets.filter(pet => {
-      if (!pet.rabiesVaccine.isUpToDate) return true;
-      
+
+    return pets.filter(pet => {
+      if (!pet.rabiesVaccine?.isUpToDate) return true;
+
       const rabiesDate = new Date(pet.rabiesVaccine.lastDate);
-      const diffMonths = (currentDate.getFullYear() - rabiesDate.getFullYear()) * 12 + 
+      const diffMonths = (currentDate.getFullYear() - rabiesDate.getFullYear()) * 12 +
                          (currentDate.getMonth() - rabiesDate.getMonth());
-                         
+
       // Vaccine is expired if older than 12 months
       return diffMonths >= 12;
-    });
-    
-    return petsWithExpiredVaccines.length;
-  };
-  
-  const expiredVaccines = checkForExpiredVaccines();
-  
+    }).length;
+  }, [pets]);
+
+  // Show loading skeleton while data is being loaded
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-2">Bem-vindo, {user?.username}</h1>
+        <h1 className="text-2xl font-bold mb-2">Bem-vindo, {user?.name}</h1>
         <p className="text-gray-600">
           Você está conectado como {user?.role === "admin" ? "Administrador" : "Usuário Comum"}.
         </p>
@@ -105,23 +167,23 @@ const Dashboard: React.FC = () => {
         <Card className="p-4 bg-amber-50 border-amber-200">
           <div className="flex flex-col">
             <span className="text-lg font-medium text-amber-800">Em espera</span>
-            <span className="text-3xl font-bold mt-2 text-amber-900">{waitingAppointments}</span>
+            <span className="text-3xl font-bold mt-2 text-amber-900">{appointmentCounts.waiting}</span>
             <span className="text-sm text-amber-700 mt-1">agendamentos</span>
           </div>
         </Card>
-        
+
         <Card className="p-4 bg-blue-50 border-blue-200">
           <div className="flex flex-col">
             <span className="text-lg font-medium text-blue-800">Em andamento</span>
-            <span className="text-3xl font-bold mt-2 text-blue-900">{inProgressAppointments}</span>
+            <span className="text-3xl font-bold mt-2 text-blue-900">{appointmentCounts.inProgress}</span>
             <span className="text-sm text-blue-700 mt-1">agendamentos</span>
           </div>
         </Card>
-        
+
         <Card className="p-4 bg-green-50 border-green-200">
           <div className="flex flex-col">
             <span className="text-lg font-medium text-green-800">Concluídos</span>
-            <span className="text-3xl font-bold mt-2 text-green-900">{completedAppointments}</span>
+            <span className="text-3xl font-bold mt-2 text-green-900">{appointmentCounts.completed}</span>
             <span className="text-sm text-green-700 mt-1">agendamentos</span>
           </div>
         </Card>
@@ -161,4 +223,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default React.memo(Dashboard);
