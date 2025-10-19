@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, ParseUUIDPipe } from '@nestjs/common';
 import { PublicServicesService } from './public-services.service';
 
 @Controller('public')
@@ -32,6 +26,9 @@ export class PublicServicesController {
     @Query('serviceId') serviceId: string,
   ) {
     const appointmentDate = new Date(date);
-    return this.publicServicesService.findAvailableTimeSlots(appointmentDate, serviceId);
+    return this.publicServicesService.findAvailableTimeSlots(
+      appointmentDate,
+      serviceId,
+    );
   }
 }

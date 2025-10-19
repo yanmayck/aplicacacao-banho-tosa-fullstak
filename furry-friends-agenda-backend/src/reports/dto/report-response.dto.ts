@@ -97,7 +97,13 @@ export class ReportResponseDto {
   success: boolean;
   message: string;
   metadata: ReportMetadataDto;
-  data: FinancialReportDto | GroomerPerformanceDto[] | ClientAnalysisDto | ServiceRankingDto[] | OccupancyMetricsDto | AppointmentAnalysisDto;
+  data:
+    | FinancialReportDto
+    | GroomerPerformanceDto[]
+    | ClientAnalysisDto
+    | ServiceRankingDto[]
+    | OccupancyMetricsDto
+    | AppointmentAnalysisDto;
   exportUrl?: string;
   scheduledFor?: Date;
 }

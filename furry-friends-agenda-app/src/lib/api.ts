@@ -28,7 +28,7 @@ const getApiBaseUrl = () => {
 const API_BASE_URL = getApiBaseUrl();
 
 // 1. Cria uma instância do Axios com configurações globais
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_BASE_URL,
 });
 

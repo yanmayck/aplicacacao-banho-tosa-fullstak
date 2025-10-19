@@ -18,7 +18,9 @@ export class PetsService {
     });
 
     if (!client) {
-      throw new NotFoundException(`Client for user ID "${userId}" not found. Cannot create pet.`);
+      throw new NotFoundException(
+        `Client for user ID "${userId}" not found. Cannot create pet.`,
+      );
     }
 
     const { clientId, ...petData } = createPetDto;
@@ -26,9 +28,15 @@ export class PetsService {
     const data: Prisma.PetCreateInput = {
       ...petData,
       client: { connect: { id: client.id } }, // Use the found client.id
-      lastTickMedicine: petData.lastTickMedicine ? (JSON.parse(JSON.stringify(petData.lastTickMedicine))) : undefined,
-      rabiesVaccine: petData.rabiesVaccine ? (JSON.parse(JSON.stringify(petData.rabiesVaccine))) : undefined,
-      vaccineHistory: petData.vaccineHistory ? (JSON.parse(JSON.stringify(petData.vaccineHistory))) : undefined,
+      lastTickMedicine: petData.lastTickMedicine
+        ? JSON.parse(JSON.stringify(petData.lastTickMedicine))
+        : undefined,
+      rabiesVaccine: petData.rabiesVaccine
+        ? JSON.parse(JSON.stringify(petData.rabiesVaccine))
+        : undefined,
+      vaccineHistory: petData.vaccineHistory
+        ? JSON.parse(JSON.stringify(petData.vaccineHistory))
+        : undefined,
     };
 
     return this.prisma.pet.create({ data });
@@ -76,9 +84,15 @@ export class PetsService {
       where: { id },
       data: {
         ...updatePetDto,
-        lastTickMedicine: updatePetDto.lastTickMedicine ? (updatePetDto.lastTickMedicine as unknown as Prisma.JsonObject) : undefined,
-        rabiesVaccine: updatePetDto.rabiesVaccine ? (updatePetDto.rabiesVaccine as unknown as Prisma.JsonObject) : undefined,
-        vaccineHistory: updatePetDto.vaccineHistory ? JSON.parse(JSON.stringify(updatePetDto.vaccineHistory)) : undefined,
+        lastTickMedicine: updatePetDto.lastTickMedicine
+          ? (updatePetDto.lastTickMedicine as unknown as Prisma.JsonObject)
+          : undefined,
+        rabiesVaccine: updatePetDto.rabiesVaccine
+          ? (updatePetDto.rabiesVaccine as unknown as Prisma.JsonObject)
+          : undefined,
+        vaccineHistory: updatePetDto.vaccineHistory
+          ? JSON.parse(JSON.stringify(updatePetDto.vaccineHistory))
+          : undefined,
       },
     });
   }

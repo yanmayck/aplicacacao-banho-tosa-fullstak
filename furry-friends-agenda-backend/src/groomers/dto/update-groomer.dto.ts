@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsEmail, IsArray, IsIn, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEmail,
+  IsArray,
+  IsIn,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 
 const validStatus = ['available', 'busy'];
 

@@ -1,4 +1,9 @@
-import { Injectable, ConflictException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { PublicClientRegisterDto } from './dto/public-client-register.dto';
@@ -15,7 +20,7 @@ export class PublicClientService {
   async register(registerDto: PublicClientRegisterDto) {
     // Verificar se o email já existe
     const existingClient = await this.prisma.client.findUnique({
-      where: { email: registerDto.email }
+      where: { email: registerDto.email },
     });
 
     if (existingClient) {
@@ -32,7 +37,7 @@ export class PublicClientService {
         email: registerDto.email,
         phone: registerDto.phone,
         address: registerDto.address,
-      }
+      },
     });
 
     // Gerar token JWT
@@ -54,7 +59,7 @@ export class PublicClientService {
   async login(loginDto: PublicClientLoginDto) {
     // Buscar cliente por email
     const client = await this.prisma.client.findUnique({
-      where: { email: loginDto.email }
+      where: { email: loginDto.email },
     });
 
     if (!client) {
@@ -92,12 +97,12 @@ export class PublicClientService {
             groomer: true,
             appointmentServices: {
               include: {
-                service: true
-              }
-            }
-          }
-        }
-      }
+                service: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 }

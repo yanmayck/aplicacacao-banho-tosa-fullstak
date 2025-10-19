@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   // output   = "../node_modules/.prisma/client" // Removido para usar o default
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
@@ -22,6 +22,19 @@ model User {
   updatedAt DateTime @updatedAt
   // Relação com Client (um User pode ser um Client)
   client    Client?
+
+  // ========== RELAÇÕES DE AUDITORIA ==========
+  // Logs de auditoria realizados pelo usuário
+  auditLogs AuditLog[]
+
+  // Filtros de auditoria salvos pelo usuário
+  auditFilters AuditFilter[]
+
+  // Relatórios de auditoria gerados pelo usuário
+  auditReports AuditReport[]
+
+  // Alertas de auditoria criados pelo usuário
+  auditAlerts AuditAlert[]
 }
 
 // Novo Enum UserRole (como no frontend)
@@ -42,7 +55,7 @@ model Client {
 
   // ========== RELAÇÕES NOVAS ==========
   // Avaliações feitas pelo cliente
-  reviews      Review[]
+  reviews Review[]
 
   // Programa de fidelidade
   loyaltyPoint LoyaltyPoint?
@@ -50,120 +63,150 @@ model Client {
   // Notificações do cliente
   notifications Notification[]
 
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  // Preferências de notificação
+  notificationPreferences NotificationPreference?
+
+  // Notificações em fila
+  queuedNotifications NotificationQueue[]
+
+  // Logs de notificações
+  notificationLogs NotificationLog[]
+
+  // ========== RELAÇÕES DE AUDITORIA ==========
+  // Logs de auditoria relacionados ao cliente
+  auditLogs AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Opcional: se um cliente está associado a uma conta de usuário do sistema
-  userId       String?       @unique
-  user         User?         @relation(fields: [userId], references: [id])
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
 }
 
 model Pet {
-  id            String    @id @default(cuid())
-  name          String
-  species       String
-  breed         String?
-  birthDate     String?
-  clientId      String
-  client        Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  appointments  Appointment[]
-  observations  String?
+  id           String        @id @default(cuid())
+  name         String
+  species      String
+  breed        String?
+  birthDate    String?
+  clientId     String
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  observations String?
 
   // Campos adicionados para alinhar com o frontend
-  foodType      String?   
-  lastTickMedicine Json?     // { "name": "string", "date": "string" }
-  rabiesVaccine    Json?     // { "isUpToDate": boolean, "lastDate": "string" }
-  vaccineHistory   Json[]    // Array de { "name": "string", "date": "string" }
+  foodType         String?
+  lastTickMedicine Json? // { "name": "string", "date": "string" }
+  rabiesVaccine    Json? // { "isUpToDate": boolean, "lastDate": "string" }
+  vaccineHistory   Json[] // Array de { "name": "string", "date": "string" }
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Novo Modelo Groomer (como no frontend)
 model Groomer {
-  id                    String        @id @default(cuid())
-  name                  String
-  phone                 String?
-  email                 String?       @unique
-  specialties           String[]
-  status                String        @default("available") // "available" or "busy"
-  commissionPercentage  Float         @default(20)
-  appointments          Appointment[]
+  id                   String        @id @default(cuid())
+  name                 String
+  phone                String?
+  email                String?       @unique
+  specialties          String[]
+  status               String        @default("available") // "available" or "busy"
+  commissionPercentage Float         @default(20)
+  appointments         Appointment[]
 
   // ========== RELAÇÕES FINANCEIRAS ==========
   // Transações relacionadas ao tosador
-  transactions          Transaction[]
+  transactions Transaction[]
 
   // Comissões do tosador
-  commissions           Commission[]
+  commissions Commission[]
 
   // ========== RELAÇÕES NOVAS ==========
   // Avaliações recebidas pelo tosador
-  receivedReviews       Review[]
+  receivedReviews Review[]
 
   // Notificações do tosador
-  notifications         Notification[]
+  notifications Notification[]
 
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  // Preferências de notificação
+  notificationPreferences NotificationPreference?
+
+  // Notificações em fila
+  queuedNotifications NotificationQueue[]
+
+  // Logs de notificações
+  notificationLogs NotificationLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Package {
-    id              String @id @default(cuid())
-    name            String
-    description     String?
-    includesBaths   Int
-    includesGrooming Boolean
-    includesHydration Boolean
-    basePrice       Float
-    pickupPrice     Float
-    createdAt       DateTime @default(now())
-    updatedAt       DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String
+  description       String?
+  includesBaths     Int
+  includesGrooming  Boolean
+  includesHydration Boolean
+  basePrice         Float
+  pickupPrice       Float
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 // Renomeado de ServiceType para Service e ajustado (como no frontend)
 model ServicePackage {
-   id                 String                 @id @default(cuid())
-   name               String                 @unique
-   description        String?
-   price              Float
-   durationMin        Int
-   appointmentServices AppointmentService[]
-   serviceProducts    ServiceProduct[]
-   createdAt          DateTime               @default(now())
-   updatedAt          DateTime               @updatedAt
+  id                  String               @id @default(cuid())
+  name                String               @unique
+  description         String?
+  price               Float
+  durationMin         Int
+  appointmentServices AppointmentService[]
+  serviceProducts     ServiceProduct[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 }
 
 model Appointment {
-  id           String                 @id @default(cuid())
-  dateTime     DateTime               // Renomeado de appointmentDateTime
-  status       AppointmentStatus      @default(SCHEDULED) // Alterado de String e adicionado enum
-  notes        String?
-  totalPrice   Float                  // Adicionado
+  id         String            @id @default(cuid())
+  dateTime   DateTime // Renomeado de appointmentDateTime
+  status     AppointmentStatus @default(SCHEDULED) // Alterado de String e adicionado enum
+  notes      String?
+  totalPrice Float // Adicionado
 
-  clientId     String
-  client       Client                 @relation(fields: [clientId], references: [id])
-  petId        String
-  pet          Pet                    @relation(fields: [petId], references: [id])
-  groomerId    String?
-  groomer      Groomer?                @relation(fields: [groomerId], references: [id]) // Adicionado
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id])
+  groomerId String?
+  groomer   Groomer? @relation(fields: [groomerId], references: [id]) // Adicionado
 
   appointmentServices AppointmentService[] // Adicionado para relação N-N com Service
 
   // ========== RELAÇÕES FINANCEIRAS ==========
   // Receitas automáticas quando o agendamento é concluído
-  transactions        Transaction[]
+  transactions Transaction[]
 
   // Comissão do tosador quando o serviço é realizado
-  commission          Commission?
+  commission Commission?
 
   // ========== RELAÇÕES NOVAS ==========
   // Avaliações do agendamento
-  reviews             Review[]
+  reviews Review[]
 
+  // Notificações relacionadas ao agendamento
+  notifications Notification[]
 
-  createdAt    DateTime               @default(now())
-  updatedAt    DateTime               @updatedAt
+  // Notificações em fila
+  queuedNotifications NotificationQueue[]
+
+  // Logs de notificações
+  notificationLogs NotificationLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Removida relação direta com ServiceType:
   // serviceType         ServiceType @relation(fields: [serviceTypeId], references: [id])
@@ -172,16 +215,16 @@ model Appointment {
 
 // Novo: Tabela de junção para Appointment e Service (como no frontend)
 model AppointmentService {
-  id            String      @id @default(cuid())
+  id            String         @id @default(cuid())
   appointmentId String
-  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  appointment   Appointment    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   serviceId     String
-  service       ServicePackage     @relation(fields: [serviceId], references: [id])
+  service       ServicePackage @relation(fields: [serviceId], references: [id])
   priceAtTime   Float // Preço do serviço no momento do agendamento
-  quantity      Int         @default(1)
+  quantity      Int            @default(1)
+  createdAt     DateTime       @default(now())
 
   @@unique([appointmentId, serviceId])
-  createdAt DateTime @default(now())
 }
 
 // Novo Enum AppointmentStatus (como no frontend)
@@ -198,38 +241,38 @@ enum AppointmentStatus {
 
 // Enum para tipos de transação
 enum TransactionType {
-  INCOME    // Receita
-  EXPENSE   // Despesa
+  INCOME // Receita
+  EXPENSE // Despesa
 }
 
 // Enum para categorias de receita
 enum IncomeCategory {
-  SERVICE_PAYMENT    // Pagamento de serviço
-  PACKAGE_PAYMENT    // Pagamento de pacote
-  OTHER_INCOME       // Outras receitas
+  SERVICE_PAYMENT // Pagamento de serviço
+  PACKAGE_PAYMENT // Pagamento de pacote
+  OTHER_INCOME // Outras receitas
 }
 
 // Enum para categorias de despesa
 enum ExpenseCategory {
-  OPERATIONAL_COSTS  // Custos operacionais
-  STAFF_SALARY       // Salários da equipe
-  PRODUCTS           // Produtos e materiais
-  MAINTENANCE        // Manutenção
-  MARKETING          // Marketing
-  UTILITIES          // Utilidades (água, luz, etc.)
-  RENT               // Aluguel
-  OTHER_EXPENSE      // Outras despesas
+  OPERATIONAL_COSTS // Custos operacionais
+  STAFF_SALARY // Salários da equipe
+  PRODUCTS // Produtos e materiais
+  MAINTENANCE // Manutenção
+  MARKETING // Marketing
+  UTILITIES // Utilidades (água, luz, etc.)
+  RENT // Aluguel
+  OTHER_EXPENSE // Outras despesas
 }
 
 // Modelo para categorias personalizadas
 model FinancialCategory {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   name        String
   description String?
   type        TransactionType
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   // Relações
   transactions Transaction[]
@@ -239,35 +282,35 @@ model FinancialCategory {
 
 // Modelo principal de transações financeiras
 model Transaction {
-  id              String            @id @default(cuid())
-  type            TransactionType
-  amount          Float
-  description     String
-  date            DateTime          @default(now())
+  id          String          @id @default(cuid())
+  type        TransactionType
+  amount      Float
+  description String
+  date        DateTime        @default(now())
 
   // Categoria da transação
-  categoryId      String
-  category        FinancialCategory @relation(fields: [categoryId], references: [id])
+  categoryId String
+  category   FinancialCategory @relation(fields: [categoryId], references: [id])
 
   // Relacionamentos opcionais
-  appointmentId   String?           // Para receitas automáticas de agendamentos
-  appointment     Appointment?      @relation(fields: [appointmentId], references: [id])
+  appointmentId String? // Para receitas automáticas de agendamentos
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
 
-  groomerId       String?           // Para comissões de tosadores
-  groomer         Groomer?          @relation(fields: [groomerId], references: [id])
+  groomerId String? // Para comissões de tosadores
+  groomer   Groomer? @relation(fields: [groomerId], references: [id])
 
   // Controle de caixa diário
-  cashRegisterId  String?           // ID do caixa diário
-  isCashRegisterClosed Boolean      @default(false)
+  cashRegisterId       String? // ID do caixa diário
+  isCashRegisterClosed Boolean @default(false)
 
   // Metadados
-  paymentMethod   String?           // Dinheiro, cartão, PIX, etc.
-  notes           String?
-  receiptUrl      String?           // URL do comprovante
+  paymentMethod String? // Dinheiro, cartão, PIX, etc.
+  notes         String?
+  receiptUrl    String? // URL do comprovante
 
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  CashRegister CashRegister? @relation(fields: [cashRegisterId], references: [id])
 
   // Índices para performance
   @@index([date])
@@ -279,42 +322,45 @@ model Transaction {
 
 // Modelo para controle de caixa diário
 model CashRegister {
-  id              String   @id @default(cuid())
-  date            DateTime @unique // Um caixa por dia
-  openingBalance  Float    @default(0) // Saldo inicial do dia
-  closingBalance  Float?   // Saldo final do dia (quando fechado)
-  totalIncome     Float    @default(0)
-  totalExpenses   Float    @default(0)
-  isClosed        Boolean  @default(false)
-  closedAt        DateTime?
-  notes           String?
+  id             String    @id @default(cuid())
+  date           DateTime  @unique // Um caixa por dia
+  openingBalance Float     @default(0) // Saldo inicial do dia
+  closingBalance Float? // Saldo final do dia (quando fechado)
+  totalIncome    Float     @default(0)
+  totalExpenses  Float     @default(0)
+  isClosed       Boolean   @default(false)
+  closedAt       DateTime?
+  notes          String?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  // Relacionamentos
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Modelo para comissões dos tosadores
 model Commission {
-  id              String   @id @default(cuid())
-  groomerId       String
-  groomer         Groomer  @relation(fields: [groomerId], references: [id])
-  appointmentId   String   @unique
-  appointment     Appointment @relation(fields: [appointmentId], references: [id])
+  id            String      @id @default(cuid())
+  groomerId     String
+  groomer       Groomer     @relation(fields: [groomerId], references: [id])
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
 
   // Valores
-  totalAmount     Float    // Valor total do serviço
+  totalAmount          Float // Valor total do serviço
   commissionPercentage Float // Percentual da comissão
-  commissionAmount Float   // Valor da comissão calculada
+  commissionAmount     Float // Valor da comissão calculada
 
   // Status
-  isPaid          Boolean  @default(false)
-  paidAt          DateTime?
+  isPaid Boolean   @default(false)
+  paidAt DateTime?
 
   // Período do pagamento
-  paymentPeriod   DateTime // Mês/ano de referência
+  paymentPeriod DateTime // Mês/ano de referência
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([groomerId, paymentPeriod])
   @@index([isPaid])
@@ -322,27 +368,27 @@ model Commission {
 
 // Modelo para avaliações e feedback dos clientes
 model Review {
-  id            String   @id @default(cuid())
-  rating        Int      // 1-5 estrelas
-  comment       String?
-  isAnonymous   Boolean  @default(false)
+  id          String  @id @default(cuid())
+  rating      Int // 1-5 estrelas
+  comment     String?
+  isAnonymous Boolean @default(false)
 
   // Relacionamentos
-  clientId      String
-  client        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   appointmentId String?
   appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 
-  groomerId     String?
-  groomer       Groomer? @relation(fields: [groomerId], references: [id])
+  groomerId String?
+  groomer   Groomer? @relation(fields: [groomerId], references: [id])
 
   // Status
-  isApproved    Boolean  @default(false)
-  isVisible     Boolean  @default(true)
+  isApproved Boolean @default(false)
+  isVisible  Boolean @default(true)
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([clientId])
   @@index([appointmentId])
@@ -352,49 +398,205 @@ model Review {
 
 // Modelo para programa de fidelidade
 model LoyaltyPoint {
-  id              String   @id @default(cuid())
-  points          Int      @default(0)
-  totalEarned     Int      @default(0)
-  totalSpent      Int      @default(0)
+  id          String @id @default(cuid())
+  points      Int    @default(0)
+  totalEarned Int    @default(0)
+  totalSpent  Int    @default(0)
 
   // Relacionamentos
-  clientId        String   @unique
-  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String @unique
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   // Histórico de pontos
-  pointHistory    Json[]   // Array de { type: 'earned'|'spent', amount: number, reason: string, date: string }
+  pointHistory Json[] // Array de { type: 'earned'|'spent', amount: number, reason: string, date: string }
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// Modelo para notificações
-model Notification {
-  id          String   @id @default(cuid())
-  title       String
-  message     String
-  type        NotificationType @default(INFO)
+// Modelo para templates de notificações
+model NotificationTemplate {
+  id      String              @id @default(cuid())
+  name    String              @unique
+  title   String
+  content String // Template com variáveis {{variable}}
+  type    NotificationType
+  channel NotificationChannel @default(IN_APP)
+
+  // Configurações
+  isActive  Boolean @default(true)
+  variables Json? // Array de variáveis esperadas no template
 
   // Relacionamentos
-  clientId    String?
-  client      Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  notifications Notification[]
 
-  groomerId   String?
-  groomer     Groomer? @relation(fields: [groomerId], references: [id])
+  // Templates utilizados em filas
+  queuedNotifications NotificationQueue[]
 
-  // Status
-  isRead      Boolean  @default(false)
-  readAt      DateTime?
+  // Logs de uso do template
+  notificationLogs NotificationLog[]
 
-  // Dados adicionais
-  data        Json?    // Dados extras da notificação
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  createdAt   DateTime @default(now())
-
-  @@index([clientId, isRead])
-  @@index([groomerId, isRead])
+  @@index([type, channel])
+  @@index([isActive])
 }
 
+// Modelo para preferências de notificação do usuário
+model NotificationPreference {
+  id String @id @default(cuid())
+
+  // Relacionamentos
+  clientId String? @unique
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  groomerId String?  @unique
+  groomer   Groomer? @relation(fields: [groomerId], references: [id], onDelete: Cascade)
+
+  // Preferências por tipo e canal
+  preferences Json // { "APPOINTMENT_REMINDER": { "email": true, "sms": false, "push": true, "in_app": true }, ... }
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Modelo para filas de notificações
+model NotificationQueue {
+  id      String              @id @default(cuid())
+  type    NotificationType
+  channel NotificationChannel
+
+  // Destinatário
+  recipient     String // email, phone, ou user_id
+  recipientType String // 'email', 'phone', 'user_id'
+
+  // Relacionamentos
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id])
+
+  groomerId String?
+  groomer   Groomer? @relation(fields: [groomerId], references: [id])
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  // Conteúdo
+  title      String
+  content    String
+  templateId String?
+  template   NotificationTemplate? @relation(fields: [templateId], references: [id])
+
+  // Dados extras
+  data Json? // Dados para processar o template
+
+  // Status
+  status      NotificationStatus @default(PENDING)
+  attempts    Int                @default(0)
+  maxAttempts Int                @default(3)
+
+  // Controle de tempo
+  scheduledFor DateTime?
+  sentAt       DateTime?
+  errorMessage String?
+
+  // Logs relacionados à esta fila
+  logs NotificationLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, scheduledFor])
+  @@index([clientId])
+  @@index([groomerId])
+  @@index([appointmentId])
+}
+
+// Modelo para logs de notificações enviadas
+model NotificationLog {
+  id      String              @id @default(cuid())
+  type    NotificationType
+  channel NotificationChannel
+
+  // Destinatário
+  recipient     String
+  recipientType String
+
+  // Relacionamentos
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id])
+
+  groomerId String?
+  groomer   Groomer? @relation(fields: [groomerId], references: [id])
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  queueId String?            @unique
+  queue   NotificationQueue? @relation(fields: [queueId], references: [id])
+
+  // Conteúdo enviado
+  title      String
+  content    String
+  templateId String?
+  template   NotificationTemplate? @relation(fields: [templateId], references: [id])
+
+  // Status
+  status           NotificationStatus
+  providerResponse Json? // Resposta do provedor (SendGrid, Twilio, etc.)
+
+  // Webhook data (para notificações recebidas)
+  webhookData Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([clientId, createdAt])
+  @@index([groomerId, createdAt])
+  @@index([appointmentId])
+}
+
+// Modelo principal para notificações (in-app)
+model Notification {
+  id      String           @id @default(cuid())
+  title   String
+  message String
+  type    NotificationType @default(INFO)
+
+  // Relacionamentos
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  groomerId String?
+  groomer   Groomer? @relation(fields: [groomerId], references: [id])
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  templateId String?
+  template   NotificationTemplate? @relation(fields: [templateId], references: [id])
+
+  // Status
+  isRead Boolean   @default(false)
+  readAt DateTime?
+
+  // Dados adicionais
+  data Json? // Dados extras da notificação
+
+  // Controle de ações
+  actionUrl   String? // URL para ação quando clicar na notificação
+  actionLabel String? // Texto do botão de ação
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId, isRead, createdAt])
+  @@index([groomerId, isRead, createdAt])
+  @@index([appointmentId])
+  @@index([type, createdAt])
+}
+
+// Enums expandidos
 enum NotificationType {
   INFO
   WARNING
@@ -402,350 +604,626 @@ enum NotificationType {
   ERROR
   REMINDER
   PROMOTION
+  APPOINTMENT_CONFIRMATION
+  APPOINTMENT_REMINDER
+  APPOINTMENT_CANCELLED
+  VACCINE_REMINDER
+  SERVICE_STATUS_UPDATE
+  PAYMENT_REMINDER
+  LOYALTY_POINTS
+  SPECIAL_OFFER
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  WHATSAPP
+  PUSH
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  CANCELLED
 }
 
 // ========== MODELOS DE ESTOQUE ==========
 
 // Enum para tipos de produto
 enum ProductType {
-   SHAMPOO
-   MEDICINE
-   ACCESSORY
-   FOOD
-   HYGIENE
-   TOY
-   OTHER
+  SHAMPOO
+  MEDICINE
+  ACCESSORY
+  FOOD
+  HYGIENE
+  TOY
+  OTHER
 }
 
 // Enum para unidades de medida
 enum UnitOfMeasure {
-   UNIT
-   KG
-   G
-   L
-   ML
-   PACK
-   BOX
+  UNIT
+  KG
+  G
+  L
+  ML
+  PACK
+  BOX
 }
 
 // Enum para tipos de movimentação de estoque
 enum StockMovementType {
-   IN    // Entrada
-   OUT   // Saída
-   ADJUSTMENT // Ajuste manual
-   RETURN     // Devolução
+  IN // Entrada
+  OUT // Saída
+  ADJUSTMENT // Ajuste manual
+  RETURN // Devolução
 }
 
 // Modelo para categorias de produtos
 model ProductCategory {
-   id          String   @id @default(cuid())
-   name        String   @unique
-   description String?
-   isActive    Boolean  @default(true)
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  isActive    Boolean @default(true)
 
-   // Produtos desta categoria
-   products    Product[]
+  // Produtos desta categoria
+  products Product[]
 
-   createdAt   DateTime @default(now())
-   updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Modelo para fornecedores
 model Supplier {
-   id          String   @id @default(cuid())
-   name        String
-   contact     String?
-   email       String?
-   phone       String?
-   address     String?
-   cnpj        String?  @unique
-   isActive    Boolean  @default(true)
+  id       String  @id @default(cuid())
+  name     String
+  contact  String?
+  email    String?
+  phone    String?
+  address  String?
+  cnpj     String? @unique
+  isActive Boolean @default(true)
 
-   // Produtos fornecidos por este fornecedor
-   products    Product[]
+  // Produtos fornecidos por este fornecedor
+  products Product[]
 
-   // Histórico de compras
-   purchaseHistory Json[] // Array de compras realizadas
+  // Histórico de compras
+  purchaseHistory Json[] // Array de compras realizadas
 
-
-   createdAt   DateTime @default(now())
-   updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Modelo principal de produtos
 model Product {
-   id              String   @id @default(cuid())
-   name            String
-   description     String?
-   sku             String?  @unique // Código único do produto
-   barcode         String?
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  sku         String? @unique // Código único do produto
+  barcode     String?
 
-   // Controle de estoque
-   currentStock    Float    @default(0)
-   minStock        Float    @default(0) // Estoque mínimo
-   maxStock        Float?   // Estoque máximo (opcional)
+  // Controle de estoque
+  currentStock Float  @default(0)
+  minStock     Float  @default(0) // Estoque mínimo
+  maxStock     Float? // Estoque máximo (opcional)
 
-   // Preços
-   purchasePrice   Float    // Preço de compra
-   salePrice       Float    // Preço de venda
+  // Preços
+  purchasePrice Float // Preço de compra
+  salePrice     Float // Preço de venda
 
-   // Características do produto
-   type            ProductType
-   unitOfMeasure   UnitOfMeasure @default(UNIT)
-   brand           String?
-   model           String?
+  // Características do produto
+  type          ProductType
+  unitOfMeasure UnitOfMeasure @default(UNIT)
+  brand         String?
+  model         String?
 
-   // Controle de validade
-   hasExpiration   Boolean  @default(false)
-   expirationDate  DateTime?
+  // Controle de validade
+  hasExpiration  Boolean   @default(false)
+  expirationDate DateTime?
 
-   // Relacionamentos
-   categoryId      String
-   category        ProductCategory @relation(fields: [categoryId], references: [id])
+  // Relacionamentos
+  categoryId String
+  category   ProductCategory @relation(fields: [categoryId], references: [id])
 
-   supplierId      String?
-   supplier        Supplier?       @relation(fields: [supplierId], references: [id])
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
 
-   // Movimentações de estoque
-   stockMovements  StockMovement[]
+  // Movimentações de estoque
+  stockMovements StockMovement[]
 
-   // Produtos utilizados em serviços
-   serviceProducts ServiceProduct[]
+  // Produtos utilizados em serviços
+  serviceProducts ServiceProduct[]
 
-   // Status
-   isActive        Boolean @default(true)
-   isServiceItem   Boolean @default(false) // Produto usado em serviços
+  // Status
+  isActive      Boolean @default(true)
+  isServiceItem Boolean @default(false) // Produto usado em serviços
 
-   createdAt       DateTime @default(now())
-   updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-   // ========== RELAÇÕES INVERSAS ==========
-   // Alertas de estoque do produto
-   stockAlerts         StockAlert[]
+  // ========== RELAÇÕES INVERSAS ==========
+  // Alertas de estoque do produto
+  stockAlerts StockAlert[]
 
-   // Itens de pedidos de compra do produto
-   purchaseOrderItems  PurchaseOrderItem[]
+  // Itens de pedidos de compra do produto
+  purchaseOrderItems PurchaseOrderItem[]
 
-   // Índices para performance
-   @@index([categoryId])
-   @@index([supplierId])
-   @@index([type])
-   @@index([isActive])
-   @@index([currentStock])
+  // Índices para performance
+  @@index([categoryId])
+  @@index([supplierId])
+  @@index([type])
+  @@index([isActive])
+  @@index([currentStock])
 }
 
 // Modelo para produtos utilizados em serviços
 model ServiceProduct {
-   id            String  @id @default(cuid())
-   serviceId     String
-   service       ServicePackage @relation(fields: [serviceId], references: [id])
-   productId     String
-   product       Product @relation(fields: [productId], references: [id])
+  id        String         @id @default(cuid())
+  serviceId String
+  service   ServicePackage @relation(fields: [serviceId], references: [id])
+  productId String
+  product   Product        @relation(fields: [productId], references: [id])
 
-   // Quantidade utilizada por serviço
-   quantityUsed  Float   @default(1)
+  // Quantidade utilizada por serviço
+  quantityUsed Float @default(1)
 
-   // Produto é obrigatório no serviço?
-   isRequired    Boolean @default(true)
+  // Produto é obrigatório no serviço?
+  isRequired Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-   @@unique([serviceId, productId])
-   createdAt     DateTime @default(now())
-   updatedAt     DateTime @updatedAt
+  @@unique([serviceId, productId])
 }
 
 // Modelo para movimentações de estoque
 model StockMovement {
-   id              String           @id @default(cuid())
-   type            StockMovementType
-   quantity        Float
-   previousStock   Float
-   currentStock    Float
-   unitPrice       Float?           // Preço unitário na movimentação
+  id            String            @id @default(cuid())
+  type          StockMovementType
+  quantity      Float
+  previousStock Float
+  currentStock  Float
+  unitPrice     Float? // Preço unitário na movimentação
 
-   // Motivo da movimentação
-   reason          String
-   notes           String?
+  // Motivo da movimentação
+  reason String
+  notes  String?
 
-   // Relacionamentos
-   productId       String
-   product         Product          @relation(fields: [productId], references: [id])
+  // Relacionamentos
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
 
-   // Relacionamentos opcionais
-   appointmentId   String?          // Para consumo em serviços
+  // Relacionamentos opcionais
+  appointmentId String? // Para consumo em serviços
 
-   supplierId      String?          // Para entradas de fornecedores
+  supplierId String? // Para entradas de fornecedores
 
-   // Controle de lote/validade
-   batchNumber     String?
-   expirationDate  DateTime?
+  // Controle de lote/validade
+  batchNumber    String?
+  expirationDate DateTime?
 
-   // Dados financeiros (para integração com financeiro)
-   transactionId   String?          // Transação financeira relacionada
+  // Dados financeiros (para integração com financeiro)
+  transactionId String? // Transação financeira relacionada
 
-   createdAt       DateTime         @default(now())
-   createdBy       String?          // User ID que fez a movimentação
+  createdAt DateTime @default(now())
+  createdBy String? // User ID que fez a movimentação
 
-   // Índices para performance
-   @@index([productId, createdAt])
-   @@index([type, createdAt])
-   @@index([appointmentId])
-   @@index([supplierId])
+  // Índices para performance
+  @@index([productId, createdAt])
+  @@index([type, createdAt])
+  @@index([appointmentId])
+  @@index([supplierId])
 }
 
 // Modelo para alertas de estoque
 model StockAlert {
-   id              String   @id @default(cuid())
-   type            String   // LOW_STOCK, EXPIRING, EXPIRED, OUT_OF_STOCK
-   message         String
-   isRead          Boolean  @default(false)
-   isResolved      Boolean  @default(false)
+  id         String  @id @default(cuid())
+  type       String // LOW_STOCK, EXPIRING, EXPIRED, OUT_OF_STOCK
+  message    String
+  isRead     Boolean @default(false)
+  isResolved Boolean @default(false)
 
-   // Relacionamentos
-   productId       String
-   product         Product  @relation(fields: [productId], references: [id])
+  // Relacionamentos
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
 
-   // Dados do alerta
-   currentStock    Float
-   thresholdStock  Float?
-   expirationDate  DateTime?
+  // Dados do alerta
+  currentStock   Float
+  thresholdStock Float?
+  expirationDate DateTime?
 
-   resolvedAt      DateTime?
-   resolvedBy      String?  // User ID que resolveu
+  resolvedAt DateTime?
+  resolvedBy String? // User ID que resolveu
 
-   createdAt       DateTime @default(now())
-   updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-   @@index([productId])
-   @@index([type, isRead])
-   @@index([isResolved])
+  @@index([productId])
+  @@index([type, isRead])
+  @@index([isResolved])
 }
 
 // Modelo para pedidos de compra
 model PurchaseOrder {
-   id              String   @id @default(cuid())
-   orderNumber     String   @unique
-   status          PurchaseOrderStatus @default(PENDING)
+  id          String              @id @default(cuid())
+  orderNumber String              @unique
+  status      PurchaseOrderStatus @default(PENDING)
 
-   // Dados do fornecedor
-   supplierId      String
-   supplier        Supplier @relation(fields: [supplierId], references: [id])
+  // Dados do fornecedor
+  supplierId String
 
-   // Itens do pedido
-   items           PurchaseOrderItem[]
+  // Itens do pedido
+  items PurchaseOrderItem[]
 
-   // Valores
-   subtotal        Float
-   tax             Float    @default(0)
-   shipping        Float    @default(0)
-   total           Float
+  // Valores
+  subtotal Float
+  tax      Float @default(0)
+  shipping Float @default(0)
+  total    Float
 
-   // Prazos
-   orderDate       DateTime @default(now())
-   expectedDelivery DateTime?
-   actualDelivery  DateTime?
+  // Prazos
+  orderDate        DateTime  @default(now())
+  expectedDelivery DateTime?
+  actualDelivery   DateTime?
 
-   // Dados adicionais
-   notes           String?
-   paymentTerms    String?
-   shippingAddress String?
+  // Dados adicionais
+  notes           String?
+  paymentTerms    String?
+  shippingAddress String?
 
-   // Relacionamentos financeiros
-   transactionId   String?  // Transação financeira quando pago
-   transaction     Transaction? @relation(fields: [transactionId], references: [id])
+  // Relacionamentos financeiros
+  transactionId String? // Transação financeira quando pago
 
-   createdBy       String?  // User ID que criou o pedido
-   approvedBy      String?  // User ID que aprovou
-   approvedAt      DateTime?
+  createdBy  String? // User ID que criou o pedido
+  approvedBy String? // User ID que aprovou
+  approvedAt DateTime?
 
-   createdAt       DateTime @default(now())
-   updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-   @@index([supplierId])
-   @@index([status, orderDate])
-   @@index([orderNumber])
+  @@index([supplierId])
+  @@index([status, orderDate])
+  @@index([orderNumber])
 }
 
 // Status do pedido de compra
 enum PurchaseOrderStatus {
-   PENDING     // Aguardando aprovação
-   APPROVED    // Aprovado
-   ORDERED     // Encomendado
-   SHIPPED     // Enviado
-   DELIVERED   // Entregue
-   CANCELLED   // Cancelado
-   PARTIAL     // Entrega parcial
+  PENDING // Aguardando aprovação
+  APPROVED // Aprovado
+  ORDERED // Encomendado
+  SHIPPED // Enviado
+  DELIVERED // Entregue
+  CANCELLED // Cancelado
+  PARTIAL // Entrega parcial
 }
 
 // Itens do pedido de compra
 model PurchaseOrderItem {
-   id              String   @id @default(cuid())
-   purchaseOrderId String
-   purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
 
-   productId       String
-   product         Product  @relation(fields: [productId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
 
-   quantity        Float
-   unitPrice       Float
-   totalPrice      Float
+  quantity   Float
+  unitPrice  Float
+  totalPrice Float
 
-   // Controle de entrega
-   quantityReceived Float  @default(0)
-   isDelivered     Boolean @default(false)
+  // Controle de entrega
+  quantityReceived Float   @default(0)
+  isDelivered      Boolean @default(false)
 
-   createdAt       DateTime @default(now())
-   updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-   @@unique([purchaseOrderId, productId])
+  @@unique([purchaseOrderId, productId])
 }
 
 // Modelo para relatórios de estoque
 model InventoryReport {
-   id              String   @id @default(cuid())
-   type            String   // DAILY, WEEKLY, MONTHLY, YEARLY, CUSTOM
-   title           String
-   startDate       DateTime
-   endDate         DateTime
+  id        String   @id @default(cuid())
+  type      String // DAILY, WEEKLY, MONTHLY, YEARLY, CUSTOM
+  title     String
+  startDate DateTime
+  endDate   DateTime
 
-   // Métricas principais
-   totalProducts   Int      @default(0)
-   totalValue      Float    @default(0)
-   lowStockItems   Int      @default(0)
-   outOfStockItems Int      @default(0)
-   expiringItems   Int      @default(0)
+  // Métricas principais
+  totalProducts   Int   @default(0)
+  totalValue      Float @default(0)
+  lowStockItems   Int   @default(0)
+  outOfStockItems Int   @default(0)
+  expiringItems   Int   @default(0)
 
-   // Dados detalhados em JSON
-   data            Json?    // Relatório completo com gráficos e análises
+  // Dados detalhados em JSON
+  data Json? // Relatório completo com gráficos e análises
 
-   generatedAt     DateTime @default(now())
-   generatedBy     String?  // User ID que gerou o relatório
+  generatedAt DateTime @default(now())
+  generatedBy String? // User ID que gerou o relatório
 
-   @@index([type, startDate])
-   @@index([generatedAt])
+  @@index([type, startDate])
+  @@index([generatedAt])
 }
 
 // Modelo para relatórios financeiros
 model FinancialReport {
-   id              String   @id @default(cuid())
-   type            String   // DAILY, WEEKLY, MONTHLY, YEARLY
-   startDate       DateTime
-   endDate         DateTime
-   totalIncome     Float
-   totalExpenses   Float
-   netProfit       Float
-   transactionCount Int     @default(0)
+  id               String   @id @default(cuid())
+  type             String // DAILY, WEEKLY, MONTHLY, YEARLY
+  startDate        DateTime
+  endDate          DateTime
+  totalIncome      Float
+  totalExpenses    Float
+  netProfit        Float
+  transactionCount Int      @default(0)
 
-   // Métricas adicionais
-   averageTicket   Float?
-   topIncomeCategory String?
-   topExpenseCategory String?
+  // Métricas adicionais
+  averageTicket      Float?
+  topIncomeCategory  String?
+  topExpenseCategory String?
 
-   // Dados em JSON para gráficos e análises
-   data            Json?
+  // Dados em JSON para gráficos e análises
+  data Json?
 
-   generatedAt     DateTime @default(now())
-   generatedBy     String?  // User ID que gerou o relatório
+  generatedAt DateTime @default(now())
+  generatedBy String? // User ID que gerou o relatório
 
-   @@index([type, startDate])
-   @@index([generatedAt])
- }
+  @@index([type, startDate])
+  @@index([generatedAt])
+}
+
+// ========== MODELOS DE AUDITORIA ==========
+
+// Enum para tipos de ação de auditoria
+enum AuditActionType {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  VIEW
+  EXPORT
+  IMPORT
+  BACKUP
+  RESTORE
+  SYSTEM_CONFIG
+  USER_MANAGEMENT
+  PERMISSION_CHANGE
+  DATA_ACCESS
+  FAILED_LOGIN
+  SUSPICIOUS_ACTIVITY
+  OTHER
+}
+
+// Enum para nível de severidade do log
+enum AuditSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// Modelo principal de logs de auditoria
+model AuditLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  // Informações do usuário que realizou a ação
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  // Informações do cliente (se aplicável)
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id])
+
+  // Tipo e descrição da ação
+  action            AuditActionType
+  actionDescription String // Descrição detalhada da ação
+  severity          AuditSeverity   @default(MEDIUM)
+
+  // Contexto da ação
+  module     String? // Módulo do sistema (financial, appointments, users, etc.)
+  entityType String? // Tipo da entidade afetada (Transaction, Appointment, User, etc.)
+  entityId   String? // ID da entidade afetada
+
+  // Dados da ação
+  oldValues Json? // Valores anteriores (para updates)
+  newValues Json? // Novos valores (para creates/updates)
+  metadata  Json? // Dados adicionais relevantes
+
+  // Informações técnicas
+  ipAddress String?
+  userAgent String?
+  sessionId String?
+  requestId String? // ID único da requisição
+
+  // Status e resultado
+  success       Boolean @default(true)
+  errorMessage  String?
+  executionTime Int? // Tempo de execução em milissegundos
+
+  // Controle de retenção e arquivamento
+  isArchived Boolean   @default(false)
+  archivedAt DateTime?
+
+  // Relacionamentos para auditoria em cascata
+  parentRelations  AuditLogRelation[] @relation("ParentLog")
+  relatedRelations AuditLogRelation[] @relation("RelatedLog")
+
+  // Relacionamentos para alertas
+  alertTriggers AuditAlertTrigger[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([timestamp])
+  @@index([userId, timestamp])
+  @@index([clientId, timestamp])
+  @@index([action, timestamp])
+  @@index([module, timestamp])
+  @@index([entityType, entityId])
+  @@index([severity, timestamp])
+  @@index([success])
+  @@index([isArchived])
+}
+
+// Modelo para relacionamentos entre logs de auditoria
+model AuditLogRelation {
+  id           String   @id @default(cuid())
+  parentLogId  String
+  parentLog    AuditLog @relation("ParentLog", fields: [parentLogId], references: [id], onDelete: Cascade)
+  relatedLogId String
+  relatedLog   AuditLog @relation("RelatedLog", fields: [relatedLogId], references: [id], onDelete: Cascade)
+
+  // Tipo de relacionamento
+  relationType String // CASCADE, BEFORE, AFTER, PARALLEL, etc.
+
+  createdAt DateTime @default(now())
+
+  @@unique([parentLogId, relatedLogId, relationType])
+  @@index([parentLogId])
+  @@index([relatedLogId])
+}
+
+// Modelo para configurações de auditoria
+model AuditConfig {
+  id String @id @default(cuid())
+
+  // Configurações gerais
+  enabled  Boolean       @default(true)
+  logLevel AuditSeverity @default(MEDIUM)
+
+  // Módulos específicos para auditar
+  auditModules Json? // { "financial": true, "appointments": true, "users": false }
+
+  // Ações específicas para auditar
+  auditActions Json? // { "CREATE": true, "UPDATE": true, "DELETE": true, "LOGIN": true }
+
+  // Entidades sensíveis que requerem auditoria especial
+  sensitiveEntities Json? // { "Transaction": "HIGH", "User": "CRITICAL" }
+
+  // Configurações de retenção
+  retentionDays    Int @default(90) // Dias para manter logs ativos
+  archiveAfterDays Int @default(365) // Dias para arquivar logs antigos
+
+  // Configurações de alertas
+  alertConfig Json? // Configurações para alertas automáticos
+
+  // Configurações de exportação
+  exportConfig Json? // Configurações para exportação automática
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Modelo para filtros salvos de auditoria
+model AuditFilter {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+
+  // Filtros aplicados
+  filters Json // { action: "CREATE", module: "financial", dateRange: {...} }
+
+  // Configurações de visualização
+  columns   Json? // Colunas a exibir na visualização
+  sortBy    String @default("timestamp")
+  sortOrder String @default("desc")
+
+  // Relacionamentos
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  // Controle de acesso
+  isPublic  Boolean @default(false)
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isPublic])
+}
+
+// Modelo para alertas de auditoria
+model AuditAlert {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+
+  // Condições do alerta
+  conditions Json // { action: "DELETE", module: "financial", severity: "HIGH" }
+
+  // Configurações do alerta
+  isActive             Boolean @default(true)
+  alertFrequency       String  @default("IMMEDIATE") // IMMEDIATE, DAILY, WEEKLY
+  notificationChannels Json // ["email", "in_app", "sms"]
+
+  // Destinatários
+  notifyUsers Json? // Array de user IDs para notificar
+  notifyRoles Json? // Array de roles para notificar
+
+  // Relacionamentos
+  createdBy String?
+  user      User?   @relation(fields: [createdBy], references: [id])
+
+  // Logs relacionados a este alerta
+  triggeredLogs AuditAlertTrigger[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Modelo para triggers de alertas
+model AuditAlertTrigger {
+  id      String     @id @default(cuid())
+  alertId String
+  alert   AuditAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+
+  auditLogId String
+  auditLog   AuditLog @relation(fields: [auditLogId], references: [id])
+
+  // Dados do trigger
+  triggerData        Json? // Dados específicos que acionaram o alerta
+  notificationSent   Boolean   @default(false)
+  notificationSentAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([alertId, auditLogId])
+  @@index([notificationSent])
+  @@index([alertId])
+  @@index([auditLogId])
+}
+
+// Modelo para relatórios de auditoria
+model AuditReport {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+
+  // Parâmetros do relatório
+  filters Json // Filtros aplicados no relatório
+  groupBy Json? // Agrupamentos aplicados
+
+  // Resultados
+  summary Json // Resumo estatístico
+  data    Json // Dados detalhados do relatório
+
+  // Metadados
+  totalRecords Int      @default(0)
+  generatedAt  DateTime @default(now())
+  generatedBy  String?
+  user         User?    @relation(fields: [generatedBy], references: [id])
+
+  // Controle de acesso
+  isPublic Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([generatedAt])
+  @@index([generatedBy])
+  @@index([isPublic])
+}

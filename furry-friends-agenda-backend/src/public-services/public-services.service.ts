@@ -7,28 +7,28 @@ export class PublicServicesService {
 
   async findAll() {
     return this.prisma.servicePackage.findMany({
-      where: { },
-      orderBy: { price: 'asc' }
+      where: {},
+      orderBy: { price: 'asc' },
     });
   }
 
   async findOne(id: string) {
     return this.prisma.servicePackage.findUnique({
-      where: { id }
+      where: { id },
     });
   }
 
   async findAvailableGroomers() {
     return this.prisma.groomer.findMany({
       where: {
-        status: 'available'
+        status: 'available',
       },
       select: {
         id: true,
         name: true,
         specialties: true,
-        status: true
-      }
+        status: true,
+      },
     });
   }
 
@@ -45,11 +45,11 @@ export class PublicServicesService {
       where: {
         dateTime: {
           gte: dayStart,
-          lte: dayEnd
+          lte: dayEnd,
         },
         status: {
-          notIn: ['CANCELLED', 'NO_SHOW']
-        }
+          notIn: ['CANCELLED', 'NO_SHOW'],
+        },
       },
       select: {
         dateTime: true,
@@ -57,12 +57,12 @@ export class PublicServicesService {
           select: {
             service: {
               select: {
-                durationMin: true
-              }
-            }
-          }
-        }
-      }
+                durationMin: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // Gerar slots disponíveis (simplificado)
@@ -73,15 +73,15 @@ export class PublicServicesService {
       const slotEnd = new Date(currentTime.getTime() + 60 * 60 * 1000); // 1 hora slots
 
       // Verificar se há conflito com agendamentos existentes
-      const hasConflict = existingAppointments.some(apt => {
+      const hasConflict = existingAppointments.some((apt) => {
         const aptEnd = new Date(apt.dateTime.getTime() + 60 * 60 * 1000); // 1 hora duração assumida
-        return (currentTime < aptEnd && slotEnd > apt.dateTime);
+        return currentTime < aptEnd && slotEnd > apt.dateTime;
       });
 
       if (!hasConflict) {
         availableSlots.push({
           startTime: new Date(currentTime),
-          endTime: slotEnd
+          endTime: slotEnd,
         });
       }
 

@@ -14,6 +14,7 @@ import { ClientAnalysisView } from './ClientAnalysisView';
 import { ServiceRankingView } from './ServiceRankingView';
 import { OccupancyMetricsView } from './OccupancyMetricsView';
 import { AppointmentAnalysisView } from './AppointmentAnalysisView';
+import { ApiErrorType, getErrorMessage } from '../../types/api';
 
 export function ReportsDashboard() {
   const { state, generateReport, updateFilters, exportReport } = useReports();
@@ -30,7 +31,7 @@ export function ReportsDashboard() {
 
   const handleGenerateReport = async (reportType: string) => {
     const filters: ReportFilters = {
-      type: reportType as any,
+      type: reportType as ReportFilters['type'],
       period: 'monthly',
       startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       endDate: new Date().toISOString().split('T')[0],
@@ -130,7 +131,7 @@ export function ReportsDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="period">Período</Label>
-              <Select onValueChange={(value) => updateFilters({ period: value as any })}>
+              <Select onValueChange={(value) => updateFilters({ period: value as ReportFilters['period'] })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecionar período" />
                 </SelectTrigger>
@@ -165,7 +166,7 @@ export function ReportsDashboard() {
 
             <div className="space-y-2">
               <Label htmlFor="reportType">Tipo de Relatório</Label>
-              <Select onValueChange={(value) => updateFilters({ type: value as any })}>
+              <Select onValueChange={(value) => updateFilters({ type: value as ReportFilters['type'] })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecionar tipo" />
                 </SelectTrigger>
@@ -192,7 +193,7 @@ export function ReportsDashboard() {
                   {React.createElement(getReportIcon(state.currentReport.metadata.filters.type || ''), {
                     className: "w-5 h-5"
                   })}
-                  {reportTypes.find(rt => rt.value === state.currentReport.metadata.filters.type)?.label}
+                  {reportTypes.find(rt => rt.value === state.currentReport?.metadata.filters.type)?.label}
                 </CardTitle>
                 <CardDescription>
                   Gerado em {new Date(state.currentReport.metadata.generatedAt).toLocaleString('pt-BR')}
@@ -217,27 +218,27 @@ export function ReportsDashboard() {
               </TabsList>
 
               <TabsContent value="financial" className="mt-6">
-                <FinancialReportView data={state.currentReport.data as any} />
+                <FinancialReportView data={state.currentReport?.data} />
               </TabsContent>
 
               <TabsContent value="groomers" className="mt-6">
-                <GroomerPerformanceView data={state.currentReport.data as any} />
+                <GroomerPerformanceView data={state.currentReport?.data} />
               </TabsContent>
 
               <TabsContent value="clients" className="mt-6">
-                <ClientAnalysisView data={state.currentReport.data as any} />
+                <ClientAnalysisView data={state.currentReport?.data} />
               </TabsContent>
 
               <TabsContent value="services" className="mt-6">
-                <ServiceRankingView data={state.currentReport.data as any} />
+                <ServiceRankingView data={state.currentReport?.data} />
               </TabsContent>
 
               <TabsContent value="occupancy" className="mt-6">
-                <OccupancyMetricsView data={state.currentReport.data as any} />
+                <OccupancyMetricsView data={state.currentReport?.data} />
               </TabsContent>
 
               <TabsContent value="appointments" className="mt-6">
-                <AppointmentAnalysisView data={state.currentReport.data as any} />
+                <AppointmentAnalysisView data={state.currentReport?.data} />
               </TabsContent>
             </Tabs>
           </CardContent>

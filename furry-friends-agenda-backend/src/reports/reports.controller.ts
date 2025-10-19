@@ -21,7 +21,7 @@ export class ReportsController {
   async generateFinancialReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'financial' as any
+      type: 'financial' as any,
     });
   }
 
@@ -29,7 +29,7 @@ export class ReportsController {
   async generateGroomerPerformanceReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'groomer_performance' as any
+      type: 'groomer_performance' as any,
     });
   }
 
@@ -37,7 +37,7 @@ export class ReportsController {
   async generateClientAnalysisReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'client_analysis' as any
+      type: 'client_analysis' as any,
     });
   }
 
@@ -45,7 +45,7 @@ export class ReportsController {
   async generateServiceRankingReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'service_ranking' as any
+      type: 'service_ranking' as any,
     });
   }
 
@@ -53,7 +53,7 @@ export class ReportsController {
   async generateOccupancyMetricsReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'occupancy_metrics' as any
+      type: 'occupancy_metrics' as any,
     });
   }
 
@@ -61,7 +61,7 @@ export class ReportsController {
   async generateAppointmentAnalysisReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'appointment_analysis' as any
+      type: 'appointment_analysis' as any,
     });
   }
 }

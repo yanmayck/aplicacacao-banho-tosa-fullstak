@@ -12,10 +12,10 @@ async function bootstrap() {
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
             scriptSrc: ["'self'"],
-            imgSrc: ["'self'", "data:", "https:"],
+            imgSrc: ["'self'", 'data:', 'https:'],
         },
     }));
-    app.use(helmet.crossOriginEmbedderPolicy({ policy: "credentialless" }));
+    app.use(helmet.crossOriginEmbedderPolicy({ policy: 'credentialless' }));
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
@@ -40,7 +40,7 @@ async function bootstrap() {
         'http://localhost:5173',
         'http://localhost:5000',
         'http://127.0.0.1:5000',
-        'http://localhost:8080'
+        'http://localhost:8080',
     ];
     if (replitDomain) {
         defaultAllowedOrigins.push(`https://${replitDomain}`);

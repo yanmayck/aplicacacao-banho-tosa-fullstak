@@ -1,4 +1,11 @@
-import { IsOptional, IsDateString, IsString, IsEnum, IsArray, IsUUID } from 'class-validator';
+import {
+  IsOptional,
+  IsDateString,
+  IsString,
+  IsEnum,
+  IsArray,
+  IsUUID,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum ReportType {
@@ -9,7 +16,7 @@ export enum ReportType {
   OCCUPANCY_METRICS = 'occupancy_metrics',
   CLIENT_RETENTION = 'client_retention',
   REVENUE_BY_PERIOD = 'revenue_by_period',
-  APPOINTMENT_ANALYSIS = 'appointment_analysis'
+  APPOINTMENT_ANALYSIS = 'appointment_analysis',
 }
 
 export enum ReportPeriod {
@@ -18,7 +25,7 @@ export enum ReportPeriod {
   MONTHLY = 'monthly',
   QUARTERLY = 'quarterly',
   YEARLY = 'yearly',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 
 export class ReportFiltersDto {

@@ -22,7 +22,9 @@ import { UpdateAppointmentDto } from '../appointments/dto/update-appointment.dto
 @Controller('client/appointments')
 @UseGuards(JwtClientGuard)
 export class ClientAppointmentsController {
-  constructor(private readonly clientAppointmentsService: ClientAppointmentsService) {}
+  constructor(
+    private readonly clientAppointmentsService: ClientAppointmentsService,
+  ) {}
 
   @Post()
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
@@ -30,7 +32,10 @@ export class ClientAppointmentsController {
     @Body() createAppointmentDto: CreateAppointmentDto,
     @Request() req: { user: { sub: string } },
   ) {
-    return this.clientAppointmentsService.create(createAppointmentDto, req.user.sub);
+    return this.clientAppointmentsService.create(
+      createAppointmentDto,
+      req.user.sub,
+    );
   }
 
   @Get()
@@ -53,7 +58,11 @@ export class ClientAppointmentsController {
     @Body() updateAppointmentDto: UpdateAppointmentDto,
     @Request() req: { user: { sub: string } },
   ) {
-    return this.clientAppointmentsService.update(id, updateAppointmentDto, req.user.sub);
+    return this.clientAppointmentsService.update(
+      id,
+      updateAppointmentDto,
+      req.user.sub,
+    );
   }
 
   @Delete(':id')

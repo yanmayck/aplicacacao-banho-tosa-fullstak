@@ -7,6 +7,6 @@ import { ClientPetHealthService } from './client-pet-health.service';
   imports: [PrismaModule],
   controllers: [ClientPetHealthController],
   providers: [ClientPetHealthService],
-  exports: [ClientPetHealthService]
+  exports: [ClientPetHealthService],
 })
 export class ClientPetHealthModule {}

@@ -6,7 +6,8 @@ import {
   IsInt, // Para durationMin
 } from 'class-validator';
 
-export class UpdateServiceDto { // Classe renomeada
+export class UpdateServiceDto {
+  // Classe renomeada
   @IsOptional()
   @IsString()
   name?: string;

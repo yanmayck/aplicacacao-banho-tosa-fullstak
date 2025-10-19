@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsDateString, IsObject, ValidateNested, IsBoolean, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsDateString,
+  IsObject,
+  ValidateNested,
+  IsBoolean,
+  IsArray,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreatePetDto } from './create-pet.dto'; // Import to use nested DTOs
 

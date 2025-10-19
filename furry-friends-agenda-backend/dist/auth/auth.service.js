@@ -42,7 +42,11 @@ let AuthService = class AuthService {
         if (!fullUser) {
             throw new common_1.InternalServerErrorException('User not found after validation.');
         }
-        const payload = { username: fullUser.email, sub: fullUser.id, role: fullUser.role };
+        const payload = {
+            username: fullUser.email,
+            sub: fullUser.id,
+            role: fullUser.role,
+        };
         console.log('BACKEND: Gerando token com payload:', payload);
         return {
             access_token: this.jwtService.sign(payload),

@@ -1,10 +1,40 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateTransactionDto, UpdateTransactionDto, TransactionType } from './dto/create-transaction.dto';
-import { CreateFinancialCategoryDto, UpdateFinancialCategoryDto } from './dto/create-financial-category.dto';
-import { CreateCashRegisterDto, CloseCashRegisterDto } from './dto/create-cash-register.dto';
-import { FinancialReportFiltersDto, ReportType } from './dto/financial-report-filters.dto';
-import { Transaction } from '@prisma/client';
+import {
+  CreateTransactionDto,
+  UpdateTransactionDto,
+} from './dto/create-transaction.dto';
+import {
+  CreateFinancialCategoryDto,
+  UpdateFinancialCategoryDto,
+} from './dto/create-financial-category.dto';
+import {
+  CreateCashRegisterDto,
+  CloseCashRegisterDto,
+} from './dto/create-cash-register.dto';
+import {
+  FinancialReportFiltersDto,
+  ReportType,
+} from './dto/financial-report-filters.dto';
+import {
+  Prisma,
+  Transaction,
+  FinancialCategory,
+  CashRegister,
+} from '@prisma/client';
+import { TransactionType } from './dto/create-transaction.dto';
+import {
+  TransactionUpdateData,
+  FinancialReportData,
+  FinancialSummary,
+  CategoryMetrics,
+  GroomerMetrics,
+} from '../types/financial.types';
 
 @Injectable()
 export class FinancialService {
@@ -12,7 +42,9 @@ export class FinancialService {
 
   // ========== GESTÃO DE TRANSAÇÕES ==========
 
-  async createTransaction(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
+  async createTransaction(
+    createTransactionDto: CreateTransactionDto,
+  ): Promise<Transaction> {
     const {
       type,
       amount,
@@ -24,16 +56,18 @@ export class FinancialService {
       cashRegisterId,
       paymentMethod,
       notes,
-      receiptUrl
+      receiptUrl,
     } = createTransactionDto;
 
     // Verificar se categoria existe e é do tipo correto
     const category = await this.prisma.financialCategory.findUnique({
-      where: { id: categoryId }
+      where: { id: categoryId },
     });
 
     if (!category) {
-      throw new NotFoundException(`Categoria financeira com ID "${categoryId}" não encontrada`);
+      throw new NotFoundException(
+        `Categoria financeira com ID "${categoryId}" não encontrada`,
+      );
     }
 
     if (category.type !== type) {
@@ -43,63 +77,80 @@ export class FinancialService {
     // Verificações opcionais
     if (appointmentId) {
       const appointment = await this.prisma.appointment.findUnique({
-        where: { id: appointmentId }
+        where: { id: appointmentId },
       });
       if (!appointment) {
-        throw new NotFoundException(`Agendamento com ID "${appointmentId}" não encontrado`);
+        throw new NotFoundException(
+          `Agendamento com ID "${appointmentId}" não encontrado`,
+        );
       }
     }
 
     if (groomerId) {
       const groomer = await this.prisma.groomer.findUnique({
-        where: { id: groomerId }
+        where: { id: groomerId },
       });
       if (!groomer) {
-        throw new NotFoundException(`Tosador com ID "${groomerId}" não encontrado`);
+        throw new NotFoundException(
+          `Tosador com ID "${groomerId}" não encontrado`,
+        );
       }
     }
 
     if (cashRegisterId) {
       const cashRegister = await this.prisma.cashRegister.findUnique({
-        where: { id: cashRegisterId }
+        where: { id: cashRegisterId },
       });
       if (!cashRegister) {
-        throw new NotFoundException(`Caixa com ID "${cashRegisterId}" não encontrado`);
+        throw new NotFoundException(
+          `Caixa com ID "${cashRegisterId}" não encontrado`,
+        );
       }
     }
 
     try {
+      const transactionData: any = {
+        type,
+        amount,
+        description,
+        date: new Date(date),
+        category: { connect: { id: categoryId } },
+        appointment: appointmentId
+          ? { connect: { id: appointmentId } }
+          : undefined,
+        groomer: groomerId ? { connect: { id: groomerId } } : undefined,
+        paymentMethod,
+        notes,
+        receiptUrl,
+        isCashRegisterClosed: false,
+      };
+
+      if (cashRegisterId) {
+        transactionData.cashRegisterId = cashRegisterId;
+      }
+
       return await this.prisma.transaction.create({
-        data: {
-          type,
-          amount,
-          description,
-          date: new Date(date),
-          category: { connect: { id: categoryId } },
-          appointment: appointmentId ? { connect: { id: appointmentId } } : undefined,
-          groomer: groomerId ? { connect: { id: groomerId } } : undefined,
-          cashRegister: cashRegisterId ? { connect: { id: cashRegisterId } } : undefined,
-          paymentMethod,
-          notes,
-          receiptUrl,
-          isCashRegisterClosed: false
-        },
+        data: transactionData,
         include: {
           category: true,
           appointment: {
             include: {
               client: true,
               pet: true,
-              groomer: true
-            }
+              groomer: true,
+            },
           },
           groomer: true,
-          cashRegister: true
-        }
+          CashRegister: true,
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        console.error('Erro Prisma ao criar transação:', error.code, error.message);
+        console.error(
+          'Erro Prisma ao criar transação:',
+          error.code,
+          error.message,
+        );
       }
       throw new BadRequestException('Não foi possível criar a transação');
     }
@@ -132,13 +183,13 @@ export class FinancialService {
           include: {
             client: true,
             pet: true,
-            groomer: true
-          }
+            groomer: true,
+          },
         },
         groomer: true,
-        cashRegister: true
+        CashRegister: true,
       },
-      orderBy: { date: 'desc' }
+      orderBy: { date: 'desc' },
     });
   }
 
@@ -151,12 +202,12 @@ export class FinancialService {
           include: {
             client: true,
             pet: true,
-            groomer: true
-          }
+            groomer: true,
+          },
         },
         groomer: true,
-        cashRegister: true
-      }
+        CashRegister: true,
+      },
     });
 
     if (!transaction) {
@@ -166,48 +217,70 @@ export class FinancialService {
     return transaction;
   }
 
-  async updateTransaction(id: string, updateTransactionDto: UpdateTransactionDto): Promise<Transaction> {
+  async updateTransaction(
+    id: string,
+    updateTransactionDto: UpdateTransactionDto,
+  ): Promise<Transaction> {
     const existingTransaction = await this.findTransactionById(id);
 
-    const dataToUpdate: Prisma.TransactionUpdateInput = {};
+    const dataToUpdate: TransactionUpdateData = {};
 
-    if (updateTransactionDto.type) dataToUpdate.type = updateTransactionDto.type;
-    if (updateTransactionDto.amount) dataToUpdate.amount = updateTransactionDto.amount;
-    if (updateTransactionDto.description) dataToUpdate.description = updateTransactionDto.description;
-    if (updateTransactionDto.date) dataToUpdate.date = new Date(updateTransactionDto.date);
-    if (updateTransactionDto.paymentMethod) dataToUpdate.paymentMethod = updateTransactionDto.paymentMethod;
-    if (updateTransactionDto.notes !== undefined) dataToUpdate.notes = updateTransactionDto.notes;
-    if (updateTransactionDto.receiptUrl) dataToUpdate.receiptUrl = updateTransactionDto.receiptUrl;
+    if (updateTransactionDto.type)
+      dataToUpdate.type = updateTransactionDto.type;
+    if (updateTransactionDto.amount)
+      dataToUpdate.amount = updateTransactionDto.amount;
+    if (updateTransactionDto.description)
+      dataToUpdate.description = updateTransactionDto.description;
+    if (updateTransactionDto.date)
+      dataToUpdate.date = new Date(updateTransactionDto.date);
+    if (updateTransactionDto.paymentMethod)
+      dataToUpdate.paymentMethod = updateTransactionDto.paymentMethod;
+    if (updateTransactionDto.notes !== undefined)
+      dataToUpdate.notes = updateTransactionDto.notes;
+    if (updateTransactionDto.receiptUrl)
+      dataToUpdate.receiptUrl = updateTransactionDto.receiptUrl;
 
     // Atualizações relacionais
     if (updateTransactionDto.categoryId) {
       const category = await this.prisma.financialCategory.findUnique({
-        where: { id: updateTransactionDto.categoryId }
+        where: { id: updateTransactionDto.categoryId },
       });
       if (!category) {
-        throw new NotFoundException(`Categoria com ID "${updateTransactionDto.categoryId}" não encontrada`);
+        throw new NotFoundException(
+          `Categoria com ID "${updateTransactionDto.categoryId}" não encontrada`,
+        );
       }
-      dataToUpdate.category = { connect: { id: updateTransactionDto.categoryId } };
+      dataToUpdate.category = {
+        connect: { id: updateTransactionDto.categoryId },
+      };
     }
 
     if (updateTransactionDto.appointmentId) {
       const appointment = await this.prisma.appointment.findUnique({
-        where: { id: updateTransactionDto.appointmentId }
+        where: { id: updateTransactionDto.appointmentId },
       });
       if (!appointment) {
-        throw new NotFoundException(`Agendamento com ID "${updateTransactionDto.appointmentId}" não encontrado`);
+        throw new NotFoundException(
+          `Agendamento com ID "${updateTransactionDto.appointmentId}" não encontrado`,
+        );
       }
-      dataToUpdate.appointment = { connect: { id: updateTransactionDto.appointmentId } };
+      dataToUpdate.appointment = {
+        connect: { id: updateTransactionDto.appointmentId },
+      };
     }
 
     if (updateTransactionDto.groomerId) {
       const groomer = await this.prisma.groomer.findUnique({
-        where: { id: updateTransactionDto.groomerId }
+        where: { id: updateTransactionDto.groomerId },
       });
       if (!groomer) {
-        throw new NotFoundException(`Tosador com ID "${updateTransactionDto.groomerId}" não encontrado`);
+        throw new NotFoundException(
+          `Tosador com ID "${updateTransactionDto.groomerId}" não encontrado`,
+        );
       }
-      dataToUpdate.groomer = { connect: { id: updateTransactionDto.groomerId } };
+      dataToUpdate.groomer = {
+        connect: { id: updateTransactionDto.groomerId },
+      };
     }
 
     return this.prisma.transaction.update({
@@ -219,34 +292,37 @@ export class FinancialService {
           include: {
             client: true,
             pet: true,
-            groomer: true
-          }
+            groomer: true,
+          },
         },
         groomer: true,
-        cashRegister: true
-      }
+      },
     });
   }
 
   async deleteTransaction(id: string): Promise<Transaction> {
     await this.findTransactionById(id);
     return this.prisma.transaction.delete({
-      where: { id }
+      where: { id },
     });
   }
 
   // ========== GESTÃO DE CATEGORIAS ==========
 
-  async createCategory(createCategoryDto: CreateFinancialCategoryDto): Promise<FinancialCategory> {
+  async createCategory(
+    createCategoryDto: CreateFinancialCategoryDto,
+  ): Promise<FinancialCategory> {
     const { name, description, type, isActive = true } = createCategoryDto;
 
     // Verificar se já existe categoria com mesmo nome e tipo
     const existingCategory = await this.prisma.financialCategory.findFirst({
-      where: { name, type }
+      where: { name, type },
     });
 
     if (existingCategory) {
-      throw new ConflictException(`Categoria "${name}" já existe para o tipo ${type}`);
+      throw new ConflictException(
+        `Categoria "${name}" já existe para o tipo ${type}`,
+      );
     }
 
     return this.prisma.financialCategory.create({
@@ -254,28 +330,33 @@ export class FinancialService {
         name,
         description,
         type,
-        isActive
-      }
+        isActive,
+      },
     });
   }
 
   async findAllCategories(activeOnly = true): Promise<FinancialCategory[]> {
     return this.prisma.financialCategory.findMany({
       where: activeOnly ? { isActive: true } : {},
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
     });
   }
 
-  async findCategoriesByType(type: TransactionType): Promise<FinancialCategory[]> {
+  async findCategoriesByType(
+    type: TransactionType,
+  ): Promise<FinancialCategory[]> {
     return this.prisma.financialCategory.findMany({
       where: { type, isActive: true },
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
     });
   }
 
-  async updateCategory(id: string, updateCategoryDto: UpdateFinancialCategoryDto): Promise<FinancialCategory> {
+  async updateCategory(
+    id: string,
+    updateCategoryDto: UpdateFinancialCategoryDto,
+  ): Promise<FinancialCategory> {
     const existingCategory = await this.prisma.financialCategory.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!existingCategory) {
@@ -283,28 +364,35 @@ export class FinancialService {
     }
 
     // Verificar se novo nome conflita com categoria existente
-    if (updateCategoryDto.name && updateCategoryDto.name !== existingCategory.name) {
-      const conflictingCategory = await this.prisma.financialCategory.findFirst({
-        where: {
-          name: updateCategoryDto.name,
-          type: updateCategoryDto.type || existingCategory.type
-        }
-      });
+    if (
+      updateCategoryDto.name &&
+      updateCategoryDto.name !== existingCategory.name
+    ) {
+      const conflictingCategory = await this.prisma.financialCategory.findFirst(
+        {
+          where: {
+            name: updateCategoryDto.name,
+            type: updateCategoryDto.type || existingCategory.type,
+          },
+        },
+      );
 
       if (conflictingCategory) {
-        throw new ConflictException(`Categoria "${updateCategoryDto.name}" já existe`);
+        throw new ConflictException(
+          `Categoria "${updateCategoryDto.name}" já existe`,
+        );
       }
     }
 
     return this.prisma.financialCategory.update({
       where: { id },
-      data: updateCategoryDto
+      data: updateCategoryDto,
     });
   }
 
   async deleteCategory(id: string): Promise<FinancialCategory> {
     const existingCategory = await this.prisma.financialCategory.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!existingCategory) {
@@ -313,21 +401,25 @@ export class FinancialService {
 
     // Verificar se categoria está sendo usada em transações
     const transactionCount = await this.prisma.transaction.count({
-      where: { categoryId: id }
+      where: { categoryId: id },
     });
 
     if (transactionCount > 0) {
-      throw new BadRequestException('Não é possível excluir categoria que possui transações');
+      throw new BadRequestException(
+        'Não é possível excluir categoria que possui transações',
+      );
     }
 
     return this.prisma.financialCategory.delete({
-      where: { id }
+      where: { id },
     });
   }
 
   // ========== CONTROLE DE CAIXA ==========
 
-  async createCashRegister(createCashRegisterDto: CreateCashRegisterDto): Promise<CashRegister> {
+  async createCashRegister(
+    createCashRegisterDto: CreateCashRegisterDto,
+  ): Promise<CashRegister> {
     const { date, openingBalance = 0, notes } = createCashRegisterDto;
 
     const registerDate = new Date(date);
@@ -335,7 +427,7 @@ export class FinancialService {
 
     // Verificar se já existe caixa para esta data
     const existingRegister = await this.prisma.cashRegister.findUnique({
-      where: { date: registerDate }
+      where: { date: registerDate },
     });
 
     if (existingRegister) {
@@ -346,8 +438,8 @@ export class FinancialService {
       data: {
         date: registerDate,
         openingBalance,
-        notes
-      }
+        notes,
+      },
     });
   }
 
@@ -362,20 +454,25 @@ export class FinancialService {
           include: {
             category: true,
             appointment: true,
-            groomer: true
-          }
-        }
-      }
+            groomer: true,
+          },
+        },
+      },
     });
 
     if (!cashRegister) {
-      throw new NotFoundException(`Caixa para a data ${date.toISOString().split('T')[0]} não encontrado`);
+      throw new NotFoundException(
+        `Caixa para a data ${date.toISOString().split('T')[0]} não encontrado`,
+      );
     }
 
     return cashRegister;
   }
 
-  async closeCashRegister(date: Date, closeCashRegisterDto: CloseCashRegisterDto): Promise<CashRegister> {
+  async closeCashRegister(
+    date: Date,
+    closeCashRegisterDto: CloseCashRegisterDto,
+  ): Promise<CashRegister> {
     const cashRegister = await this.getCashRegisterByDate(date);
 
     if (cashRegister.isClosed) {
@@ -383,23 +480,28 @@ export class FinancialService {
     }
 
     // Calcular totais
-    const transactions = cashRegister.transactions;
+    const transactions = await this.prisma.transaction.findMany({
+      where: { cashRegisterId: cashRegister.id },
+    });
     const totalIncome = transactions
-      .filter(t => t.type === TransactionType.INCOME)
+      .filter((t) => t.type === TransactionType.INCOME)
       .reduce((sum, t) => sum + t.amount, 0);
 
     const totalExpenses = transactions
-      .filter(t => t.type === TransactionType.EXPENSE)
+      .filter((t) => t.type === TransactionType.EXPENSE)
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const calculatedClosingBalance = cashRegister.openingBalance + totalIncome - totalExpenses;
+    const calculatedClosingBalance =
+      cashRegister.openingBalance + totalIncome - totalExpenses;
 
     // Verificar divergência se saldo final foi informado
     if (closeCashRegisterDto.closingBalance !== undefined) {
-      const difference = Math.abs(calculatedClosingBalance - closeCashRegisterDto.closingBalance);
+      const difference = Math.abs(
+        calculatedClosingBalance - closeCashRegisterDto.closingBalance,
+      );
       if (difference > 0.01 && !closeCashRegisterDto.forceClose) {
         throw new BadRequestException(
-          `Divergência de R$ ${difference.toFixed(2)} entre saldo calculado e informado. Use forceClose para forçar o fechamento.`
+          `Divergência de R$ ${difference.toFixed(2)} entre saldo calculado e informado. Use forceClose para forçar o fechamento.`,
         );
       }
     }
@@ -407,19 +509,22 @@ export class FinancialService {
     return this.prisma.cashRegister.update({
       where: { id: cashRegister.id },
       data: {
-        closingBalance: closeCashRegisterDto.closingBalance ?? calculatedClosingBalance,
+        closingBalance:
+          closeCashRegisterDto.closingBalance ?? calculatedClosingBalance,
         totalIncome,
         totalExpenses,
         isClosed: true,
         closedAt: new Date(),
-        notes: closeCashRegisterDto.notes
-      }
+        notes: closeCashRegisterDto.notes,
+      },
     });
   }
 
   // ========== RELATÓRIOS FINANCEIROS ==========
 
-  async generateFinancialReport(filters: FinancialReportFiltersDto): Promise<any> {
+  async generateFinancialReport(
+    filters: FinancialReportFiltersDto,
+  ): Promise<FinancialReportData> {
     const {
       type = ReportType.MONTHLY,
       startDate,
@@ -427,7 +532,7 @@ export class FinancialService {
       transactionType,
       categoryId,
       groomerId,
-      groupBy = 'month'
+      groupBy = 'month',
     } = filters;
 
     // Definir período do relatório
@@ -441,7 +546,11 @@ export class FinancialService {
     } else {
       switch (type) {
         case ReportType.DAILY:
-          reportStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          reportStartDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
           break;
         case ReportType.WEEKLY:
           const weekStart = new Date(now);
@@ -463,8 +572,8 @@ export class FinancialService {
     const where: Prisma.TransactionWhereInput = {
       date: {
         gte: reportStartDate,
-        lte: reportEndDate
-      }
+        lte: reportEndDate,
+      },
     };
 
     if (transactionType) where.type = transactionType;
@@ -476,78 +585,96 @@ export class FinancialService {
       include: {
         category: true,
         groomer: true,
-        appointment: true
+        appointment: true,
       },
-      orderBy: { date: 'asc' }
+      orderBy: { date: 'asc' },
     });
 
     // Calcular métricas básicas
     const totalIncome = transactions
-      .filter(t => t.type === TransactionType.INCOME)
+      .filter((t) => t.type === TransactionType.INCOME)
       .reduce((sum, t) => sum + t.amount, 0);
 
     const totalExpenses = transactions
-      .filter(t => t.type === TransactionType.EXPENSE)
+      .filter((t) => t.type === TransactionType.EXPENSE)
       .reduce((sum, t) => sum + t.amount, 0);
 
     const netProfit = totalIncome - totalExpenses;
 
     // Calcular métricas por categoria
-    const categoryMetrics = transactions.reduce((acc, transaction) => {
-      const categoryName = transaction.category.name;
-      if (!acc[categoryName]) {
-        acc[categoryName] = { total: 0, count: 0 };
-      }
-      acc[categoryName].total += transaction.amount;
-      acc[categoryName].count += 1;
-      return acc;
-    }, {} as Record<string, { total: number; count: number }>);
+    const categoryMetrics = transactions.reduce(
+      (acc, transaction) => {
+        const categoryName = transaction.category.name;
+        if (!acc[categoryName]) {
+          acc[categoryName] = { total: 0, count: 0 };
+        }
+        acc[categoryName].total += transaction.amount;
+        acc[categoryName].count += 1;
+        return acc;
+      },
+      {} as Record<string, { total: number; count: number }>,
+    );
 
     // Calcular métricas por tosador (para receitas)
     const groomerMetrics = transactions
-      .filter(t => t.type === TransactionType.INCOME && t.groomer)
-      .reduce((acc, transaction) => {
-        const groomerName = transaction.groomer!.name;
-        if (!acc[groomerName]) {
-          acc[groomerName] = { total: 0, count: 0, commission: 0 };
-        }
-        acc[groomerName].total += transaction.amount;
-        acc[groomerName].count += 1;
-        acc[groomerName].commission += transaction.amount * (transaction.groomer!.commissionPercentage / 100);
-        return acc;
-      }, {} as Record<string, { total: number; count: number; commission: number }>);
+      .filter((t) => t.type === TransactionType.INCOME && t.groomer)
+      .reduce(
+        (acc, transaction) => {
+          const groomerName = transaction.groomer!.name;
+          if (!acc[groomerName]) {
+            acc[groomerName] = { total: 0, count: 0, commission: 0 };
+          }
+          acc[groomerName].total += transaction.amount;
+          acc[groomerName].count += 1;
+          acc[groomerName].commission +=
+            transaction.amount *
+            (transaction.groomer!.commissionPercentage / 100);
+          return acc;
+        },
+        {} as Record<
+          string,
+          { total: number; count: number; commission: number }
+        >,
+      );
 
     return {
       period: {
         startDate: reportStartDate,
         endDate: reportEndDate,
-        type
+        type,
       },
       summary: {
         totalIncome,
         totalExpenses,
         netProfit,
         transactionCount: transactions.length,
-        averageTicket: transactions.length > 0 ? totalIncome / transactions.filter(t => t.type === TransactionType.INCOME).length : 0
+        averageTicket:
+          transactions.length > 0
+            ? totalIncome /
+              transactions.filter((t) => t.type === TransactionType.INCOME)
+                .length
+            : 0,
       },
       byCategory: categoryMetrics,
       byGroomer: groomerMetrics,
-      transactions: transactions.map(t => ({
+      transactions: transactions.map((t) => ({
         id: t.id,
-        type: t.type,
+        type: t.type as TransactionType,
         amount: t.amount,
         description: t.description,
         date: t.date,
         category: t.category.name,
         groomer: t.groomer?.name,
-        paymentMethod: t.paymentMethod
-      }))
+        paymentMethod: t.paymentMethod || '',
+      })),
     };
   }
 
   // ========== RECEITAS AUTOMÁTICAS ==========
 
-  async createAutomaticIncomeFromAppointment(appointmentId: string): Promise<Transaction> {
+  async createAutomaticIncomeFromAppointment(
+    appointmentId: string,
+  ): Promise<Transaction> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
@@ -556,42 +683,50 @@ export class FinancialService {
         groomer: true,
         appointmentServices: {
           include: {
-            service: true
-          }
-        }
-      }
+            service: true,
+          },
+        },
+      },
     });
 
     if (!appointment) {
-      throw new NotFoundException(`Agendamento com ID "${appointmentId}" não encontrado`);
+      throw new NotFoundException(
+        `Agendamento com ID "${appointmentId}" não encontrado`,
+      );
     }
 
     if (appointment.status !== 'COMPLETED') {
-      throw new BadRequestException('Apenas agendamentos concluídos podem gerar receitas automáticas');
+      throw new BadRequestException(
+        'Apenas agendamentos concluídos podem gerar receitas automáticas',
+      );
     }
 
     // Verificar se já existe receita para este agendamento
     const existingTransaction = await this.prisma.transaction.findFirst({
       where: {
         appointmentId,
-        type: TransactionType.INCOME
-      }
+        type: TransactionType.INCOME,
+      },
     });
 
     if (existingTransaction) {
-      throw new ConflictException('Receita automática já foi criada para este agendamento');
+      throw new ConflictException(
+        'Receita automática já foi criada para este agendamento',
+      );
     }
 
     // Buscar categoria padrão de receitas de serviços
     const serviceCategory = await this.prisma.financialCategory.findFirst({
       where: {
         type: TransactionType.INCOME,
-        name: 'Serviços de Banho e Tosa'
-      }
+        name: 'Serviços de Banho e Tosa',
+      },
     });
 
     if (!serviceCategory) {
-      throw new NotFoundException('Categoria padrão para serviços não encontrada. Cadastre uma categoria de receita primeiro.');
+      throw new NotFoundException(
+        'Categoria padrão para serviços não encontrada. Cadastre uma categoria de receita primeiro.',
+      );
     }
 
     // Criar receita automática
@@ -599,25 +734,30 @@ export class FinancialService {
       data: {
         type: TransactionType.INCOME,
         amount: appointment.totalPrice,
-        description: `Serviço - ${appointment.pet.name} (${appointment.appointmentServices.map(s => s.service.name).join(', ')})`,
+        description: `Serviço - ${appointment.pet.name} (${appointment.appointmentServices.map((s) => s.service.name).join(', ')})`,
         date: appointment.dateTime,
         category: { connect: { id: serviceCategory.id } },
         appointment: { connect: { id: appointmentId } },
-        groomer: appointment.groomer ? { connect: { id: appointment.groomer.id } } : undefined,
+        groomer: appointment.groomer
+          ? { connect: { id: appointment.groomer.id } }
+          : undefined,
         paymentMethod: 'Dinheiro', // Pode ser ajustado conforme necessidade
-        isCashRegisterClosed: false
+        isCashRegisterClosed: false,
       },
       include: {
         category: true,
         appointment: true,
-        groomer: true
-      }
+        groomer: true,
+      },
     });
   }
 
   // ========== MÉTODOS AUXILIARES ==========
 
-  async getFinancialSummary(startDate?: Date, endDate?: Date) {
+  async getFinancialSummary(
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<FinancialSummary> {
     const where: Prisma.TransactionWhereInput = {};
 
     if (startDate || endDate) {
@@ -630,23 +770,23 @@ export class FinancialService {
       where,
       select: {
         type: true,
-        amount: true
-      }
+        amount: true,
+      },
     });
 
     const totalIncome = transactions
-      .filter(t => t.type === TransactionType.INCOME)
+      .filter((t) => t.type === TransactionType.INCOME)
       .reduce((sum, t) => sum + t.amount, 0);
 
     const totalExpenses = transactions
-      .filter(t => t.type === TransactionType.EXPENSE)
+      .filter((t) => t.type === TransactionType.EXPENSE)
       .reduce((sum, t) => sum + t.amount, 0);
 
     return {
       totalIncome,
       totalExpenses,
       netProfit: totalIncome - totalExpenses,
-      transactionCount: transactions.length
+      transactionCount: transactions.length,
     };
   }
 }

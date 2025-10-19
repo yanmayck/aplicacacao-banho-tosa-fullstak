@@ -21,6 +21,7 @@ const GroomersList = lazy(() => import("./components/groomers/GroomersList"));
 const PackagesList = lazy(() => import("./components/packages/PackagesList"));
 const Reports = lazy(() => import("./components/reports/Reports"));
 const Register = lazy(() => import("./pages/Register"));
+const Backup = lazy(() => import("./pages/Backup"));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -62,6 +63,11 @@ const AppContent = () => {
           <Route path="/reports" element={
             <ProtectedRoute>
               {isAdmin() ? <Reports /> : <Navigate to="/" replace />}
+            </ProtectedRoute>
+          } />
+          <Route path="/backup" element={
+            <ProtectedRoute>
+              {isAdmin() ? <Backup /> : <Navigate to="/" replace />}
             </ProtectedRoute>
           } />
 

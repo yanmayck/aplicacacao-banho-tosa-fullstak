@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePetDto } from '../pets/dto/create-pet.dto';
 import { UpdatePetDto } from '../pets/dto/update-pet.dto';
@@ -10,7 +14,7 @@ export class ClientPetsService {
   async create(createPetDto: CreatePetDto, clientId: string) {
     // Verificar se o cliente existe
     const client = await this.prisma.client.findUnique({
-      where: { id: clientId }
+      where: { id: clientId },
     });
 
     if (!client) {
@@ -26,14 +30,14 @@ export class ClientPetsService {
         observations: createPetDto.observations,
         foodType: createPetDto.foodType,
         clientId,
-      }
+      },
     });
   }
 
   async findAllByClient(clientId: string) {
     return this.prisma.pet.findMany({
       where: { clientId },
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
     });
   }
 
@@ -41,12 +45,14 @@ export class ClientPetsService {
     const pet = await this.prisma.pet.findFirst({
       where: {
         id,
-        clientId
-      }
+        clientId,
+      },
     });
 
     if (!pet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     return pet;
@@ -55,11 +61,13 @@ export class ClientPetsService {
   async update(id: string, updatePetDto: UpdatePetDto, clientId: string) {
     // Verificar se o pet pertence ao cliente
     const existingPet = await this.prisma.pet.findFirst({
-      where: { id, clientId }
+      where: { id, clientId },
     });
 
     if (!existingPet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     return this.prisma.pet.update({
@@ -71,76 +79,88 @@ export class ClientPetsService {
         birthDate: updatePetDto.birthDate,
         observations: updatePetDto.observations,
         foodType: updatePetDto.foodType,
-      }
+      },
     });
   }
 
   async remove(id: string, clientId: string) {
     // Verificar se o pet pertence ao cliente
     const existingPet = await this.prisma.pet.findFirst({
-      where: { id, clientId }
+      where: { id, clientId },
     });
 
     if (!existingPet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     return this.prisma.pet.delete({
-      where: { id }
+      where: { id },
     });
   }
 
-  async updateVaccineHistory(petId: string, vaccineData: any, clientId: string) {
+  async updateVaccineHistory(
+    petId: string,
+    vaccineData: any,
+    clientId: string,
+  ) {
     // Verificar se o pet pertence ao cliente
     const pet = await this.prisma.pet.findFirst({
-      where: { id: petId, clientId }
+      where: { id: petId, clientId },
     });
 
     if (!pet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        vaccineHistory: vaccineData
-      }
+        vaccineHistory: vaccineData,
+      },
     });
   }
 
   async updateRabiesVaccine(petId: string, rabiesData: any, clientId: string) {
     // Verificar se o pet pertence ao cliente
     const pet = await this.prisma.pet.findFirst({
-      where: { id: petId, clientId }
+      where: { id: petId, clientId },
     });
 
     if (!pet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        rabiesVaccine: rabiesData
-      }
+        rabiesVaccine: rabiesData,
+      },
     });
   }
 
   async updateTickMedicine(petId: string, medicineData: any, clientId: string) {
     // Verificar se o pet pertence ao cliente
     const pet = await this.prisma.pet.findFirst({
-      where: { id: petId, clientId }
+      where: { id: petId, clientId },
     });
 
     if (!pet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        lastTickMedicine: medicineData
-      }
+        lastTickMedicine: medicineData,
+      },
     });
   }
 }

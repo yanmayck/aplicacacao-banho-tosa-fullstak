@@ -16,10 +16,23 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FinancialService } from './financial.service';
-import { CreateTransactionDto, UpdateTransactionDto, TransactionType } from './dto/create-transaction.dto';
-import { CreateFinancialCategoryDto, UpdateFinancialCategoryDto } from './dto/create-financial-category.dto';
-import { CreateCashRegisterDto, CloseCashRegisterDto } from './dto/create-cash-register.dto';
-import { FinancialReportFiltersDto, ReportType } from './dto/financial-report-filters.dto';
+import {
+  CreateTransactionDto,
+  UpdateTransactionDto,
+  TransactionType,
+} from './dto/create-transaction.dto';
+import {
+  CreateFinancialCategoryDto,
+  UpdateFinancialCategoryDto,
+} from './dto/create-financial-category.dto';
+import {
+  CreateCashRegisterDto,
+  CloseCashRegisterDto,
+} from './dto/create-cash-register.dto';
+import {
+  FinancialReportFiltersDto,
+  ReportType,
+} from './dto/financial-report-filters.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -170,7 +183,10 @@ export class FinancialController {
     @Body() closeCashRegisterDto: CloseCashRegisterDto,
     @Request() req: { user: JwtPayload },
   ) {
-    return this.financialService.closeCashRegister(new Date(date), closeCashRegisterDto);
+    return this.financialService.closeCashRegister(
+      new Date(date),
+      closeCashRegisterDto,
+    );
   }
 
   // ========== RELATÓRIOS FINANCEIROS ==========
@@ -195,7 +211,10 @@ export class FinancialController {
     if (startDate) filters.startDate = new Date(startDate);
     if (endDate) filters.endDate = new Date(endDate);
 
-    return this.financialService.getFinancialSummary(filters.startDate, filters.endDate);
+    return this.financialService.getFinancialSummary(
+      filters.startDate,
+      filters.endDate,
+    );
   }
 
   // ========== RECEITAS AUTOMÁTICAS ==========
@@ -206,7 +225,9 @@ export class FinancialController {
     @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
     @Request() req: { user: JwtPayload },
   ) {
-    return this.financialService.createAutomaticIncomeFromAppointment(appointmentId);
+    return this.financialService.createAutomaticIncomeFromAppointment(
+      appointmentId,
+    );
   }
 
   // ========== DASHBOARD FINANCEIRO ==========
@@ -232,7 +253,8 @@ export class FinancialController {
     @Query('limit') limit?: string,
   ) {
     const limitCount = limit ? parseInt(limit) : 10;
-    return this.financialService.findAllTransactions()
-      .then(transactions => transactions.slice(0, limitCount));
+    return this.financialService
+      .findAllTransactions()
+      .then((transactions) => transactions.slice(0, limitCount));
   }
 }

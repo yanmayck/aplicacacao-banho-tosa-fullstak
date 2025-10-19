@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAppointmentDto } from '../appointments/dto/create-appointment.dto';
 import { UpdateAppointmentDto } from '../appointments/dto/update-appointment.dto';
@@ -10,7 +14,7 @@ export class ClientAppointmentsService {
   async create(createAppointmentDto: CreateAppointmentDto, clientId: string) {
     // Verificar se o cliente existe
     const client = await this.prisma.client.findUnique({
-      where: { id: clientId }
+      where: { id: clientId },
     });
 
     if (!client) {
@@ -21,20 +25,25 @@ export class ClientAppointmentsService {
     const pet = await this.prisma.pet.findFirst({
       where: {
         id: createAppointmentDto.petId,
-        clientId
-      }
+        clientId,
+      },
     });
 
     if (!pet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     // Calcular preço total baseado nos serviços selecionados
     let totalPrice = 0;
-    if (createAppointmentDto.serviceIds && createAppointmentDto.serviceIds.length > 0) {
+    if (
+      createAppointmentDto.serviceIds &&
+      createAppointmentDto.serviceIds.length > 0
+    ) {
       for (const serviceId of createAppointmentDto.serviceIds) {
         const service = await this.prisma.servicePackage.findUnique({
-          where: { id: serviceId }
+          where: { id: serviceId },
         });
 
         if (!service) {
@@ -60,14 +69,17 @@ export class ClientAppointmentsService {
         client: true,
         pet: true,
         groomer: true,
-      }
+      },
     });
 
     // Criar os serviços do agendamento
-    if (createAppointmentDto.serviceIds && createAppointmentDto.serviceIds.length > 0) {
+    if (
+      createAppointmentDto.serviceIds &&
+      createAppointmentDto.serviceIds.length > 0
+    ) {
       for (const serviceId of createAppointmentDto.serviceIds) {
         const service = await this.prisma.servicePackage.findUnique({
-          where: { id: serviceId }
+          where: { id: serviceId },
         });
 
         if (!service) {
@@ -80,7 +92,7 @@ export class ClientAppointmentsService {
             serviceId: serviceId,
             priceAtTime: service.price,
             quantity: 1,
-          }
+          },
         });
       }
     }
@@ -96,11 +108,11 @@ export class ClientAppointmentsService {
         groomer: true,
         appointmentServices: {
           include: {
-            service: true
-          }
-        }
+            service: true,
+          },
+        },
       },
-      orderBy: { dateTime: 'desc' }
+      orderBy: { dateTime: 'desc' },
     });
   }
 
@@ -108,45 +120,57 @@ export class ClientAppointmentsService {
     const appointment = await this.prisma.appointment.findFirst({
       where: {
         id,
-        clientId
+        clientId,
       },
       include: {
         pet: true,
         groomer: true,
         appointmentServices: {
           include: {
-            service: true
-          }
-        }
-      }
+            service: true,
+          },
+        },
+      },
     });
 
     if (!appointment) {
-      throw new NotFoundException('Agendamento não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Agendamento não encontrado ou não pertence ao cliente',
+      );
     }
 
     return appointment;
   }
 
-  async update(id: string, updateAppointmentDto: UpdateAppointmentDto, clientId: string) {
+  async update(
+    id: string,
+    updateAppointmentDto: UpdateAppointmentDto,
+    clientId: string,
+  ) {
     // Verificar se o agendamento pertence ao cliente
     const existingAppointment = await this.prisma.appointment.findFirst({
-      where: { id, clientId }
+      where: { id, clientId },
     });
 
     if (!existingAppointment) {
-      throw new NotFoundException('Agendamento não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Agendamento não encontrado ou não pertence ao cliente',
+      );
     }
 
     // Não permitir atualização se o status não for SCHEDULED
     if (existingAppointment.status !== 'SCHEDULED') {
-      throw new BadRequestException('Não é possível alterar agendamentos confirmados ou em andamento');
+      throw new BadRequestException(
+        'Não é possível alterar agendamentos confirmados ou em andamento',
+      );
     }
 
     return this.prisma.appointment.update({
       where: { id },
       data: {
-        dateTime: updateAppointmentDto.dateTime ? new Date(updateAppointmentDto.dateTime) : undefined,
+        dateTime: updateAppointmentDto.dateTime
+          ? new Date(updateAppointmentDto.dateTime)
+          : undefined,
         notes: updateAppointmentDto.notes,
         groomerId: updateAppointmentDto.groomerId,
       },
@@ -155,33 +179,37 @@ export class ClientAppointmentsService {
         groomer: true,
         appointmentServices: {
           include: {
-            service: true
-          }
-        }
-      }
+            service: true,
+          },
+        },
+      },
     });
   }
 
   async cancel(id: string, clientId: string) {
     // Verificar se o agendamento pertence ao cliente
     const existingAppointment = await this.prisma.appointment.findFirst({
-      where: { id, clientId }
+      where: { id, clientId },
     });
 
     if (!existingAppointment) {
-      throw new NotFoundException('Agendamento não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Agendamento não encontrado ou não pertence ao cliente',
+      );
     }
 
     // Não permitir cancelamento se o status não for SCHEDULED
     if (existingAppointment.status !== 'SCHEDULED') {
-      throw new BadRequestException('Não é possível cancelar agendamentos confirmados ou em andamento');
+      throw new BadRequestException(
+        'Não é possível cancelar agendamentos confirmados ou em andamento',
+      );
     }
 
     return this.prisma.appointment.update({
       where: { id },
       data: {
-        status: 'CANCELLED'
-      }
+        status: 'CANCELLED',
+      },
     });
   }
 }

@@ -35,7 +35,9 @@ __decorate([
 ], RegisterDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(client_1.UserRole, { message: 'Role inválido. Valores permitidos: USER, ADMIN' }),
+    (0, class_validator_1.IsEnum)(client_1.UserRole, {
+        message: 'Role inválido. Valores permitidos: USER, ADMIN',
+    }),
     __metadata("design:type", String)
 ], RegisterDto.prototype, "role", void 0);
 //# sourceMappingURL=register.dto.js.map

@@ -16,12 +16,4 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     // Por exemplo, verificar se o usuário tem permissões específicas
     return super.canActivate(context);
   }
-
-  handleRequest(err: any, user: any /*, _info */) {
-    // Você pode lançar uma exceção aqui com base em `info` ou `err`
-    if (err || !user) {
-      throw err || new UnauthorizedException('Token inválido ou expirado');
-    }
-    return user; // Retorna o usuário para ser injetado em req.user
-  }
 }

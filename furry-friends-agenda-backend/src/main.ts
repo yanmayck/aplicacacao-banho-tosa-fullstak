@@ -10,16 +10,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Apply Helmet for security headers
-  app.use(helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  }));
+  app.use(
+    helmet.contentSecurityPolicy({
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
+    }),
+  );
 
-  app.use(helmet.crossOriginEmbedderPolicy({ policy: "credentialless" }));
+  app.use(helmet.crossOriginEmbedderPolicy({ policy: 'credentialless' }));
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -52,22 +54,25 @@ async function bootstrap() {
 
   const replitDomain = process.env.REPLIT_DEV_DOMAIN;
   const defaultAllowedOrigins = [
-    'http://localhost:5173', 
+    'http://localhost:5173',
     'http://localhost:5000',
     'http://127.0.0.1:5000',
-    'http://localhost:8080'
+    'http://localhost:8080',
   ];
-  
+
   if (replitDomain) {
     defaultAllowedOrigins.push(`https://${replitDomain}`);
   }
-  
+
   const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
     ? process.env.CORS_ALLOWED_ORIGINS.split(',')
     : defaultAllowedOrigins;
 
   app.enableCors({
-    origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (error: Error | null, allow?: boolean) => void,
+    ) => {
       // Only allow requests from explicitly configured origins
       if (allowedOrigins.includes(origin || '')) {
         return callback(null, true);
@@ -92,7 +97,9 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3333;
   await app.listen(port, '0.0.0.0');
-  console.log(`Application is running on: ${await app.getUrl()} - accessible externally if port is mapped.`);
+  console.log(
+    `Application is running on: ${await app.getUrl()} - accessible externally if port is mapped.`,
+  );
 }
 bootstrap().catch((err) => {
   console.error('Failed to bootstrap the application', err);

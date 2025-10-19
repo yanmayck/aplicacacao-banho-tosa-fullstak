@@ -7,6 +7,6 @@ import { ClientAppointmentsService } from './client-appointments.service';
   imports: [PrismaModule],
   controllers: [ClientAppointmentsController],
   providers: [ClientAppointmentsService],
-  exports: [ClientAppointmentsService]
+  exports: [ClientAppointmentsService],
 })
 export class ClientAppointmentsModule {}

@@ -10,12 +10,14 @@ export class ClientPetHealthService {
     const pet = await this.prisma.pet.findFirst({
       where: {
         id: petId,
-        clientId
-      }
+        clientId,
+      },
     });
 
     if (!pet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     return {
@@ -36,12 +38,14 @@ export class ClientPetHealthService {
     const pet = await this.prisma.pet.findFirst({
       where: {
         id: petId,
-        clientId
-      }
+        clientId,
+      },
     });
 
     if (!pet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     // Obter histórico atual
@@ -53,8 +57,8 @@ export class ClientPetHealthService {
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        vaccineHistory: updatedHistory
-      }
+        vaccineHistory: updatedHistory,
+      },
     });
   }
 
@@ -63,19 +67,21 @@ export class ClientPetHealthService {
     const pet = await this.prisma.pet.findFirst({
       where: {
         id: petId,
-        clientId
-      }
+        clientId,
+      },
     });
 
     if (!pet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        rabiesVaccine: rabiesData
-      }
+        rabiesVaccine: rabiesData,
+      },
     });
   }
 
@@ -84,19 +90,21 @@ export class ClientPetHealthService {
     const pet = await this.prisma.pet.findFirst({
       where: {
         id: petId,
-        clientId
-      }
+        clientId,
+      },
     });
 
     if (!pet) {
-      throw new NotFoundException('Pet não encontrado ou não pertence ao cliente');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao cliente',
+      );
     }
 
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        lastTickMedicine: medicineData
-      }
+        lastTickMedicine: medicineData,
+      },
     });
   }
 

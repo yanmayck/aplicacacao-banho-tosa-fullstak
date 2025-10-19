@@ -5,7 +5,6 @@ import {
   IsEnum,
   IsArray,
   IsUUID,
-  ArrayNotEmpty, // Para garantir que se serviceIds for fornecido, não seja um array vazio (a menos que permitido)
 } from 'class-validator';
 import { AppointmentStatus as PrismaAppointmentStatus } from '@prisma/client'; // Importar o enum do Prisma
 

@@ -13,12 +13,6 @@ let JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
     canActivate(context) {
         return super.canActivate(context);
     }
-    handleRequest(err, user) {
-        if (err || !user) {
-            throw err || new common_1.UnauthorizedException('Token inválido ou expirado');
-        }
-        return user;
-    }
 };
 exports.JwtAuthGuard = JwtAuthGuard;
 exports.JwtAuthGuard = JwtAuthGuard = __decorate([

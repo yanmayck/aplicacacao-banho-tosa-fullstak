@@ -14,7 +14,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { JwtClientGuard } from '../public-client/guards/jwt-client.guard';
-import { ClientReviewsService, CreateReviewDto } from './client-reviews.service';
+import {
+  ClientReviewsService,
+  CreateReviewDto,
+} from './client-reviews.service';
 
 @Controller('client/reviews')
 @UseGuards(JwtClientGuard)
@@ -27,7 +30,10 @@ export class ClientReviewsController {
     @Body() createReviewDto: CreateReviewDto,
     @Request() req: { user: { sub: string } },
   ) {
-    return this.clientReviewsService.createReview(req.user.sub, createReviewDto);
+    return this.clientReviewsService.createReview(
+      req.user.sub,
+      createReviewDto,
+    );
   }
 
   @Get()
@@ -50,7 +56,11 @@ export class ClientReviewsController {
     @Body() updateReviewDto: Partial<CreateReviewDto>,
     @Request() req: { user: { sub: string } },
   ) {
-    return this.clientReviewsService.updateReview(id, req.user.sub, updateReviewDto);
+    return this.clientReviewsService.updateReview(
+      id,
+      req.user.sub,
+      updateReviewDto,
+    );
   }
 
   @Delete(':id')

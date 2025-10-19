@@ -9,8 +9,8 @@ interface ClientContextType {
   clients: Client[];
   isLoading: boolean;
   error: Error | null;
-  addClient: (client: Omit<Client, "id">) => Promise<void>;
-  updateClient: (client: Client) => Promise<void>;
+  addClient: (client: Omit<Client, "id">) => Promise<Client>;
+  updateClient: (client: Client) => Promise<Client>;
   deleteClient: (id: string) => Promise<void>;
   getClientById: (id: string) => Client | undefined;
 }
@@ -29,7 +29,6 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const queryClient = useQueryClient();
 
   const { data: clients = [], isLoading, error } = useQuery<Client[], Error>({
-    queryKey: ["clients"],
     queryKey: ["clients"],
     queryFn: clientApi.getClients,
   });

@@ -28,9 +28,15 @@ let PetsService = class PetsService {
         const data = {
             ...petData,
             client: { connect: { id: client.id } },
-            lastTickMedicine: petData.lastTickMedicine ? (JSON.parse(JSON.stringify(petData.lastTickMedicine))) : undefined,
-            rabiesVaccine: petData.rabiesVaccine ? (JSON.parse(JSON.stringify(petData.rabiesVaccine))) : undefined,
-            vaccineHistory: petData.vaccineHistory ? (JSON.parse(JSON.stringify(petData.vaccineHistory))) : undefined,
+            lastTickMedicine: petData.lastTickMedicine
+                ? JSON.parse(JSON.stringify(petData.lastTickMedicine))
+                : undefined,
+            rabiesVaccine: petData.rabiesVaccine
+                ? JSON.parse(JSON.stringify(petData.rabiesVaccine))
+                : undefined,
+            vaccineHistory: petData.vaccineHistory
+                ? JSON.parse(JSON.stringify(petData.vaccineHistory))
+                : undefined,
         };
         return this.prisma.pet.create({ data });
     }
@@ -60,9 +66,15 @@ let PetsService = class PetsService {
             where: { id },
             data: {
                 ...updatePetDto,
-                lastTickMedicine: updatePetDto.lastTickMedicine ? updatePetDto.lastTickMedicine : undefined,
-                rabiesVaccine: updatePetDto.rabiesVaccine ? updatePetDto.rabiesVaccine : undefined,
-                vaccineHistory: updatePetDto.vaccineHistory ? JSON.parse(JSON.stringify(updatePetDto.vaccineHistory)) : undefined,
+                lastTickMedicine: updatePetDto.lastTickMedicine
+                    ? updatePetDto.lastTickMedicine
+                    : undefined,
+                rabiesVaccine: updatePetDto.rabiesVaccine
+                    ? updatePetDto.rabiesVaccine
+                    : undefined,
+                vaccineHistory: updatePetDto.vaccineHistory
+                    ? JSON.parse(JSON.stringify(updatePetDto.vaccineHistory))
+                    : undefined,
             },
         });
     }

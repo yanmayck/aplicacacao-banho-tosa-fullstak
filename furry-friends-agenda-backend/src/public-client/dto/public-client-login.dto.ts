@@ -1,7 +1,4 @@
-import {
-  IsEmail,
-  IsString,
-} from 'class-validator';
+import { IsEmail, IsString } from 'class-validator';
 
 export class PublicClientLoginDto {
   @IsEmail({}, { message: 'Email inválido' })

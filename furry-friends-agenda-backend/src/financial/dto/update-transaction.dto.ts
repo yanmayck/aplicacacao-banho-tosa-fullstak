@@ -8,7 +8,11 @@ import {
   Min,
   MaxLength,
 } from 'class-validator';
-import { TransactionType, IncomeCategory, ExpenseCategory } from './create-transaction.dto';
+import {
+  TransactionType,
+  IncomeCategory,
+  ExpenseCategory,
+} from './create-transaction.dto';
 
 export class UpdateTransactionDto {
   @IsOptional()

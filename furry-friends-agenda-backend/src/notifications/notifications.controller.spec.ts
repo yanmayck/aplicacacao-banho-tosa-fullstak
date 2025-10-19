@@ -1,15 +1,34 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotificationsController } from './notifications.controller';
+import { NotificationsAdminController } from './notifications.controller';
+import { NotificationsService } from './notifications.service';
 
-describe('NotificationsController', () => {
-  let controller: NotificationsController;
+const mockNotificationsService = {
+  createNotification: jest.fn(),
+  sendAppointmentReminder: jest.fn(),
+  sendAppointmentConfirmation: jest.fn(),
+  sendVaccineReminder: jest.fn(),
+  sendServiceStatusUpdate: jest.fn(),
+  sendPaymentReminder: jest.fn(),
+  sendLoyaltyPointsNotification: jest.fn(),
+  sendSpecialOffer: jest.fn(),
+  sendPetBirthdayReminder: jest.fn(),
+  sendBulkNotifications: jest.fn(),
+  getNotificationHistory: jest.fn(),
+  getNotificationStats: jest.fn(),
+};
+
+describe('NotificationsAdminController', () => {
+  let controller: NotificationsAdminController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [NotificationsController],
+      controllers: [NotificationsAdminController],
+      providers: [
+        { provide: NotificationsService, useValue: mockNotificationsService },
+      ],
     }).compile();
 
-    controller = module.get<NotificationsController>(NotificationsController);
+    controller = module.get<NotificationsAdminController>(NotificationsAdminController);
   });
 
   it('should be defined', () => {

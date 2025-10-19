@@ -12,6 +12,7 @@ export declare class PetsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        clientId: string;
         species: string;
         breed: string | null;
         birthDate: string | null;
@@ -20,7 +21,6 @@ export declare class PetsController {
         lastTickMedicine: import("@prisma/client/runtime/library").JsonValue | null;
         rabiesVaccine: import("@prisma/client/runtime/library").JsonValue | null;
         vaccineHistory: import("@prisma/client/runtime/library").JsonValue[];
-        clientId: string;
     }>;
     findAll(req: {
         user: JwtPayload;
@@ -29,6 +29,7 @@ export declare class PetsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        clientId: string;
         species: string;
         breed: string | null;
         birthDate: string | null;
@@ -37,7 +38,6 @@ export declare class PetsController {
         lastTickMedicine: import("@prisma/client/runtime/library").JsonValue | null;
         rabiesVaccine: import("@prisma/client/runtime/library").JsonValue | null;
         vaccineHistory: import("@prisma/client/runtime/library").JsonValue[];
-        clientId: string;
     }[]>;
     findOne(id: string, req: {
         user: JwtPayload;
@@ -46,6 +46,7 @@ export declare class PetsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        clientId: string;
         species: string;
         breed: string | null;
         birthDate: string | null;
@@ -54,7 +55,6 @@ export declare class PetsController {
         lastTickMedicine: import("@prisma/client/runtime/library").JsonValue | null;
         rabiesVaccine: import("@prisma/client/runtime/library").JsonValue | null;
         vaccineHistory: import("@prisma/client/runtime/library").JsonValue[];
-        clientId: string;
     } | null>;
     update(id: string, updatePetDto: UpdatePetDto, req: {
         user: JwtPayload;
@@ -63,6 +63,7 @@ export declare class PetsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        clientId: string;
         species: string;
         breed: string | null;
         birthDate: string | null;
@@ -71,7 +72,6 @@ export declare class PetsController {
         lastTickMedicine: import("@prisma/client/runtime/library").JsonValue | null;
         rabiesVaccine: import("@prisma/client/runtime/library").JsonValue | null;
         vaccineHistory: import("@prisma/client/runtime/library").JsonValue[];
-        clientId: string;
     }>;
     remove(id: string, req: {
         user: JwtPayload;
@@ -80,6 +80,7 @@ export declare class PetsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        clientId: string;
         species: string;
         breed: string | null;
         birthDate: string | null;
@@ -88,6 +89,5 @@ export declare class PetsController {
         lastTickMedicine: import("@prisma/client/runtime/library").JsonValue | null;
         rabiesVaccine: import("@prisma/client/runtime/library").JsonValue | null;
         vaccineHistory: import("@prisma/client/runtime/library").JsonValue[];
-        clientId: string;
     }>;
 }

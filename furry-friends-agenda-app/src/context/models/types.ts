@@ -253,5 +253,127 @@ export interface FinancialFilters {
   sortOrder?: 'asc' | 'desc';
 }
 
+// ========== TIPOS DE ESTOQUE ==========
+
+// Enum para tipos de produto
+export type ProductType = 'SHAMPOO' | 'MEDICINE' | 'ACCESSORY' | 'FOOD' | 'HYGIENE' | 'TOY' | 'OTHER';
+
+// Enum para unidades de medida
+export type UnitOfMeasure = 'UNIT' | 'KG' | 'G' | 'L' | 'ML' | 'PACK' | 'BOX';
+
+// Enum para tipos de movimentação de estoque
+export type StockMovementType = 'IN' | 'OUT' | 'ADJUSTMENT' | 'RETURN';
+
+// Modelo de categoria de produto
+export interface ProductCategory {
+  id: string;
+  name: string;
+  description?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Modelo de produto
+export interface Product {
+  id: string;
+  name: string;
+  description?: string | null;
+  sku?: string | null;
+  barcode?: string | null;
+  currentStock: number;
+  minStock: number;
+  maxStock?: number | null;
+  purchasePrice: number;
+  salePrice: number;
+  type: ProductType;
+  unitOfMeasure: UnitOfMeasure;
+  brand?: string | null;
+  model?: string | null;
+  hasExpiration: boolean;
+  expirationDate?: string | null;
+  categoryId: string;
+  category?: ProductCategory;
+  supplierId?: string | null;
+  isActive: boolean;
+  isServiceItem: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Modelo de movimentação de estoque
+export interface StockMovement {
+  id: string;
+  type: StockMovementType;
+  quantity: number;
+  previousStock: number;
+  currentStock: number;
+  unitPrice?: number | null;
+  reason: string;
+  notes?: string | null;
+  productId: string;
+  product?: Product;
+  appointmentId?: string | null;
+  supplierId?: string | null;
+  batchNumber?: string | null;
+  expirationDate?: string | null;
+  transactionId?: string | null;
+  createdAt: string;
+  createdBy?: string | null;
+}
+
+// Modelo de fornecedor
+export interface Supplier {
+  id: string;
+  name: string;
+  contact?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  cnpj?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Modelo de alerta de estoque
+export interface StockAlert {
+  id: string;
+  type: string;
+  message: string;
+  isRead: boolean;
+  isResolved: boolean;
+  productId: string;
+  product?: Product;
+  currentStock: number;
+  thresholdStock?: number | null;
+  expirationDate?: string | null;
+  resolvedAt?: string | null;
+  resolvedBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Filtros para produtos
+export interface ProductFilters {
+  search?: string;
+  categoryId?: string;
+  type?: ProductType;
+  isActive?: boolean;
+  lowStock?: boolean;
+  sortBy?: 'name' | 'currentStock' | 'salePrice' | 'createdAt';
+  sortOrder?: 'asc' | 'desc';
+}
+
+// Filtros para movimentações de estoque
+export interface StockMovementFilters {
+  productId?: string;
+  type?: StockMovementType;
+  startDate?: string;
+  endDate?: string;
+  sortBy?: 'createdAt' | 'quantity' | 'type';
+  sortOrder?: 'asc' | 'desc';
+}
+
 // Legacy function for backward compatibility (deprecated)
 export const generateId = generateSecureId;

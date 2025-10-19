@@ -10,26 +10,7 @@ import {
   IsUUID,
   IsDateString,
 } from 'class-validator';
-
-enum ProductType {
-  SHAMPOO = 'SHAMPOO',
-  MEDICINE = 'MEDICINE',
-  ACCESSORY = 'ACCESSORY',
-  FOOD = 'FOOD',
-  HYGIENE = 'HYGIENE',
-  TOY = 'TOY',
-  OTHER = 'OTHER'
-}
-
-enum UnitOfMeasure {
-  UNIT = 'UNIT',
-  KG = 'KG',
-  G = 'G',
-  L = 'L',
-  ML = 'ML',
-  PACK = 'PACK',
-  BOX = 'BOX'
-}
+import { ProductType, UnitOfMeasure } from '@prisma/client';
 
 export class CreateProductDto {
   @IsString()

@@ -7,6 +7,6 @@ import { ClientPetsService } from './client-pets.service';
   imports: [PrismaModule],
   controllers: [ClientPetsController],
   providers: [ClientPetsService],
-  exports: [ClientPetsService]
+  exports: [ClientPetsService],
 })
 export class ClientPetsModule {}

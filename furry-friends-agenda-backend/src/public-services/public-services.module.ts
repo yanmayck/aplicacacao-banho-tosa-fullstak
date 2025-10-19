@@ -7,6 +7,6 @@ import { PublicServicesService } from './public-services.service';
   imports: [PrismaModule],
   controllers: [PublicServicesController],
   providers: [PublicServicesService],
-  exports: [PublicServicesService]
+  exports: [PublicServicesService],
 })
 export class PublicServicesModule {}

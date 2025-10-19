@@ -17,7 +17,9 @@ import { ClientPetHealthService } from './client-pet-health.service';
 @Controller('client/pets')
 @UseGuards(JwtClientGuard)
 export class ClientPetHealthController {
-  constructor(private readonly clientPetHealthService: ClientPetHealthService) {}
+  constructor(
+    private readonly clientPetHealthService: ClientPetHealthService,
+  ) {}
 
   @Get(':petId/health')
   getPetHealth(
@@ -34,7 +36,11 @@ export class ClientPetHealthController {
     @Body() vaccineData: any,
     @Request() req: { user: { sub: string } },
   ) {
-    return this.clientPetHealthService.addVaccineRecord(petId, vaccineData, req.user.sub);
+    return this.clientPetHealthService.addVaccineRecord(
+      petId,
+      vaccineData,
+      req.user.sub,
+    );
   }
 
   @Patch(':petId/rabies-vaccine')
@@ -44,7 +50,11 @@ export class ClientPetHealthController {
     @Body() rabiesData: any,
     @Request() req: { user: { sub: string } },
   ) {
-    return this.clientPetHealthService.updateRabiesVaccine(petId, rabiesData, req.user.sub);
+    return this.clientPetHealthService.updateRabiesVaccine(
+      petId,
+      rabiesData,
+      req.user.sub,
+    );
   }
 
   @Patch(':petId/tick-medicine')
@@ -54,7 +64,11 @@ export class ClientPetHealthController {
     @Body() medicineData: any,
     @Request() req: { user: { sub: string } },
   ) {
-    return this.clientPetHealthService.updateTickMedicine(petId, medicineData, req.user.sub);
+    return this.clientPetHealthService.updateTickMedicine(
+      petId,
+      medicineData,
+      req.user.sub,
+    );
   }
 
   @Get('vaccines/due-soon')

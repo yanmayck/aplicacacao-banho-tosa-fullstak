@@ -7,7 +7,7 @@ import {
   GroomerPerformanceFiltersDto,
   ClientAnalysisFiltersDto,
   ServiceRankingFiltersDto,
-  OccupancyMetricsFiltersDto
+  OccupancyMetricsFiltersDto,
 } from './dto/report-filters.dto';
 import {
   ReportResponseDto,
@@ -18,8 +18,18 @@ import {
   OccupancyMetricsDto,
   AppointmentAnalysisDto,
   ReportMetadataDto,
-  ChartDataPointDto
+  ChartDataPointDto,
 } from './dto/report-response.dto';
+import {
+  DateFilter,
+  TypeFilter,
+  BaseReportData,
+  GroomerReportData,
+  ClientAnalysisData,
+  ServiceRankingData,
+  OccupancyMetricsData,
+  AppointmentAnalysisData,
+} from '../types/report.types';
 
 @Injectable()
 export class ReportsService {
@@ -29,24 +39,40 @@ export class ReportsService {
     const startTime = Date.now();
 
     try {
-      let reportData: any;
+      let reportData:
+        | FinancialReportDto
+        | GroomerPerformanceDto[]
+        | ClientAnalysisDto
+        | ServiceRankingDto[]
+        | OccupancyMetricsDto
+        | AppointmentAnalysisDto;
       let metadata: ReportMetadataDto;
 
       switch (filters.type) {
         case ReportType.FINANCIAL:
-          reportData = await this.generateFinancialReport(filters as FinancialReportFiltersDto);
+          reportData = await this.generateFinancialReport(
+            filters as FinancialReportFiltersDto,
+          );
           break;
         case ReportType.GROOMER_PERFORMANCE:
-          reportData = await this.generateGroomerPerformanceReport(filters as GroomerPerformanceFiltersDto);
+          reportData = await this.generateGroomerPerformanceReport(
+            filters as GroomerPerformanceFiltersDto,
+          );
           break;
         case ReportType.CLIENT_ANALYSIS:
-          reportData = await this.generateClientAnalysisReport(filters as ClientAnalysisFiltersDto);
+          reportData = await this.generateClientAnalysisReport(
+            filters as ClientAnalysisFiltersDto,
+          );
           break;
         case ReportType.SERVICE_RANKING:
-          reportData = await this.generateServiceRankingReport(filters as ServiceRankingFiltersDto);
+          reportData = await this.generateServiceRankingReport(
+            filters as ServiceRankingFiltersDto,
+          );
           break;
         case ReportType.OCCUPANCY_METRICS:
-          reportData = await this.generateOccupancyMetricsReport(filters as OccupancyMetricsFiltersDto);
+          reportData = await this.generateOccupancyMetricsReport(
+            filters as OccupancyMetricsFiltersDto,
+          );
           break;
         case ReportType.APPOINTMENT_ANALYSIS:
           reportData = await this.generateAppointmentAnalysisReport(filters);
@@ -61,26 +87,29 @@ export class ReportsService {
         generatedAt: new Date(),
         totalRecords: Array.isArray(reportData) ? reportData.length : 1,
         filters,
-        executionTime
+        executionTime,
       };
 
       return {
         success: true,
         message: 'Relatório gerado com sucesso',
         metadata,
-        data: reportData
+        data: reportData,
       };
-
     } catch (error) {
-      throw new BadRequestException(`Erro ao gerar relatório: ${error.message}`);
+      throw new BadRequestException(
+        `Erro ao gerar relatório: ${error.message}`,
+      );
     }
   }
 
-  private async generateFinancialReport(filters: FinancialReportFiltersDto): Promise<FinancialReportDto> {
+  private async generateFinancialReport(
+    filters: FinancialReportFiltersDto,
+  ): Promise<FinancialReportDto> {
     const { startDate, endDate, transactionType } = filters;
 
     // Build date filter
-    const dateFilter: any = {};
+    const dateFilter: DateFilter = {};
     if (startDate || endDate) {
       dateFilter.date = {};
       if (startDate) dateFilter.date.gte = new Date(startDate);
@@ -88,7 +117,7 @@ export class ReportsService {
     }
 
     // Build transaction type filter
-    const typeFilter: any = {};
+    const typeFilter: TypeFilter = {};
     if (transactionType && transactionType !== 'both') {
       typeFilter.type = transactionType.toUpperCase();
     }
@@ -98,7 +127,7 @@ export class ReportsService {
       where: {
         ...dateFilter,
         ...typeFilter,
-        isCashRegisterClosed: false
+        isCashRegisterClosed: false,
       },
       include: {
         category: true,
@@ -108,35 +137,42 @@ export class ReportsService {
             groomer: true,
             appointmentServices: {
               include: {
-                service: true
-              }
-            }
-          }
-        }
+                service: true,
+              },
+            },
+          },
+        },
       },
-      orderBy: { date: 'asc' }
+      orderBy: { date: 'asc' },
     });
 
     // Calculate totals
     const totalIncome = transactions
-      .filter(t => t.type === 'INCOME')
+      .filter((t) => t.type === 'INCOME')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const totalExpenses = transactions
-      .filter(t => t.type === 'EXPENSE')
+      .filter((t) => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const netProfit = totalIncome - totalExpenses;
     const transactionCount = transactions.length;
-    const averageTicket = transactionCount > 0 ? totalIncome / transactionCount : 0;
+    const averageTicket =
+      transactionCount > 0 ? totalIncome / transactionCount : 0;
 
     // Group by category for charts
-    const incomeByCategory = this.groupTransactionsByCategory(transactions.filter(t => t.type === 'INCOME'));
-    const expensesByCategory = this.groupTransactionsByCategory(transactions.filter(t => t.type === 'EXPENSE'));
+    const incomeByCategory = this.groupTransactionsByCategory(
+      transactions.filter((t) => t.type === 'INCOME'),
+    );
+    const expensesByCategory = this.groupTransactionsByCategory(
+      transactions.filter((t) => t.type === 'EXPENSE'),
+    );
 
     // Get top categories
-    const topIncomeCategory = incomeByCategory.length > 0 ? incomeByCategory[0].label : 'N/A';
-    const topExpenseCategory = expensesByCategory.length > 0 ? expensesByCategory[0].label : 'N/A';
+    const topIncomeCategory =
+      incomeByCategory.length > 0 ? incomeByCategory[0].label : 'N/A';
+    const topExpenseCategory =
+      expensesByCategory.length > 0 ? expensesByCategory[0].label : 'N/A';
 
     // Generate daily revenue data
     const dailyRevenue = this.generateDailyRevenueData(transactions);
@@ -155,14 +191,21 @@ export class ReportsService {
       incomeByCategory,
       expensesByCategory,
       dailyRevenue,
-      monthlyTrends
+      monthlyTrends,
     };
   }
 
-  private async generateGroomerPerformanceReport(filters: GroomerPerformanceFiltersDto): Promise<GroomerPerformanceDto[]> {
+  private async generateGroomerPerformanceReport(
+    filters: GroomerPerformanceFiltersDto,
+  ): Promise<GroomerPerformanceDto[]> {
     const { startDate, endDate, groomerIds } = filters;
 
-    const dateFilter: any = {};
+    const dateFilter: {
+      dateTime?: {
+        gte?: Date;
+        lte?: Date;
+      };
+    } = {};
     if (startDate || endDate) {
       dateFilter.dateTime = {};
       if (startDate) dateFilter.dateTime.gte = new Date(startDate);
@@ -181,69 +224,89 @@ export class ReportsService {
             client: true,
             appointmentServices: {
               include: {
-                service: true
-              }
-            }
-          }
+                service: true,
+              },
+            },
+          },
         },
         receivedReviews: {
           where: {
             isApproved: true,
-            isVisible: true
-          }
+            isVisible: true,
+          },
         },
         transactions: {
           where: {
             ...dateFilter,
-            type: 'INCOME'
-          }
+            type: 'INCOME',
+          },
         },
         commissions: {
           where: {
             ...dateFilter,
-            isPaid: true
-          }
-        }
-      }
+            isPaid: true,
+          },
+        },
+      },
     });
 
-    return groomers.map(groomer => {
+    return groomers.map((groomer) => {
       const appointments = groomer.appointments || [];
-      const completedAppointments = appointments.filter((a: any) => a.status === 'COMPLETED');
+      const completedAppointments = appointments.filter(
+        (a: any) => a.status === 'COMPLETED',
+      );
       const totalRevenue = appointments
         .filter((a: any) => a.status === 'COMPLETED')
         .reduce((sum: number, a: any) => sum + a.totalPrice, 0);
 
-      const totalCommissions = (groomer.commissions || []).reduce((sum: number, c: any) => sum + c.commissionAmount, 0);
+      const totalCommissions = (groomer.commissions || []).reduce(
+        (sum: number, c: any) => sum + c.commissionAmount,
+        0,
+      );
 
-      const averageRating = (groomer.receivedReviews || []).length > 0
-        ? (groomer.receivedReviews || []).reduce((sum: number, r: any) => sum + r.rating, 0) / (groomer.receivedReviews || []).length
-        : 0;
+      const averageRating =
+        (groomer.receivedReviews || []).length > 0
+          ? (groomer.receivedReviews || []).reduce(
+              (sum: number, r: any) => sum + r.rating,
+              0,
+            ) / (groomer.receivedReviews || []).length
+          : 0;
 
-      const efficiency = appointments.length > 0
-        ? (completedAppointments.length / appointments.length) * 100
-        : 0;
+      const efficiency =
+        appointments.length > 0
+          ? (completedAppointments.length / appointments.length) * 100
+          : 0;
 
       // Top services by this groomer
       const serviceCount = new Map<string, number>();
       appointments.forEach((appointment: any) => {
         (appointment.appointmentServices || []).forEach((as: any) => {
           const serviceName = as.service?.name || 'Serviço sem nome';
-          serviceCount.set(serviceName, (serviceCount.get(serviceName) || 0) + 1);
+          serviceCount.set(
+            serviceName,
+            (serviceCount.get(serviceName) || 0) + 1,
+          );
         });
       });
 
-      const topServices: ChartDataPointDto[] = Array.from(serviceCount.entries())
+      const topServices: ChartDataPointDto[] = Array.from(
+        serviceCount.entries(),
+      )
         .map(([label, value]) => ({ label, value }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 5);
 
       // Monthly performance trend
-      const monthlyPerformance = this.generateMonthlyPerformanceData(appointments);
+      const monthlyPerformance =
+        this.generateMonthlyPerformanceData(appointments);
 
       // Client retention (simplified calculation)
-      const uniqueClients = new Set(appointments.map((a: any) => a.clientId)).size;
-      const clientRetention = appointments.length > 0 ? (uniqueClients / appointments.length) * 100 : 0;
+      const uniqueClients = new Set(appointments.map((a: any) => a.clientId))
+        .size;
+      const clientRetention =
+        appointments.length > 0
+          ? (uniqueClients / appointments.length) * 100
+          : 0;
 
       return {
         groomerId: groomer.id,
@@ -256,15 +319,22 @@ export class ReportsService {
         efficiency,
         topServices,
         monthlyPerformance,
-        clientRetention
+        clientRetention,
       };
     });
   }
 
-  private async generateClientAnalysisReport(filters: ClientAnalysisFiltersDto): Promise<ClientAnalysisDto> {
+  private async generateClientAnalysisReport(
+    filters: ClientAnalysisFiltersDto,
+  ): Promise<ClientAnalysisDto> {
     const { startDate, endDate } = filters;
 
-    const dateFilter: any = {};
+    const dateFilter: {
+      createdAt?: {
+        gte?: Date;
+        lte?: Date;
+      };
+    } = {};
     if (startDate || endDate) {
       dateFilter.createdAt = {};
       if (startDate) dateFilter.createdAt.gte = new Date(startDate);
@@ -275,8 +345,8 @@ export class ReportsService {
     const clients = await this.prisma.client.findMany({
       include: {
         appointments: true,
-        loyaltyPoint: true
-      }
+        loyaltyPoint: true,
+      },
     });
 
     const totalClients = clients.length;
@@ -297,28 +367,50 @@ export class ReportsService {
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const churnedClients = clients.filter((client: any) => {
-      const lastAppointment = client.appointments?.length > 0
-        ? new Date(Math.max(...client.appointments.map((a: any) => new Date(a.dateTime).getTime())))
-        : new Date(0);
+      const lastAppointment =
+        client.appointments?.length > 0
+          ? new Date(
+              Math.max(
+                ...client.appointments.map((a: any) =>
+                  new Date(a.dateTime).getTime(),
+                ),
+              ),
+            )
+          : new Date(0);
       return lastAppointment < sixMonthsAgo;
     }).length;
 
     // Calculate averages
-    const totalVisits = clients.reduce((sum: number, client: any) => sum + (client.appointments?.length || 0), 0);
-    const averageVisitsPerClient = totalClients > 0 ? totalVisits / totalClients : 0;
+    const totalVisits = clients.reduce(
+      (sum: number, client: any) => sum + (client.appointments?.length || 0),
+      0,
+    );
+    const averageVisitsPerClient =
+      totalClients > 0 ? totalVisits / totalClients : 0;
 
     // Calculate total spent (simplified)
     const totalSpent = clients.reduce((sum: number, client: any) => {
-      return sum + (client.appointments || []).reduce((appointmentSum: number, appointment: any) => {
-        return appointmentSum + (appointment.totalPrice || 0);
-      }, 0);
+      return (
+        sum +
+        (client.appointments || []).reduce(
+          (appointmentSum: number, appointment: any) => {
+            return appointmentSum + (appointment.totalPrice || 0);
+          },
+          0,
+        )
+      );
     }, 0);
 
-    const averageSpentPerClient = totalClients > 0 ? totalSpent / totalClients : 0;
+    const averageSpentPerClient =
+      totalClients > 0 ? totalSpent / totalClients : 0;
 
     // Calculate retention and churn rates
-    const retentionRate = totalClients > 0 ? ((totalClients - churnedClients) / totalClients) * 100 : 0;
-    const churnRate = totalClients > 0 ? (churnedClients / totalClients) * 100 : 0;
+    const retentionRate =
+      totalClients > 0
+        ? ((totalClients - churnedClients) / totalClients) * 100
+        : 0;
+    const churnRate =
+      totalClients > 0 ? (churnedClients / totalClients) * 100 : 0;
 
     // Client segmentation by visit frequency
     const clientSegmentation = this.generateClientSegmentation(clients);
@@ -340,14 +432,16 @@ export class ReportsService {
       churnRate,
       clientSegmentation,
       acquisitionTrends,
-      loyaltyDistribution
+      loyaltyDistribution,
     };
   }
 
-  private async generateServiceRankingReport(filters: ServiceRankingFiltersDto): Promise<ServiceRankingDto[]> {
+  private async generateServiceRankingReport(
+    filters: ServiceRankingFiltersDto,
+  ): Promise<ServiceRankingDto[]> {
     const { startDate, endDate } = filters;
 
-    const dateFilter: any = {};
+    const dateFilter: DateFilter = {};
     if (startDate || endDate) {
       dateFilter.dateTime = {};
       if (startDate) dateFilter.dateTime.gte = new Date(startDate);
@@ -362,61 +456,75 @@ export class ReportsService {
           include: {
             appointment: {
               include: {
-                reviews: true
-              }
-            }
-          }
-        }
-      }
+                reviews: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    return services.map(service => {
-      const appointmentServices = service.appointmentServices;
-      const totalBookings = appointmentServices.length;
+    return services
+      .map((service) => {
+        const appointmentServices = service.appointmentServices;
+        const totalBookings = appointmentServices.length;
 
-      const totalRevenue = appointmentServices.reduce((sum, as) => sum + as.priceAtTime, 0);
+        const totalRevenue = appointmentServices.reduce(
+          (sum, as) => sum + as.priceAtTime,
+          0,
+        );
 
-      // Calculate average rating from related appointments
-      const ratings = appointmentServices
-        .map(as => as.appointment.reviews)
-        .flat()
-        .filter(review => review && review.rating)
-        .map(review => review.rating);
+        // Calculate average rating from related appointments
+        const ratings = appointmentServices
+          .map((as) => as.appointment.reviews)
+          .flat()
+          .filter((review) => review && review.rating)
+          .map((review) => review.rating);
 
-      const averageRating = ratings.length > 0
-        ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
-        : 0;
+        const averageRating =
+          ratings.length > 0
+            ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+            : 0;
 
-      // Calculate popularity score (bookings * average rating)
-      const popularityScore = totalBookings * averageRating;
+        // Calculate popularity score (bookings * average rating)
+        const popularityScore = totalBookings * averageRating;
 
-      // Calculate profitability index (revenue per booking)
-      const profitabilityIndex = totalBookings > 0 ? totalRevenue / totalBookings : 0;
+        // Calculate profitability index (revenue per booking)
+        const profitabilityIndex =
+          totalBookings > 0 ? totalRevenue / totalBookings : 0;
 
-      // Simple trend calculation (comparing first half vs second half of period)
-      const trend = this.calculateTrend(appointmentServices);
+        // Simple trend calculation (comparing first half vs second half of period)
+        const trend = this.calculateTrend(appointmentServices);
 
-      // Growth rate calculation
-      const growthRate = this.calculateGrowthRate(appointmentServices);
+        // Growth rate calculation
+        const growthRate = this.calculateGrowthRate(appointmentServices);
 
-      return {
-        serviceId: service.id,
-        serviceName: service.name,
-        totalBookings,
-        totalRevenue,
-        averageRating,
-        popularityScore,
-        profitabilityIndex,
-        trend,
-        growthRate
-      };
-    }).sort((a, b) => b.popularityScore - a.popularityScore);
+        return {
+          serviceId: service.id,
+          serviceName: service.name,
+          totalBookings,
+          totalRevenue,
+          averageRating,
+          popularityScore,
+          profitabilityIndex,
+          trend,
+          growthRate,
+        };
+      })
+      .sort((a, b) => b.popularityScore - a.popularityScore);
   }
 
-  private async generateOccupancyMetricsReport(filters: OccupancyMetricsFiltersDto): Promise<OccupancyMetricsDto> {
+  private async generateOccupancyMetricsReport(
+    filters: OccupancyMetricsFiltersDto,
+  ): Promise<OccupancyMetricsDto> {
     const { startDate, endDate } = filters;
 
-    const dateFilter: any = {};
+    const dateFilter: {
+      dateTime?: {
+        gte?: Date;
+        lte?: Date;
+      };
+    } = {};
     if (startDate || endDate) {
       dateFilter.dateTime = {};
       if (startDate) dateFilter.dateTime.gte = new Date(startDate);
@@ -427,8 +535,8 @@ export class ReportsService {
     const appointments = await this.prisma.appointment.findMany({
       where: dateFilter,
       include: {
-        groomer: true
-      }
+        groomer: true,
+      },
     });
 
     // Assuming 8 working hours per day and 5 groomers as capacity
@@ -438,22 +546,43 @@ export class ReportsService {
 
     // Calculate occupancy metrics
     const dailyOccupancy = this.generateDailyOccupancyData(appointments);
-    const averageOccupancy = dailyOccupancy.length > 0
-      ? dailyOccupancy.reduce((sum, day) => sum + day.value, 0) / dailyOccupancy.length
-      : 0;
+    const averageOccupancy =
+      dailyOccupancy.length > 0
+        ? dailyOccupancy.reduce((sum, day) => sum + day.value, 0) /
+          dailyOccupancy.length
+        : 0;
 
     const peakHours = this.generatePeakHoursData(appointments);
     const weeklyTrends = this.generateWeeklyTrends(appointments);
 
-    const utilizationRate = totalCapacity > 0 ? (averageOccupancy / totalCapacity) * 100 : 0;
+    const utilizationRate =
+      totalCapacity > 0 ? (averageOccupancy / totalCapacity) * 100 : 0;
 
     // Calculate idle time (simplified)
     const idleTime = Math.max(0, totalCapacity - averageOccupancy);
 
     // Find busiest and slowest days
-    const dayNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-    const busiestDay = dailyOccupancy.length > 0 ? dailyOccupancy.reduce((max, day) => day.value > max.value ? day : max).label : 'N/A';
-    const slowestDay = dailyOccupancy.length > 0 ? dailyOccupancy.reduce((min, day) => day.value < min.value ? day : min).label : 'N/A';
+    const dayNames = [
+      'Domingo',
+      'Segunda-feira',
+      'Terça-feira',
+      'Quarta-feira',
+      'Quinta-feira',
+      'Sexta-feira',
+      'Sábado',
+    ];
+    const busiestDay =
+      dailyOccupancy.length > 0
+        ? dailyOccupancy.reduce((max, day) =>
+            day.value > max.value ? day : max,
+          ).label
+        : 'N/A';
+    const slowestDay =
+      dailyOccupancy.length > 0
+        ? dailyOccupancy.reduce((min, day) =>
+            day.value < min.value ? day : min,
+          ).label
+        : 'N/A';
 
     return {
       totalCapacity,
@@ -464,14 +593,21 @@ export class ReportsService {
       utilizationRate,
       idleTime,
       busiestDay,
-      slowestDay
+      slowestDay,
     };
   }
 
-  private async generateAppointmentAnalysisReport(filters: ReportFiltersDto): Promise<AppointmentAnalysisDto> {
+  private async generateAppointmentAnalysisReport(
+    filters: ReportFiltersDto,
+  ): Promise<AppointmentAnalysisDto> {
     const { startDate, endDate } = filters;
 
-    const dateFilter: any = {};
+    const dateFilter: {
+      dateTime?: {
+        gte?: Date;
+        lte?: Date;
+      };
+    } = {};
     if (startDate || endDate) {
       dateFilter.dateTime = {};
       if (startDate) dateFilter.dateTime.gte = new Date(startDate);
@@ -485,28 +621,45 @@ export class ReportsService {
         client: true,
         appointmentServices: {
           include: {
-            service: true
-          }
-        }
-      }
+            service: true,
+          },
+        },
+      },
     });
 
     const totalAppointments = appointments.length;
-    const scheduledAppointments = appointments.filter(a => a.status === 'SCHEDULED').length;
-    const completedAppointments = appointments.filter(a => a.status === 'COMPLETED').length;
-    const cancelledAppointments = appointments.filter(a => a.status === 'CANCELLED').length;
-    const noShowAppointments = appointments.filter(a => a.status === 'NO_SHOW').length;
+    const scheduledAppointments = appointments.filter(
+      (a) => a.status === 'SCHEDULED',
+    ).length;
+    const completedAppointments = appointments.filter(
+      (a) => a.status === 'COMPLETED',
+    ).length;
+    const cancelledAppointments = appointments.filter(
+      (a) => a.status === 'CANCELLED',
+    ).length;
+    const noShowAppointments = appointments.filter(
+      (a) => a.status === 'NO_SHOW',
+    ).length;
 
-    const completionRate = totalAppointments > 0 ? (completedAppointments / totalAppointments) * 100 : 0;
-    const cancellationRate = totalAppointments > 0 ? (cancelledAppointments / totalAppointments) * 100 : 0;
-    const noShowRate = totalAppointments > 0 ? (noShowAppointments / totalAppointments) * 100 : 0;
+    const completionRate =
+      totalAppointments > 0
+        ? (completedAppointments / totalAppointments) * 100
+        : 0;
+    const cancellationRate =
+      totalAppointments > 0
+        ? (cancelledAppointments / totalAppointments) * 100
+        : 0;
+    const noShowRate =
+      totalAppointments > 0
+        ? (noShowAppointments / totalAppointments) * 100
+        : 0;
 
     // Status distribution for charts
     const statusDistribution: ChartDataPointDto[] = [
       { label: 'Agendados', value: scheduledAppointments },
       { label: 'Concluídos', value: completedAppointments },
       { label: 'Cancelados', value: cancelledAppointments },
-      { label: 'Faltaram', value: noShowAppointments }
+      { label: 'Faltaram', value: noShowAppointments },
     ];
 
     // Time distribution (by hour)
@@ -526,15 +679,17 @@ export class ReportsService {
       noShowRate,
       statusDistribution,
       timeDistribution,
-      groomerWorkload
+      groomerWorkload,
     };
   }
 
   // Helper methods for data aggregation
-  private groupTransactionsByCategory(transactions: any[]): ChartDataPointDto[] {
+  private groupTransactionsByCategory(
+    transactions: Array<{ category?: { name: string }; amount: number }>,
+  ): ChartDataPointDto[] {
     const categoryMap = new Map<string, number>();
 
-    transactions.forEach(transaction => {
+    transactions.forEach((transaction) => {
       const categoryName = transaction.category?.name || 'Sem categoria';
       const currentAmount = categoryMap.get(categoryName) || 0;
       categoryMap.set(categoryName, currentAmount + transaction.amount);
@@ -545,10 +700,12 @@ export class ReportsService {
       .sort((a, b) => b.value - a.value);
   }
 
-  private generateDailyRevenueData(transactions: any[]): ChartDataPointDto[] {
+  private generateDailyRevenueData(
+    transactions: Array<{ date: Date; amount: number }>,
+  ): ChartDataPointDto[] {
     const dailyMap = new Map<string, number>();
 
-    transactions.forEach(transaction => {
+    transactions.forEach((transaction) => {
       const date = new Date(transaction.date).toISOString().split('T')[0];
       const currentAmount = dailyMap.get(date) || 0;
       dailyMap.set(date, currentAmount + transaction.amount);
@@ -562,7 +719,7 @@ export class ReportsService {
   private generateMonthlyTrends(transactions: any[]): ChartDataPointDto[] {
     const monthlyMap = new Map<string, number>();
 
-    transactions.forEach(transaction => {
+    transactions.forEach((transaction) => {
       const date = new Date(transaction.date);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const currentAmount = monthlyMap.get(monthKey) || 0;
@@ -574,10 +731,12 @@ export class ReportsService {
       .sort((a, b) => a.label.localeCompare(b.label));
   }
 
-  private generateMonthlyPerformanceData(appointments: any[]): ChartDataPointDto[] {
+  private generateMonthlyPerformanceData(
+    appointments: any[],
+  ): ChartDataPointDto[] {
     const monthlyMap = new Map<string, number>();
 
-    appointments.forEach(appointment => {
+    appointments.forEach((appointment) => {
       const date = new Date(appointment.dateTime);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const currentCount = monthlyMap.get(monthKey) || 0;
@@ -592,7 +751,7 @@ export class ReportsService {
   private generateClientSegmentation(clients: any[]): ChartDataPointDto[] {
     const segments = new Map<string, number>();
 
-    clients.forEach(client => {
+    clients.forEach((client) => {
       const visitCount = client.appointments.length;
       let segment: string;
 
@@ -612,11 +771,15 @@ export class ReportsService {
   private generateAcquisitionTrends(clients: any[]): ChartDataPointDto[] {
     const monthlyMap = new Map<string, number>();
 
-    clients.forEach(client => {
+    clients.forEach((client) => {
       if (client.appointments.length > 0) {
-        const firstAppointment = client.appointments.reduce((earliest, current) => {
-          return new Date(current.dateTime) < new Date(earliest.dateTime) ? current : earliest;
-        });
+        const firstAppointment = client.appointments.reduce(
+          (earliest, current) => {
+            return new Date(current.dateTime) < new Date(earliest.dateTime)
+              ? current
+              : earliest;
+          },
+        );
 
         const date = new Date(firstAppointment.dateTime);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -632,7 +795,7 @@ export class ReportsService {
   private generateLoyaltyDistribution(clients: any[]): ChartDataPointDto[] {
     const distribution = new Map<string, number>();
 
-    clients.forEach(client => {
+    clients.forEach((client) => {
       const points = client.loyaltyPoint?.points || 0;
       let tier: string;
 
@@ -669,14 +832,18 @@ export class ReportsService {
   private calculateGrowthRate(appointmentServices: any[]): number {
     if (appointmentServices.length < 2) return 0;
 
-    const sorted = appointmentServices.sort((a, b) =>
-      new Date(a.appointment.dateTime).getTime() - new Date(b.appointment.dateTime).getTime()
+    const sorted = appointmentServices.sort(
+      (a, b) =>
+        new Date(a.appointment.dateTime).getTime() -
+        new Date(b.appointment.dateTime).getTime(),
     );
 
     const first = sorted[0];
     const last = sorted[sorted.length - 1];
 
-    const timeDiff = new Date(last.appointment.dateTime).getTime() - new Date(first.appointment.dateTime).getTime();
+    const timeDiff =
+      new Date(last.appointment.dateTime).getTime() -
+      new Date(first.appointment.dateTime).getTime();
     const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
 
     if (daysDiff === 0) return 0;
@@ -688,9 +855,12 @@ export class ReportsService {
   private generateDailyOccupancyData(appointments: any[]): ChartDataPointDto[] {
     const dailyMap = new Map<string, number>();
 
-    appointments.forEach(appointment => {
+    appointments.forEach((appointment) => {
       const date = new Date(appointment.dateTime).toISOString().split('T')[0];
-      const dayName = new Date(appointment.dateTime).toLocaleDateString('pt-BR', { weekday: 'long' });
+      const dayName = new Date(appointment.dateTime).toLocaleDateString(
+        'pt-BR',
+        { weekday: 'long' },
+      );
       const key = `${date} - ${dayName}`;
 
       // Assuming each appointment takes 1 hour of capacity
@@ -705,7 +875,7 @@ export class ReportsService {
   private generatePeakHoursData(appointments: any[]): ChartDataPointDto[] {
     const hourlyMap = new Map<number, number>();
 
-    appointments.forEach(appointment => {
+    appointments.forEach((appointment) => {
       const hour = new Date(appointment.dateTime).getHours();
       hourlyMap.set(hour, (hourlyMap.get(hour) || 0) + 1);
     });
@@ -718,7 +888,7 @@ export class ReportsService {
   private generateWeeklyTrends(appointments: any[]): ChartDataPointDto[] {
     const weeklyMap = new Map<string, number>();
 
-    appointments.forEach(appointment => {
+    appointments.forEach((appointment) => {
       const date = new Date(appointment.dateTime);
       const weekStart = new Date(date);
       weekStart.setDate(date.getDate() - date.getDay());
@@ -735,20 +905,23 @@ export class ReportsService {
   private generateTimeDistribution(appointments: any[]): ChartDataPointDto[] {
     const hourlyMap = new Map<number, number>();
 
-    appointments.forEach(appointment => {
+    appointments.forEach((appointment) => {
       const hour = new Date(appointment.dateTime).getHours();
       hourlyMap.set(hour, (hourlyMap.get(hour) || 0) + 1);
     });
 
     return Array.from(hourlyMap.entries())
       .map(([label, value]) => ({ label: `${label}:00`, value }))
-      .sort((a, b) => parseInt(a.label.split(':')[0]) - parseInt(b.label.split(':')[0]));
+      .sort(
+        (a, b) =>
+          parseInt(a.label.split(':')[0]) - parseInt(b.label.split(':')[0]),
+      );
   }
 
   private generateGroomerWorkload(appointments: any[]): ChartDataPointDto[] {
     const groomerMap = new Map<string, number>();
 
-    appointments.forEach(appointment => {
+    appointments.forEach((appointment) => {
       if (appointment.groomer) {
         const groomerName = appointment.groomer.name;
         groomerMap.set(groomerName, (groomerMap.get(groomerName) || 0) + 1);

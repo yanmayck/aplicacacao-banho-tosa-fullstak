@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
 import axios from 'axios';
+import { ApiErrorType, getErrorMessage } from '../../types/api';
 
 // Helper function to get API instance
 const getApiInstance = () => {
@@ -73,7 +74,7 @@ export interface ChartDataPoint {
   label: string;
   value: number;
   color?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ReportMetadata {
@@ -254,10 +255,10 @@ export function ReportsProvider({ children }: { children: React.ReactNode }) {
       } else {
         dispatch({ type: 'SET_ERROR', payload: response.data.message });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({
         type: 'SET_ERROR',
-        payload: error.response?.data?.message || 'Erro ao gerar relatório'
+        payload: getErrorMessage(error as ApiErrorType) || 'Erro ao gerar relatório'
       });
     }
   }, []);
@@ -277,10 +278,10 @@ export function ReportsProvider({ children }: { children: React.ReactNode }) {
       } else {
         dispatch({ type: 'SET_ERROR', payload: response.data.message });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({
         type: 'SET_ERROR',
-        payload: error.response?.data?.message || 'Erro ao gerar relatório financeiro'
+        payload: getErrorMessage(error as ApiErrorType) || 'Erro ao gerar relatório financeiro'
       });
     }
   }, []);
@@ -300,10 +301,10 @@ export function ReportsProvider({ children }: { children: React.ReactNode }) {
       } else {
         dispatch({ type: 'SET_ERROR', payload: response.data.message });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({
         type: 'SET_ERROR',
-        payload: error.response?.data?.message || 'Erro ao gerar relatório de performance'
+        payload: getErrorMessage(error as ApiErrorType) || 'Erro ao gerar relatório de performance'
       });
     }
   }, []);
@@ -323,10 +324,10 @@ export function ReportsProvider({ children }: { children: React.ReactNode }) {
       } else {
         dispatch({ type: 'SET_ERROR', payload: response.data.message });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({
         type: 'SET_ERROR',
-        payload: error.response?.data?.message || 'Erro ao gerar análise de clientes'
+        payload: getErrorMessage(error as ApiErrorType) || 'Erro ao gerar análise de clientes'
       });
     }
   }, []);
@@ -346,10 +347,10 @@ export function ReportsProvider({ children }: { children: React.ReactNode }) {
       } else {
         dispatch({ type: 'SET_ERROR', payload: response.data.message });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({
         type: 'SET_ERROR',
-        payload: error.response?.data?.message || 'Erro ao gerar ranking de serviços'
+        payload: getErrorMessage(error as ApiErrorType) || 'Erro ao gerar ranking de serviços'
       });
     }
   }, []);
@@ -369,10 +370,10 @@ export function ReportsProvider({ children }: { children: React.ReactNode }) {
       } else {
         dispatch({ type: 'SET_ERROR', payload: response.data.message });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({
         type: 'SET_ERROR',
-        payload: error.response?.data?.message || 'Erro ao gerar métricas de ocupação'
+        payload: getErrorMessage(error as ApiErrorType) || 'Erro ao gerar métricas de ocupação'
       });
     }
   }, []);
@@ -392,10 +393,10 @@ export function ReportsProvider({ children }: { children: React.ReactNode }) {
       } else {
         dispatch({ type: 'SET_ERROR', payload: response.data.message });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({
         type: 'SET_ERROR',
-        payload: error.response?.data?.message || 'Erro ao gerar análise de agendamentos'
+        payload: getErrorMessage(error as ApiErrorType) || 'Erro ao gerar análise de agendamentos'
       });
     }
   }, []);
@@ -421,10 +422,10 @@ export function ReportsProvider({ children }: { children: React.ReactNode }) {
     try {
       // TODO: Implement export functionality
       console.log(`Exporting report as ${format}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({
         type: 'SET_ERROR',
-        payload: `Erro ao exportar relatório: ${error.message}`
+        payload: `Erro ao exportar relatório: ${getErrorMessage(error as ApiErrorType)}`
       });
     }
   }, [state.currentReport]);

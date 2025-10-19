@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -24,12 +25,21 @@ import { ClientPetHealthService } from './client-pet-health/client-pet-health.se
 import { ClientReviewsController } from './client-reviews/client-reviews.controller';
 import { ClientReviewsService } from './client-reviews/client-reviews.service';
 import { NotificationsService } from './notifications/notifications.service';
-import { ClientNotificationsController, NotificationsAdminController } from './notifications/notifications.controller';
+import {
+  ClientNotificationsController,
+  NotificationsAdminController,
+} from './notifications/notifications.controller';
 import { ReportsModule } from './reports/reports.module';
+import { ProductsModule } from './products/products.module';
+import { ProductCategoriesModule } from './product-categories/product-categories.module';
+import { StockMovementsModule } from './stock-movements/stock-movements.module';
+import { BackupModule } from './backup/backup.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     PrismaModule,
@@ -42,8 +52,30 @@ import { ReportsModule } from './reports/reports.module';
     FinancialModule,
     PublicClientModule,
     ReportsModule,
+    ProductsModule,
+    ProductCategoriesModule,
+    StockMovementsModule,
+    BackupModule,
+    AuditModule,
   ],
-  controllers: [AppController, PublicServicesController, ClientPetsController, ClientAppointmentsController, ClientPetHealthController, ClientReviewsController, ClientNotificationsController, NotificationsAdminController],
-  providers: [AppService, PublicServicesService, ClientPetsService, ClientAppointmentsService, ClientPetHealthService, ClientReviewsService, NotificationsService],
+  controllers: [
+    AppController,
+    PublicServicesController,
+    ClientPetsController,
+    ClientAppointmentsController,
+    ClientPetHealthController,
+    ClientReviewsController,
+    ClientNotificationsController,
+    NotificationsAdminController,
+  ],
+  providers: [
+    AppService,
+    PublicServicesService,
+    ClientPetsService,
+    ClientAppointmentsService,
+    ClientPetHealthService,
+    ClientReviewsService,
+    NotificationsService,
+  ],
 })
 export class AppModule {}

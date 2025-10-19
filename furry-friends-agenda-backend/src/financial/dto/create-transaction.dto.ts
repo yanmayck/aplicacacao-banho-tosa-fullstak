@@ -13,13 +13,13 @@ import {
 // Enums locais (serão substituídos pelos do Prisma após generate)
 export enum TransactionType {
   INCOME = 'INCOME',
-  EXPENSE = 'EXPENSE'
+  EXPENSE = 'EXPENSE',
 }
 
 export enum IncomeCategory {
   SERVICE_PAYMENT = 'SERVICE_PAYMENT',
   PACKAGE_PAYMENT = 'PACKAGE_PAYMENT',
-  OTHER_INCOME = 'OTHER_INCOME'
+  OTHER_INCOME = 'OTHER_INCOME',
 }
 
 export enum ExpenseCategory {
@@ -30,7 +30,7 @@ export enum ExpenseCategory {
   MARKETING = 'MARKETING',
   UTILITIES = 'UTILITIES',
   RENT = 'RENT',
-  OTHER_EXPENSE = 'OTHER_EXPENSE'
+  OTHER_EXPENSE = 'OTHER_EXPENSE',
 }
 
 export class UpdateTransactionDto {

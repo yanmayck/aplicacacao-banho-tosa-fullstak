@@ -32,10 +32,10 @@ export const CashRegister: React.FC = () => {
     setIsCreating(true);
     try {
       await createCashRegister({
-        date: selectedDate || new Date().toISOString().split('T')[0],
+        date: selectedDate ?? new Date().toISOString().split('T')[0],
         openingBalance: parseFloat(openingBalance),
         notes: `Caixa aberto em ${formatDate(new Date())}`
-      } as any);
+      });
 
       toast({
         title: "Sucesso",
@@ -57,7 +57,7 @@ export const CashRegister: React.FC = () => {
   const handleCloseCashRegister = async () => {
     setIsClosing(true);
     try {
-      await closeCashRegister(selectedDate || new Date().toISOString().split('T')[0]);
+      await closeCashRegister(selectedDate ?? new Date().toISOString().split('T')[0]);
 
       toast({
         title: "Sucesso",
