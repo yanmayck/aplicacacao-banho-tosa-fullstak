@@ -4,11 +4,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import { AppointmentCard } from "./AppointmentCard";
-import { Groomer } from "@/context/models/types";
+import { Groomer, Appointment } from "@/context/models/types";
 
 interface GroomerColumnProps {
   groomer: Groomer;
-  appointments: any[];
+  appointments: Appointment[];
 }
 
 export const GroomerColumn: React.FC<GroomerColumnProps> = ({ groomer, appointments }) => {

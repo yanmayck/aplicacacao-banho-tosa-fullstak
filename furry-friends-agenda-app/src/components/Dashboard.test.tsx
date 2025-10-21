@@ -3,19 +3,17 @@ import { describe, it, expect} from 'vitest';
 import Dashboard from './Dashboard';
 import { StoreContext } from '@/context/StoreContext';
 import { AuthContext } from '@/context/AuthContext';
-
-interface MockAppointment {
-  status: string;
-}
+import { User, UserRole } from '@/context/AuthContext';
+import { Appointment, AppointmentStatus } from '@/context/StoreContext';
 
 interface MockStore {
-  appointments: MockAppointment[];
-  groomers: unknown[];
-  clients: unknown[];
-  pets: unknown[];
-  commissions: unknown[];
-  packages: unknown[];
-  groomerPoints: unknown[];
+  appointments: Appointment[];
+  groomers: never[];
+  clients: never[];
+  pets: never[];
+  commissions: never[];
+  packages: never[];
+  groomerPoints: never[];
   addClient: () => void;
   updateClient: () => void;
   deleteClient: () => void;
@@ -37,26 +35,37 @@ interface MockStore {
   addGroomerPoint: () => void;
   updateGroomerPoint: () => void;
   deleteGroomerPoint: () => void;
-  getClientById: () => unknown;
-  getPetById: () => unknown;
-  getGroomerById: () => unknown;
-  getAppointmentById: () => unknown;
-  getPackageById: () => unknown;
+  getClientById: () => undefined;
+  getPetById: () => undefined;
+  getGroomerById: () => undefined;
+  getAppointmentById: () => undefined;
+  getPackageById: () => undefined;
+  getCommissionsByGroomerId: (groomerId: string) => never[];
+  getTotalCommissionsByGroomerId: (groomerId: string, month?: number, year?: number) => number;
+  getGroomerWorkload: (groomerId: string, onlyCompletedAppointments?: boolean) => number;
+  getGroomerMonthlyPoints: (groomerId: string, month?: number, year?: number) => number;
+  getGroomerPointsByMonth: (month: number, year: number) => never[];
+  addGroomerPoints: (groomerId: string, points: number, appointmentId: string) => void;
+  updateAppointmentPoints: (appointmentId: string, points: number) => void;
+  getPetsByClientId?: (clientId: string) => never[];
+  autoAssignGroomer?: (appointmentId: string) => void;
   isLoading: boolean;
-  error: unknown;
+  error: null;
 }
 
 interface MockUser {
-  username: string;
-  role: string;
+  id: string;
+  email: string;
+  name?: string;
+  role: UserRole;
 }
 
 interface MockAuth {
-  user: MockUser;
+  user: MockUser | null;
   isAdmin: () => boolean;
   isAuthenticated: boolean;
-  login: () => void;
-  register: () => void;
+  login: () => Promise<boolean>;
+  register: () => Promise<boolean>;
   logout: () => void;
 }
 
@@ -89,29 +98,38 @@ const mockStore: MockStore = {
   addGroomerPoint: () => {},
   updateGroomerPoint: () => {},
   deleteGroomerPoint: () => {},
-  getClientById: () => ({}),
-  getPetById: () => ({}),
-  getGroomerById: () => ({}),
-  getAppointmentById: () => ({}),
-  getPackageById: () => ({}),
+  getClientById: () => undefined,
+  getPetById: () => undefined,
+  getGroomerById: () => undefined,
+  getAppointmentById: () => undefined,
+  getPackageById: () => undefined,
+  getCommissionsByGroomerId: () => [],
+  getTotalCommissionsByGroomerId: () => 0,
+  getGroomerWorkload: () => 0,
+  getGroomerMonthlyPoints: () => 0,
+  getGroomerPointsByMonth: () => [],
+  addGroomerPoints: () => {},
+  updateAppointmentPoints: () => {},
+  getPetsByClientId: () => [],
+  autoAssignGroomer: () => {},
   isLoading: false,
   error: null,
 };
 
 const mockAuth: MockAuth = {
-  user: { username: 'Test User', role: 'admin' },
+  user: { id: '1', email: 'test@example.com', name: 'Test User', role: 'admin' },
   isAdmin: () => true,
   isAuthenticated: true,
-  login: () => {},
-  register: () => {},
+  login: () => Promise.resolve(true),
+  register: () => Promise.resolve(true),
   logout: () => {},
 };
 
 describe('Dashboard', () => {
-  const renderWithProviders = (store: typeof mockStore, auth: typeof mockAuth) => {
+  const renderWithProviders = (store: MockStore, auth: MockAuth) => {
     return render(
-      <AuthContext.Provider value={auth as any}>
-        <StoreContext.Provider value={store as any}>
+      <AuthContext.Provider value={auth}>
+        <StoreContext.Provider value={store}>
           <Dashboard />
         </StoreContext.Provider>
       </AuthContext.Provider>
@@ -132,13 +150,13 @@ describe('Dashboard', () => {
   });
 
   it('displays correct counts for appointments', () => {
-    const appointments: MockAppointment[] = [
-      { status: 'waiting' },
-      { status: 'progress' },
-      { status: 'completed' },
-      { status: 'waiting' },
-    ];
-    renderWithProviders({ ...mockStore, appointments }, mockAuth);
+   const appointments: Appointment[] = [
+     { id: '1', status: 'waiting' as AppointmentStatus, clientId: '1', groomerId: '1', serviceType: 'bath', date: '2024-01-01', time: '10:00', price: 50, petName: 'Rex' },
+     { id: '2', status: 'progress' as AppointmentStatus, clientId: '1', groomerId: '1', serviceType: 'grooming', date: '2024-01-01', time: '11:00', price: 60, petName: 'Rex' },
+     { id: '3', status: 'completed' as AppointmentStatus, clientId: '1', groomerId: '1', serviceType: 'both', date: '2024-01-01', time: '12:00', price: 80, petName: 'Rex' },
+     { id: '4', status: 'waiting' as AppointmentStatus, clientId: '1', groomerId: '1', serviceType: 'bath', date: '2024-01-01', time: '13:00', price: 50, petName: 'Rex' },
+   ];
+   renderWithProviders({ ...mockStore, appointments }, mockAuth);
 
     const waitingCard = screen.getByText(/em espera/i).closest('.p-4');
     expect(waitingCard).toBeTruthy();

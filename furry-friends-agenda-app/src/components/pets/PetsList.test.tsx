@@ -15,7 +15,7 @@ vi.mock('@/context/AuthContext');
 
 // Mock PetForm component
 vi.mock('./PetForm', () => ({
-  default: ({ onClose }) => (
+  default: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="pet-form">
       <h2>Pet Form</h2>
       <button onClick={onClose}>Close Form</button>
@@ -26,17 +26,31 @@ vi.mock('./PetForm', () => ({
 const queryClient = new QueryClient();
 
 const mockPets = [
-  { id: '1', name: 'Fido', species: 'Dog', clientId: 'c1', rabiesVaccine: { isUpToDate: true, lastDate: '2023-10-01' } },
-  { id: '2', name: 'Whiskers', species: 'Cat', clientId: 'c2', rabiesVaccine: { isUpToDate: false, lastDate: '2022-01-01' } },
+  {
+    id: '1',
+    name: 'Fido',
+    species: 'Dog',
+    clientId: 'c1',
+    rabiesVaccine: { isUpToDate: true, lastDate: '2023-10-01' },
+    vaccineHistory: []
+  },
+  {
+    id: '2',
+    name: 'Whiskers',
+    species: 'Cat',
+    clientId: 'c2',
+    rabiesVaccine: { isUpToDate: false, lastDate: '2022-01-01' },
+    vaccineHistory: []
+  },
 ];
 
 const mockClients = [
-  { id: 'c1', name: 'John Doe' },
-  { id: 'c2', name: 'Jane Smith' },
+  { id: 'c1', name: 'John Doe', phone: '(11) 99999-9999', email: 'john@example.com', address: 'Rua A, 123' },
+  { id: 'c2', name: 'Jane Smith', phone: '(11) 88888-8888', email: 'jane@example.com', address: 'Rua B, 456' },
 ];
 
 const mockAuth = {
-    user: { email: 'test@test.com', role: 'user' },
+    user: { id: '1', email: 'test@test.com', name: 'Test User', role: 'user' as const },
     logout: vi.fn(),
     isAdmin: () => false,
     isAuthenticated: true,
@@ -45,7 +59,7 @@ const mockAuth = {
 };
 
 describe('PetsList Component', () => {
-  let mockDeletePet;
+  let mockDeletePet: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -78,7 +92,7 @@ describe('PetsList Component', () => {
   const renderComponent = () => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <AuthContext.Provider value={mockAuth as any}>
+        <AuthContext.Provider value={mockAuth}>
             <MemoryRouter>
                 <PetsList />
             </MemoryRouter>
@@ -114,7 +128,8 @@ describe('PetsList Component', () => {
     window.confirm = vi.fn(() => true); // Mock window.confirm
     renderComponent();
     const deleteButtons = screen.getAllByRole('button').filter(btn => btn.innerHTML.includes('lucide-trash-2'));
-    fireEvent.click(deleteButtons[0]);
+    expect(deleteButtons).toHaveLength(2); // Should have 2 delete buttons for 2 pets
+    fireEvent.click(deleteButtons[0]!);
     expect(window.confirm).toHaveBeenCalledWith('Tem certeza que deseja excluir este pet?');
     expect(mockDeletePet).toHaveBeenCalledWith('1');
   });

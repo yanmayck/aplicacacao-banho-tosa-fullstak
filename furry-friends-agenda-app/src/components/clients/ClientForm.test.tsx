@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ClientForm from './ClientForm';
 import { StoreContext, Client } from '@/context/StoreContext';
 import { AuthContext } from '@/context/AuthContext';
@@ -14,20 +14,64 @@ const mockAddClient = vi.fn();
 const mockUpdateClient = vi.fn();
 const mockOnClose = vi.fn();
 
-const renderWithProviders = (ui, { isAdmin = true, client = undefined } = {}) => {
+const renderWithProviders = (ui: React.ReactElement, { isAdmin = true, client = undefined } = {}) => {
   const storeValue = {
+    clients: [],
+    pets: [],
+    groomers: [],
+    appointments: [],
+    commissions: [],
+    packages: [],
+    groomerPoints: [],
     addClient: mockAddClient,
     updateClient: mockUpdateClient,
-    // Add other necessary mock functions/values from useStore if needed
+    deleteClient: vi.fn(),
+    addPet: vi.fn(),
+    updatePet: vi.fn(),
+    deletePet: vi.fn(),
+    addGroomer: vi.fn(),
+    updateGroomer: vi.fn(),
+    deleteGroomer: vi.fn(),
+    addAppointment: vi.fn(),
+    updateAppointment: vi.fn(),
+    deleteAppointment: vi.fn(),
+    addCommission: vi.fn(),
+    updateCommission: vi.fn(),
+    deleteCommission: vi.fn(),
+    addPackage: vi.fn(),
+    updatePackage: vi.fn(),
+    deletePackage: vi.fn(),
+    addGroomerPoint: vi.fn(),
+    updateGroomerPoint: vi.fn(),
+    deleteGroomerPoint: vi.fn(),
+    getClientById: vi.fn(),
+    getPetById: vi.fn(),
+    getGroomerById: vi.fn(),
+    getAppointmentById: vi.fn(),
+    getPackageById: vi.fn(),
+    getCommissionsByGroomerId: vi.fn(),
+    getTotalCommissionsByGroomerId: vi.fn(),
+    getGroomerWorkload: vi.fn(),
+    getGroomerMonthlyPoints: vi.fn(),
+    getGroomerPointsByMonth: vi.fn(),
+    addGroomerPoints: vi.fn(),
+    updateAppointmentPoints: vi.fn(),
+    autoAssignGroomer: vi.fn(),
+    isLoading: false,
+    error: null,
   };
   const authValue = {
+    user: { id: '1', email: 'test@test.com', name: 'Test User', role: 'admin' as const },
     isAdmin: () => isAdmin,
-    // Add other necessary mock functions/values from useAuth if needed
+    isAuthenticated: true,
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
   };
 
   return render(
-    <AuthContext.Provider value={authValue as any}>
-      <StoreContext.Provider value={storeValue as any}>
+    <AuthContext.Provider value={authValue}>
+      <StoreContext.Provider value={storeValue}>
         <Toaster />
         {ui}
       </StoreContext.Provider>

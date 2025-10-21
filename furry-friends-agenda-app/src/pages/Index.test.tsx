@@ -36,7 +36,7 @@ describe('Index Page', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter initialEntries={['/']}>
-            <AuthContext.Provider value={mockAuth as any}>
+            <AuthContext.Provider value={mockAuth}>
               <StoreProvider>
                   <Index />
               </StoreProvider>

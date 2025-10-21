@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Register from './Register';
-import { AuthContext } from '@/context/AuthContext';
+import { AuthContext, AuthContextType } from '@/context/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import * as useToast from '@/components/ui/use-toast';
@@ -22,14 +22,19 @@ describe('Register Page', () => {
     vi.clearAllMocks();
   });
 
-  const renderWithProviders = (ui) => {
-    const authValue = {
+  const renderWithProviders = (ui: React.ReactElement) => {
+    const authValue: AuthContextType = {
+      user: null,
+      isAuthenticated: false,
+      login: vi.fn(),
       register: mockRegister,
+      logout: vi.fn(),
+      isAdmin: vi.fn().mockReturnValue(false),
     };
 
     return render(
       <MemoryRouter>
-        <AuthContext.Provider value={authValue as any}>
+        <AuthContext.Provider value={authValue}>
           <Toaster />
           {ui}
         </AuthContext.Provider>

@@ -13,12 +13,13 @@ import { toast } from "@/components/ui/use-toast";
 import { Award, ChevronLeft, ChevronRight } from "lucide-react";
 import { AssignPointsDialog } from "./AssignPointsDialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Appointment } from "@/context/StoreContext";
 
 export const GroomingBoard: React.FC = () => {
   const { appointments, updateAppointment, autoAssignGroomer } = useAppointments();
   const { groomers } = useGroomers();
-  const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
-  const [selectedAppointment, setSelectedAppointment] = useState<any | null>(null);
+  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([]);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isPointsDialogOpen, setIsPointsDialogOpen] = useState(false);
   const [activeGroomerIndex, setActiveGroomerIndex] = useState(0);
   

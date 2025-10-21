@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useStore } from "@/context/StoreContext";
+import { useStore, Appointment } from "@/context/StoreContext";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/components/ui/use-toast";
@@ -10,7 +10,7 @@ import { toast } from "@/components/ui/use-toast";
 interface AssignPointsDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  appointment: any;
+  appointment: Appointment;
 }
 
 export const AssignPointsDialog: React.FC<AssignPointsDialogProps> = ({

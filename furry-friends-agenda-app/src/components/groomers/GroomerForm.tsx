@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useStore } from "@/context/StoreContext";
+import { useStore, Groomer } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/components/ui/use-toast";
 
 interface GroomerFormProps {
-  groomer?: any;
+  groomer?: Groomer;
   onClose: () => void;
   showStatusOnly?: boolean;
 }
@@ -117,13 +117,13 @@ const GroomerForm: React.FC<GroomerFormProps> = ({ groomer, onClose, showStatusO
         
         <div>
           <Label htmlFor="status">Status</Label>
-          <Select 
-            value={formData.status} 
-            onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as "available" | "busy" }))}
-          >
-            <SelectTrigger id="status">
-              <SelectValue placeholder="Selecione o status" />
-            </SelectTrigger>
+          <Select
+           value={formData.status}
+           onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as "available" | "busy" }))}
+         >
+           <SelectTrigger>
+             <SelectValue placeholder="Selecione o status" />
+           </SelectTrigger>
             <SelectContent>
               <SelectItem value="available">Disponível</SelectItem>
               <SelectItem value="busy">Ocupado</SelectItem>

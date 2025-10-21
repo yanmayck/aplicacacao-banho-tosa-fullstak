@@ -4,8 +4,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import GroomersList from './GroomersList';
 import { useGroomers } from '@/context/groomers/GroomerContext';
-import { AuthContext, useAuth } from '@/context/AuthContext';
-import { useStore } from '@/context/StoreContext';
+import { AuthContext, useAuth, AuthContextType } from '@/context/AuthContext';
+import { useStore, StoreContextType } from '@/context/StoreContext';
+import { Groomer } from '@/context/StoreContext';
 
 // Mocking hooks
 vi.mock('@/context/groomers/GroomerContext');
@@ -14,7 +15,7 @@ vi.mock('@/context/StoreContext');
 
 // Mock GroomerForm component
 vi.mock('./GroomerForm', () => ({
-  default: ({ onClose, showStatusOnly }) => (
+  default: ({ onClose, showStatusOnly }: { onClose: () => void; showStatusOnly?: boolean }) => (
     <div data-testid="groomer-form">
       <h2>{showStatusOnly ? 'Status Form' : 'Groomer Form'}</h2>
       <button onClick={onClose}>Close Form</button>
@@ -24,20 +25,20 @@ vi.mock('./GroomerForm', () => ({
 
 const queryClient = new QueryClient();
 
-const mockGroomers = [
-  { id: 'g1', name: 'Alice', status: 'available', commissionPercentage: 25 },
-  { id: 'g2', name: 'Bob', status: 'busy', commissionPercentage: 30 },
+const mockGroomers: Groomer[] = [
+  { id: 'g1', name: 'Alice', status: 'available' as const, commissionPercentage: 25 },
+  { id: 'g2', name: 'Bob', status: 'busy' as const, commissionPercentage: 30 },
 ];
 
 describe('GroomersList Component', () => {
-  let mockDeleteGroomer;
-  let authValue;
+  let mockDeleteGroomer: (id: string) => void;
+  let authValue: AuthContextType;
 
   const setupMocks = (isAdmin = false) => {
     mockDeleteGroomer = vi.fn();
-    
+
     authValue = {
-        user: { email: 'test@test.com', role: isAdmin ? 'admin' : 'user' },
+        user: { id: '1', email: 'test@test.com', name: 'Test User', role: isAdmin ? 'admin' as const : 'user' as const },
         logout: vi.fn(),
         isAdmin: () => isAdmin,
         isAuthenticated: true,
@@ -60,7 +61,42 @@ describe('GroomersList Component', () => {
     vi.mocked(useStore).mockReturnValue({
         getGroomerWorkload: vi.fn().mockReturnValue(5),
         getGroomerMonthlyPoints: vi.fn().mockReturnValue(10),
-    } as any);
+        clients: [],
+        pets: [],
+        groomers: [],
+        appointments: [],
+        commissions: [],
+        packages: [],
+        groomerPoints: [],
+        addClient: vi.fn(),
+        updateClient: vi.fn(),
+        deleteClient: vi.fn(),
+        addPet: vi.fn(),
+        updatePet: vi.fn(),
+        deletePet: vi.fn(),
+        addGroomer: vi.fn(),
+        updateGroomer: vi.fn(),
+        deleteGroomer: vi.fn(),
+        addAppointment: vi.fn(),
+        updateAppointment: vi.fn(),
+        deleteAppointment: vi.fn(),
+        addCommission: vi.fn(),
+        addPackage: vi.fn(),
+        updatePackage: vi.fn(),
+        deletePackage: vi.fn(),
+        getClientById: vi.fn(),
+        getPetById: vi.fn(),
+        getGroomerById: vi.fn(),
+        getAppointmentById: vi.fn(),
+        getPackageById: vi.fn(),
+        getCommissionsByGroomerId: vi.fn(),
+        getTotalCommissionsByGroomerId: vi.fn(),
+        getGroomerPointsByMonth: vi.fn(),
+        updateAppointmentPoints: vi.fn(),
+        autoAssignGroomer: vi.fn(),
+        isLoading: false,
+        error: null,
+    } as StoreContextType);
   };
 
   const renderComponent = () => {
@@ -92,7 +128,8 @@ describe('GroomersList Component', () => {
     it('should open the status form when "Alterar Status" is clicked', () => {
         renderComponent();
         const changeStatusButtons = screen.getAllByRole('button', { name: /alterar status/i });
-        fireEvent.click(changeStatusButtons[0]);
+        expect(changeStatusButtons.length).toBeGreaterThan(0);
+        fireEvent.click(changeStatusButtons[0]!);
         expect(screen.getByTestId('groomer-form')).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: /status form/i })).toBeInTheDocument();
     });

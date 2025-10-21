@@ -10,7 +10,7 @@ const mockSetActivePage = vi.fn();
 
 const renderWithProviders = (isAdmin = false) => {
   const authValue = {
-    user: { id: '1', email: 'test@test.com', role: isAdmin ? 'admin' : 'user' },
+    user: { id: '1', email: 'test@test.com', name: 'Test User', role: (isAdmin ? 'admin' : 'user') as 'admin' | 'user' },
     logout: mockLogout,
     isAdmin: () => isAdmin,
     isAuthenticated: true,
@@ -20,7 +20,7 @@ const renderWithProviders = (isAdmin = false) => {
 
   return render(
     <MemoryRouter>
-      <AuthContext.Provider value={authValue as any}>
+      <AuthContext.Provider value={authValue}>
         <Layout activePage="dashboard" setActivePage={mockSetActivePage}>
           <div>Child Content</div>
         </Layout>

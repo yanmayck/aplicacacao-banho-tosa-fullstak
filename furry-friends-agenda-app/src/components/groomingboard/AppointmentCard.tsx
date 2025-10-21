@@ -1,13 +1,13 @@
 
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { useStore } from "@/context/StoreContext";
+import { useStore, Appointment } from "@/context/StoreContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Award } from "lucide-react";
 
 interface AppointmentCardProps {
-  appointment: any;
+  appointment: Appointment;
   onAssignPoints?: () => void;
 }
 
@@ -48,7 +48,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, o
         </div>
         
         <div className="text-xs sm:text-sm text-gray-600">
-          {client ? client.tutorName : "Cliente não encontrado"}
+          {client ? client.name : "Cliente não encontrado"}
         </div>
         
         <div className="flex justify-between items-center pt-1">
