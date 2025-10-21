@@ -23,12 +23,10 @@ export class PublicServicesController {
   @Get('time-slots')
   findAvailableTimeSlots(
     @Query('date') date: string,
-    @Query('serviceId') serviceId: string,
   ) {
     const appointmentDate = new Date(date);
     return this.publicServicesService.findAvailableTimeSlots(
       appointmentDate,
-      serviceId,
     );
   }
 }

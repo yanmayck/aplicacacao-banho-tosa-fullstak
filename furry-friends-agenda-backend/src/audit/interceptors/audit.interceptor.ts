@@ -246,13 +246,15 @@ export class AuditInterceptor implements NestInterceptor {
   }
 
   private sanitizeResponseData(data: unknown): SanitizedResponseData {
-    if (!data || typeof data !== 'object') return data;
+    if (!data || typeof data !== 'object') {
+      return data;
+    }
 
     // Remover dados sensíveis da resposta
     const sensitiveFields = ['password', 'token', 'secret', 'key'];
 
     if (Array.isArray(data)) {
-      return data.map((item) => this.sanitizeResponseData(item));
+      return data.map((item) => this.sanitizeResponseData(item)) as SanitizedResponseData;
     }
 
     const sanitized = { ...data } as Record<string, unknown>;

@@ -50,4 +50,5 @@ export interface RequestWithUser extends Request {
 
 export type SanitizedResponseData =
   | Record<string, unknown>
-  | Record<string, unknown>[];
+  | Record<string, unknown>[]
+  | unknown;

@@ -24,7 +24,7 @@ let PetsService = class PetsService {
         if (!client) {
             throw new common_1.NotFoundException(`Client for user ID "${userId}" not found. Cannot create pet.`);
         }
-        const { clientId, ...petData } = createPetDto;
+        const { ...petData } = createPetDto;
         const data = {
             ...petData,
             client: { connect: { id: client.id } },
