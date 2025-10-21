@@ -9,7 +9,7 @@ export interface NotificationData {
   type: string;
   isRead: boolean;
   createdAt: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 export interface NotificationPreferences {
@@ -139,7 +139,7 @@ export const useNotifications = () => {
         title: notification.title,
         body: notification.message,
         tag: `notification-${Date.now()}`,
-        data: notification.data,
+        ...(notification.data && { data: notification.data }),
       });
     } catch (error) {
       console.error('Erro ao mostrar notificação local:', error);

@@ -1,45 +1,55 @@
-
-import { useEffect, useState } from "react";
-import { Appointment, AppointmentStatus, ServiceType, TransportType, useStore } from "@/context/StoreContext";
+import { useEffect, useState, useMemo } from "react";
+import { Appointment, useStore } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
 import { AppointmentFormData } from "./types";
 import { servicePrices } from "./utils";
+import { useToast } from "@/hooks/use-toast";
+
+// Helper to get local date in YYYY-MM-DD format
+const getLocalDate = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 interface UseAppointmentFormProps {
-  appointment?: Appointment;
+  appointment?: Appointment | undefined;
   onClose: () => void;
 }
 
 export const useAppointmentForm = ({ appointment, onClose }: UseAppointmentFormProps) => {
-  const { clients, groomers, packages, addAppointment, updateAppointment, getClientById } = useStore();
+  const { clients, pets, packages, addAppointment, updateAppointment } = useStore();
   const { isAdmin } = useAuth();
+  const { toast } = useToast();
   const isEditing = !!appointment;
-  
+  const isAdminUser = useMemo(() => isAdmin(), [isAdmin]);
+
   const [formData, setFormData] = useState<AppointmentFormData>({
     clientId: "",
     petName: "",
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalDate(),
     time: "08:00",
     serviceType: "bath",
     groomerId: null,
     status: "waiting",
     packageId: null,
-    transportType: "none" as TransportType,
+    transportType: "none",
     price: 0,
     points: 1
   });
 
-  const [selectedClientPetName, setSelectedClientPetName] = useState<string>("");
-  const [selectedClientCpf, setSelectedClientCpf] = useState<string>("");
-  const [showCpfWarning, setShowCpfWarning] = useState<boolean>(false);
-  
-  // If editing, populate form with appointment data
+  const selectedClient = useMemo(() => {
+    return clients.find(client => client.id === formData.clientId);
+  }, [formData.clientId, clients]);
+
+  // Effect to populate form when editing an appointment
   useEffect(() => {
     if (appointment) {
       setFormData({
         clientId: appointment.clientId,
         petName: appointment.petName,
-        date: appointment.date,
+        date: appointment.date, // Assuming date is already in YYYY-MM-DD
         time: appointment.time,
         serviceType: appointment.serviceType,
         groomerId: appointment.groomerId,
@@ -49,143 +59,106 @@ export const useAppointmentForm = ({ appointment, onClose }: UseAppointmentFormP
         price: appointment.price,
         points: appointment.points || 1
       });
-      
-      // Set pet name from the client
-      const client = getClientById(appointment.clientId);
-      if (client) {
-        setSelectedClientPetName(client.petName);
-        setSelectedClientCpf(client.cpf);
-      }
     }
-  }, [appointment, getClientById]);
-  
-  // Update pet name and CPF when client changes
+  }, [appointment]);
+
+  // Effect to update petName when client changes
   useEffect(() => {
-    if (formData.clientId) {
-      const selectedClient = clients.find(client => client.id === formData.clientId);
-      if (selectedClient) {
-        setSelectedClientPetName(selectedClient.petName);
-        setSelectedClientCpf(selectedClient.cpf);
-        setFormData(prev => ({ ...prev, petName: selectedClient.petName }));
-        
-        // Show warning if CPF is empty
-        if (isAdmin() && !selectedClient.cpf) {
-          setShowCpfWarning(true);
-        } else {
-          setShowCpfWarning(false);
-        }
-      }
+    if (selectedClient) {
+      const clientPets = pets.filter(pet => pet.clientId === selectedClient.id);
+      // Set petName to the first pet's name or empty string
+      setFormData(prev => ({ ...prev, petName: clientPets[0]?.name || "" }));
+    } else {
+      // Clear petName if no client is selected
+      setFormData(prev => ({ ...prev, petName: "" }));
     }
-  }, [formData.clientId, clients, isAdmin]);
-  
-  // Update price based on selected service and package
+  }, [selectedClient, pets]);
+
+  // Effect to update price based on service, package, and transport
   useEffect(() => {
-    let price = 0;
-    
+    let newPrice = 0;
     if (formData.packageId) {
-      const selectedPackage = packages.find(pkg => pkg.id === formData.packageId);
+      const selectedPackage = packages.find((pkg) => pkg.id === formData.packageId);
       if (selectedPackage) {
-        price = formData.transportType === "none" ? selectedPackage.basePrice : selectedPackage.pickupPrice;
+        newPrice = formData.transportType === "none" ? selectedPackage.basePrice : selectedPackage.pickupPrice;
       }
     } else {
-      price = servicePrices[formData.serviceType] || 0;
+      // We should only use servicePrices if the serviceType is a valid key.
+      if (formData.serviceType in servicePrices) {
+        const serviceKey = formData.serviceType as keyof typeof servicePrices;
+        newPrice = servicePrices[serviceKey] || 0;
+      }
     }
-    
-    setFormData(prev => ({ ...prev, price }));
+    setFormData((prev) => ({ ...prev, price: newPrice }));
   }, [formData.serviceType, formData.packageId, formData.transportType, packages]);
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleSelectChange = (name: string, value: string) => {
-    if (name === "packageId") {
-      const packageId = value === "none" ? null : value;
-      
-      // If a package is selected, service type is automatically "package"
-      if (packageId) {
-        setFormData(prev => ({ 
-          ...prev, 
-          [name]: packageId,
-          serviceType: "package" 
-        }));
-      } else {
-        setFormData(prev => ({ 
-          ...prev, 
-          [name]: packageId 
-        }));
-      }
-    } else if (name === "groomerId") {
-      const groomerId = value === "none" ? null : value;
-      setFormData(prev => ({ ...prev, [name]: groomerId }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+    const isPackage = name === "packageId";
+    const isGroomer = name === "groomerId";
+    let newValue: string | null = value;
+
+    if ((isPackage || isGroomer) && value === "none") {
+      newValue = null;
     }
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: newValue,
+      // If a package is selected, set serviceType to 'package'. If deselected, reset to 'bath'.
+      serviceType: isPackage && newValue ? "package" : (isPackage && !newValue ? "bath" : prev.serviceType),
+    }));
   };
-  
+
   const handleSubmit = () => {
-    // Validate form
-    if (!formData.clientId || !formData.date || !formData.time) {
-      alert("Por favor, preencha todos os campos obrigatórios.");
+    if (!formData.clientId || !formData.date || !formData.time || !formData.petName) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha Cliente, Pet, Data e Hora.",
+        variant: "destructive",
+      });
       return;
     }
 
-    // Check if client has CPF (for admins only)
-    if (isAdmin() && !selectedClientCpf && !formData.packageId) {
-      if (!confirm("O cliente não possui CPF registrado, necessário para emissão de nota. Deseja continuar mesmo assim?")) {
-        return;
-      }
-    }
-    
-    // For package appointments, ensure transportType is set
-    if (formData.packageId && !formData.transportType) {
-      alert("Por favor, selecione o tipo de transporte para o pacote.");
+    if (formData.packageId && formData.transportType === "none") {
+      toast({
+        title: "Transporte necessário",
+        description: "Por favor, selecione o tipo de transporte para o pacote.",
+        variant: "destructive",
+      });
       return;
     }
 
     const appointmentData = {
-      clientId: formData.clientId,
-      petName: formData.petName,
-      date: formData.date,
-      time: formData.time,
-      serviceType: formData.serviceType,
-      groomerId: formData.groomerId,
-      status: formData.status,
-      packageId: formData.packageId,
-      transportType: formData.transportType,
-      price: formData.price,
-      points: parseInt(formData.points as any) || 1
+      ...formData,
+      points: typeof formData.points === 'string' ? parseInt(formData.points, 10) || 1 : formData.points,
     };
-    
+
     if (isEditing && appointment) {
       updateAppointment({
         ...appointment,
         ...appointmentData
       });
+      toast({ title: "Sucesso", description: "Agendamento atualizado com sucesso!" });
     } else {
       addAppointment(appointmentData);
+      toast({ title: "Sucesso", description: "Agendamento criado com sucesso!" });
     }
-    
-    onClose();
-  };
 
-  const handleClientChange = (clientId: string) => {
-    const selectedClient = clients.find(client => client.id === clientId);
-    if (selectedClient) {
-      setSelectedClientPetName(selectedClient.petName);
-      setSelectedClientCpf(selectedClient.cpf);
-    }
+    onClose();
   };
 
   return {
     formData,
     isEditing,
-    showCpfWarning,
     handleInputChange,
     handleSelectChange,
     handleSubmit,
-    handleClientChange,
-    isAdmin
+    isAdmin: isAdminUser,
+    selectedClient,
   };
 };

@@ -12,6 +12,7 @@ import { AppointmentsTable } from "./table/AppointmentsTable";
 import { useAppointmentsFilter } from "./hooks/useAppointmentsFilter";
 import { usePagination } from "@/hooks/usePagination";
 import { Pagination } from "@/components/ui/pagination-component";
+import { Appointment } from "@/context/models/types";
 
 const AppointmentsList: React.FC = () => {
   const { 
@@ -24,7 +25,7 @@ const AppointmentsList: React.FC = () => {
   } = useAppointments();
   
   const [showForm, setShowForm] = useState(false);
-  const [editingAppointment, setEditingAppointment] = useState<any>(undefined);
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | undefined>(undefined);
   
   const [isPointsDialogOpen, setIsPointsDialogOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
@@ -43,7 +44,7 @@ const AppointmentsList: React.FC = () => {
     itemsPerPage,
   } = usePagination({ data: filteredAppointments, itemsPerPage: 10 });
 
-  const handleEditAppointment = (appointment: any) => {
+  const handleEditAppointment = (appointment: Appointment) => {
     setEditingAppointment(appointment);
     setShowForm(true);
   };
@@ -103,7 +104,7 @@ const AppointmentsList: React.FC = () => {
     <Layout activePage="appointments" setActivePage={() => {}}>
       <div className="space-y-4">
         {showForm ? (
-          <AppointmentForm appointment={editingAppointment} onClose={handleCloseForm} />
+          <AppointmentForm appointment={editingAppointment || undefined} onClose={handleCloseForm} />
         ) : (
           <>
             <div className="flex flex-col md:flex-row gap-3 justify-between items-start md:items-end">

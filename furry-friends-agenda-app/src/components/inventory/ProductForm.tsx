@@ -78,7 +78,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [product]);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -136,8 +136,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       }
 
       onSave(savedProduct);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao salvar produto');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao salvar produto');
     } finally {
       setLoading(false);
     }

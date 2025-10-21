@@ -4,7 +4,7 @@ interface NotificationPayload {
   icon?: string;
   badge?: string;
   tag?: string;
-  data?: any;
+  data?: Record<string, unknown>;
   actions?: Array<{
     action: string;
     title: string;
@@ -61,7 +61,7 @@ class NotificationService {
 
     const subscription = await this.serviceWorkerRegistration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey),
+      applicationServerKey: this.urlBase64ToUint8ArrayFixed(vapidPublicKey),
     });
 
     return subscription;
@@ -92,20 +92,19 @@ class NotificationService {
         body: payload.body,
         icon: payload.icon || '/icon-192x192.png',
         badge: payload.badge || '/badge-72x72.png',
-        tag: payload.tag,
-        data: payload.data,
-        actions: payload.actions,
-        requireInteraction: payload.requireInteraction,
-        silent: payload.silent,
+        ...(payload.tag !== undefined && { tag: payload.tag }),
+        ...(payload.data !== undefined && { data: payload.data }),
+        ...(payload.requireInteraction !== undefined && { requireInteraction: payload.requireInteraction }),
+        ...(payload.silent !== undefined && { silent: payload.silent }),
       });
     } else {
       // Fallback para notificação nativa
       new Notification(payload.title, {
         body: payload.body,
         icon: payload.icon || '/icon-192x192.png',
-        tag: payload.tag,
-        data: payload.data,
-        silent: payload.silent,
+        ...(payload.tag !== undefined && { tag: payload.tag }),
+        ...(payload.data !== undefined && { data: payload.data }),
+        ...(payload.silent !== undefined && { silent: payload.silent }),
       });
     }
   }
@@ -121,6 +120,20 @@ class NotificationService {
     }
 
     return outputArray;
+  }
+
+  private urlBase64ToUint8ArrayFixed(base64String: string): ArrayBuffer {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const buffer = new ArrayBuffer(rawData.length);
+    const bytes = new Uint8Array(buffer);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      bytes[i] = rawData.charCodeAt(i);
+    }
+
+    return buffer;
   }
 
   // Método para verificar se notificações estão suportadas

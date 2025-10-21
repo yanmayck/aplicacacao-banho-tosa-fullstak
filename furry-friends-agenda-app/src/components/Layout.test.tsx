@@ -1,5 +1,6 @@
+/// <reference types="@testing-library/jest-dom" />
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { Layout } from './Layout';
 import { AuthContext } from '@/context/AuthContext';
@@ -9,7 +10,7 @@ const mockSetActivePage = vi.fn();
 
 const renderWithProviders = (isAdmin = false) => {
   const authValue = {
-    user: { email: 'test@test.com', role: isAdmin ? 'admin' : 'user' },
+    user: { id: '1', email: 'test@test.com', role: isAdmin ? 'admin' : 'user' },
     logout: mockLogout,
     isAdmin: () => isAdmin,
     isAuthenticated: true,
@@ -63,7 +64,14 @@ describe('Layout Component', () => {
   it('calls logout when the "Sair" button is clicked', () => {
     renderWithProviders();
     const logoutButtons = screen.getAllByRole('button', { name: /sair/i });
-    fireEvent.click(logoutButtons[0]);
+    expect(logoutButtons).toHaveLength(1);
+
+    // Ensure the first button exists before clicking
+    const logoutButton = logoutButtons[0];
+    expect(logoutButton).toBeInTheDocument();
+    expect(logoutButton).toBeDefined();
+
+    fireEvent.click(logoutButton!);
     expect(mockLogout).toHaveBeenCalledTimes(1);
   });
 

@@ -13,7 +13,7 @@ import { useAppointmentForm } from "./form/useAppointmentForm";
 import { AppointmentPointsField } from "./form/AppointmentPointsField";
 
 interface AppointmentFormProps {
-  appointment?: Appointment;
+  appointment?: Appointment | undefined;
   onClose: () => void;
 }
 
@@ -24,8 +24,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, onClose 
     handleInputChange,
     handleSelectChange,
     handleSubmit,
-    handleClientChange,
-    isAdmin
+    isAdmin,
   } = useAppointmentForm({ appointment, onClose });
   
   return (
@@ -36,8 +35,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, onClose 
           formData={formData} 
           handleInputChange={handleInputChange} 
           handleSelectChange={handleSelectChange} 
-          onClientChange={handleClientChange}
-          isAdmin={isAdmin()}
+          isAdmin={isAdmin}
         />
         
         <PetNameField 

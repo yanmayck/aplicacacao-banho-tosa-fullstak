@@ -44,7 +44,7 @@ export function AuditFilters({ compact = false }: AuditFiltersProps) {
     setFilterDescription('');
   };
 
-  const handleLoadFilter = (savedFilter: any) => {
+  const handleLoadFilter = (savedFilter: { id: string; name: string; filters: AuditLogFilters }) => {
     setFilters(savedFilter.filters);
   };
 

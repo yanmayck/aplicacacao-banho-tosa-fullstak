@@ -6,10 +6,11 @@ import { Edit, Trash2, Award } from "lucide-react";
 import { AppointmentStatus } from "@/context/StoreContext";
 import { translateServiceType, getStatusClassName } from "../utils/appointmentUtils";
 import { useStore } from "@/context/StoreContext";
+import { Appointment } from "@/context/models/types";
 
 interface AppointmentRowProps {
-  appointment: any;
-  handleEditAppointment: (appointment: any) => void;
+  appointment: Appointment;
+  handleEditAppointment: (appointment: Appointment) => void;
   handleDeleteAppointment: (id: string) => void;
   handleStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
   handleAutoAssign: (appointmentId: string) => void;
@@ -28,7 +29,7 @@ export const AppointmentRow: React.FC<AppointmentRowProps> = React.memo(({
   
   const getClientName = (clientId: string) => {
     const client = getClientById(clientId);
-    return client ? client.tutorName : "Cliente não encontrado";
+    return client ? client.name : "Cliente não encontrado";
   };
   
   const getGroomerName = (groomerId: string | null) => {

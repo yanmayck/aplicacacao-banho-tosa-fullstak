@@ -26,16 +26,16 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
     clientId: clientId || "",
     name: "",
     species: "",
-    breed: "",
-    birthDate: "",
-    observations: "",
-    foodType: "",
-    lastTickMedicine: { name: "", date: new Date().toISOString().split('T')[0] },
-    rabiesVaccine: { isUpToDate: true, lastDate: new Date().toISOString().split('T')[0] },
+    breed: null,
+    birthDate: null,
+    observations: null,
+    foodType: null,
+    lastTickMedicine: null,
+    rabiesVaccine: null,
     vaccineHistory: [],
   });
   
-  const [currentVaccine, setCurrentVaccine] = useState({ name: "", date: new Date().toISOString().split('T')[0] });
+  const [currentVaccine, setCurrentVaccine] = useState({ name: "", date: "" });
   
   useEffect(() => {
     if (pet) {
@@ -43,12 +43,12 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
         clientId: pet.clientId,
         name: pet.name,
         species: pet.species,
-        breed: pet.breed || "",
-        birthDate: pet.birthDate ? pet.birthDate.split('T')[0] : "",
-        observations: pet.observations || "",
-        foodType: pet.foodType || "",
-        lastTickMedicine: pet.lastTickMedicine || { name: "", date: "" },
-        rabiesVaccine: pet.rabiesVaccine || { isUpToDate: false, lastDate: "" },
+        breed: pet.breed || null,
+        birthDate: pet.birthDate ? ((pet.birthDate as string).split('T')[0] ?? null) : null,
+        observations: pet.observations || null,
+        foodType: pet.foodType || null,
+        lastTickMedicine: pet.lastTickMedicine || null,
+        rabiesVaccine: pet.rabiesVaccine || null,
         vaccineHistory: pet.vaccineHistory || [],
       });
     }
@@ -61,16 +61,25 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
   
   const handleTickMedicineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, lastTickMedicine: { ...prev.lastTickMedicine, [name]: value } as any }));
+    setFormData(prev => ({
+      ...prev,
+      lastTickMedicine: prev.lastTickMedicine ? { ...prev.lastTickMedicine, [name]: value } : { name: "", date: "" }
+    }));
   };
   
   const handleRabiesDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    setFormData(prev => ({ ...prev, rabiesVaccine: { ...prev.rabiesVaccine, lastDate: value } as any }));
+    setFormData(prev => ({
+      ...prev,
+      rabiesVaccine: prev.rabiesVaccine ? { ...prev.rabiesVaccine, lastDate: value } : { isUpToDate: false, lastDate: value }
+    }));
   };
-  
+
   const handleRabiesStatusChange = (value: boolean) => {
-    setFormData(prev => ({ ...prev, rabiesVaccine: { ...prev.rabiesVaccine, isUpToDate: value } as any }));
+    setFormData(prev => ({
+      ...prev,
+      rabiesVaccine: prev.rabiesVaccine ? { ...prev.rabiesVaccine, isUpToDate: value } : { isUpToDate: value, lastDate: "" }
+    }));
   };
 
   const handleVaccineInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +93,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
       return;
     }
     setFormData(prev => ({ ...prev, vaccineHistory: [...prev.vaccineHistory, { ...currentVaccine }] }));
-    setCurrentVaccine({ name: "", date: new Date().toISOString().split('T')[0] });
+    setCurrentVaccine({ name: "", date: "" });
   };
   
   const removeVaccineFromHistory = (index: number) => {
@@ -96,14 +105,20 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
       toast({ title: "Erro", description: "Por favor, preencha os campos obrigatórios: Cliente, Nome do Pet e Espécie.", variant: "destructive" });
       return;
     }
-    
-    if (isEditing && pet) {
-      await updatePet({ ...pet, ...formData });
-    } else {
-      await addPet(formData);
+
+    try {
+      if (isEditing && pet) {
+        await updatePet({ ...pet, ...formData });
+      } else {
+        await addPet(formData);
+      }
+
+      toast({ title: "Sucesso", description: `Pet ${isEditing ? 'atualizado' : 'cadastrado'} com sucesso!` });
+      onClose();
+    } catch (error) {
+      console.error('Erro ao salvar pet:', error);
+      toast({ title: "Erro", description: "Erro ao salvar pet. Tente novamente.", variant: "destructive" });
     }
-    
-    onClose();
   };
   
   return (
@@ -112,10 +127,9 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
       <div className="space-y-4">
         <div>
           <Label htmlFor="clientId">Cliente *</Label>
-          <Select 
+          <Select
             value={formData.clientId}
             onValueChange={(value) => setFormData(prev => ({ ...prev, clientId: value }))}
-            disabled={!!clientId}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione um cliente" />
@@ -148,7 +162,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, onClose, clientId }) => {
           </div>
           <div>
             <Label htmlFor="birthDate">Data de Nascimento</Label>
-            <Input id="birthDate" name="birthDate" type="date" value={formData.birthDate || ''} onChange={handleInputChange} />
+            <Input id="birthDate" name="birthDate" type="date" value={formData.birthDate ?? ''} onChange={handleInputChange} />
           </div>
         </div>
 

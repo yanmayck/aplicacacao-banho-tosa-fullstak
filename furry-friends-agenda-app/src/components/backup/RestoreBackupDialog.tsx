@@ -85,8 +85,8 @@ export const RestoreBackupDialog: React.FC<RestoreBackupDialogProps> = ({
       } else {
         setError(response.message || 'Erro ao restaurar backup');
       }
-    } catch (err: any) {
-      setError(err.message || 'Erro ao restaurar backup');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao restaurar backup');
     } finally {
       setLoading(false);
     }

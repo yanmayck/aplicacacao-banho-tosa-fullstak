@@ -3,10 +3,11 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { AppointmentStatus } from "@/context/StoreContext";
 import { AppointmentRow } from "./AppointmentRow";
+import { Appointment } from "@/context/models/types";
 
 interface AppointmentsTableProps {
-  filteredAppointments: any[];
-  handleEditAppointment: (appointment: any) => void;
+  filteredAppointments: Appointment[];
+  handleEditAppointment: (appointment: Appointment) => void;
   handleDeleteAppointment: (id: string) => void;
   handleStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
   handleAutoAssign: (appointmentId: string) => void;
