@@ -32,7 +32,7 @@ export class PublicServicesService {
     });
   }
 
-  async findAvailableTimeSlots(date: Date, serviceId: string) {
+  async findAvailableTimeSlots(date: Date) {
     // Esta é uma implementação básica - você pode expandir conforme necessário
     const dayStart = new Date(date);
     dayStart.setHours(9, 0, 0, 0); // Início do dia às 9h

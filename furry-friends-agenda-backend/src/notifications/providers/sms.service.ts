@@ -1,19 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as Twilio from 'twilio';
+import Twilio from 'twilio';
+import { MessageListInstanceCreateOptions } from 'twilio/lib/rest/api/v2010/account/message';
 
 export interface SMSOptions {
   to: string | string[];
-  body: string;
-  from?: string;
-  mediaUrl?: string | string[];
-  statusCallback?: string;
-  maxPrice?: number;
-  provideFeedback?: boolean;
-  validityPeriod?: number;
-}
-
-interface TwilioMessageOptions {
-  to: string;
   body: string;
   from?: string;
   mediaUrl?: string | string[];
@@ -31,7 +21,7 @@ export class SMSService {
 
   constructor() {
     if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-      this.twilioClient = new Twilio(
+      this.twilioClient = Twilio(
         process.env.TWILIO_ACCOUNT_SID,
         process.env.TWILIO_AUTH_TOKEN,
       );
@@ -50,37 +40,35 @@ export class SMSService {
       // Se Twilio não estiver configurado, apenas logar
       if (!this.twilioClient) {
         this.logger.log(
-          `[SMS SIMULADO] Para: ${options.to}, Mensagem: ${options.body}`,
+          `[SMS SIMULADO] Para: ${options.to.toString()}, Mensagem: ${options.body}`,
         );
-        return { success: true, messageSid: 'mock-sid' };
+        return { success: true, messageSid: 'mock-id' };
       }
 
       // Validar número de telefone
       const phoneNumber = this.formatPhoneNumber(options.to);
       if (!phoneNumber) {
-        throw new Error(`Número de telefone inválido: ${options.to}`);
+        throw new Error(
+          `Número de telefone inválido: ${options.to.toString()}`,
+        );
       }
 
-      const messageOptions = {
+      const messageOptions: MessageListInstanceCreateOptions = {
         to: phoneNumber,
         body: options.body,
-        ...(options.from && { from: options.from }),
-        ...(options.mediaUrl && { mediaUrl: options.mediaUrl }),
-        ...(options.statusCallback && {
-          statusCallback: options.statusCallback,
-        }),
-        ...(options.maxPrice && { maxPrice: options.maxPrice }),
-        ...(options.provideFeedback !== undefined && {
-          provideFeedback: options.provideFeedback,
-        }),
-        ...(options.validityPeriod && {
-          validityPeriod: options.validityPeriod,
-        }),
+        from: options.from || this.defaultFrom,
+        mediaUrl: Array.isArray(options.mediaUrl)
+          ? options.mediaUrl
+          : options.mediaUrl
+            ? [options.mediaUrl]
+            : undefined,
+        statusCallback: options.statusCallback,
+        maxPrice: options.maxPrice,
+        provideFeedback: options.provideFeedback,
+        validityPeriod: options.validityPeriod,
       };
 
-      const message = await this.twilioClient.messages.create(
-        messageOptions as any,
-      );
+      const message = await this.twilioClient.messages.create(messageOptions);
 
       this.logger.log(
         `SMS enviado com sucesso para ${phoneNumber}. SID: ${message.sid}`,
@@ -91,14 +79,15 @@ export class SMSService {
         messageSid: message.sid,
       };
     } catch (error) {
+      const err = error as Error;
       this.logger.error(
-        `Erro ao enviar SMS para ${options.to}:`,
-        error.message,
+        `Erro ao enviar SMS para ${options.to.toString()}:`,
+        err.message,
       );
 
       return {
         success: false,
-        error: error.message,
+        error: err.message,
       };
     }
   }
@@ -106,16 +95,18 @@ export class SMSService {
   async sendBulkSMS(
     messages: SMSOptions[],
   ): Promise<Array<{ success: boolean; messageSid?: string; error?: string }>> {
-    const results = [];
+    const results: { success: boolean; messageSid?: string; error?: string }[] =
+      [];
 
     for (const message of messages) {
       try {
         const result = await this.sendSMS(message);
         results.push(result);
       } catch (error) {
+        const err = error as Error;
         results.push({
           success: false,
-          error: error.message,
+          error: err.message,
         });
       }
     }
@@ -127,36 +118,36 @@ export class SMSService {
   createSMSMessage(type: string, data: Record<string, any>): string {
     switch (type) {
       case 'APPOINTMENT_CONFIRMATION':
-        return `✅ Furry Friends: Agendamento confirmado para ${data.petName} em ${new Date(data.appointmentDate).toLocaleDateString('pt-BR')} às ${new Date(data.appointmentDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}. Estamos te esperando!`;
+        return `✅ Furry Friends: Agendamento confirmado para ${data.petName as string} em ${new Date(data.appointmentDate as string).toLocaleDateString('pt-BR')} às ${new Date(data.appointmentDate as string).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}. Estamos te esperando!`;
 
       case 'APPOINTMENT_REMINDER':
-        return `⏰ Furry Friends: Lembrete! ${data.petName} tem agendamento amanhã às ${new Date(data.appointmentDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}. Não esqueça!`;
+        return `⏰ Furry Friends: Lembrete! ${data.petName as string} tem agendamento amanhã às ${new Date(data.appointmentDate as string).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}. Não esqueça!`;
 
       case 'APPOINTMENT_CANCELLED':
-        return `❌ Furry Friends: Agendamento de ${data.petName} foi cancelado. Entre em contato para reagendar.`;
+        return `❌ Furry Friends: Agendamento de ${data.petName as string} foi cancelado. Entre em contato para reagendar.`;
 
       case 'SERVICE_STATUS_UPDATE':
         if (data.status === 'COMPLETED') {
-          return `✅ Furry Friends: ${data.petName} está prontinho! Serviço concluído com sucesso. Obrigado! 🐾`;
+          return `✅ Furry Friends: ${data.petName as string} está prontinho! Serviço concluído com sucesso. Obrigado! 🐾`;
         } else if (data.status === 'IN_PROGRESS') {
-          return `🔄 Furry Friends: Serviço de ${data.petName} iniciado. Em breve estará cheiroso!`;
+          return `🔄 Furry Friends: Serviço de ${data.petName as string} iniciado. Em breve estará cheiroso!`;
         }
-        return `📢 Furry Friends: Atualização do serviço de ${data.petName}: ${data.status}`;
+        return `📢 Furry Friends: Atualização do serviço de ${data.petName as string}: ${data.status as string}`;
 
       case 'VACCINE_REMINDER':
-        return `💉 Furry Friends: ${data.petName} precisa de vacina! ${data.vaccineName} está vencida. Agende já!`;
+        return `💉 Furry Friends: ${data.petName as string} precisa de vacina! ${data.vaccineName as string} está vencida. Agende já!`;
 
       case 'PAYMENT_REMINDER':
-        return `💳 Furry Friends: Lembrete de pagamento pendente de R$ ${data.amount?.toFixed(2)}. Vencimento: ${new Date(data.dueDate).toLocaleDateString('pt-BR')}`;
+        return `💳 Furry Friends: Lembrete de pagamento pendente de R$ ${(data.amount as number)?.toFixed(2)}. Vencimento: ${new Date(data.dueDate as string).toLocaleDateString('pt-BR')}`;
 
       case 'LOYALTY_POINTS':
-        return `⭐ Furry Friends: Parabéns! Você ganhou ${data.points} pontos de fidelidade por ${data.reason}. Continue nos visitando!`;
+        return `⭐ Furry Friends: Parabéns! Você ganhou ${data.points as string} pontos de fidelidade por ${data.reason as string}. Continue nos visitando!`;
 
       case 'PROMOTION':
-        return `🎁 Furry Friends: ${data.offerTitle} - ${data.offerDescription}. Válido até ${new Date(data.validUntil).toLocaleDateString('pt-BR')}. Não perca!`;
+        return `🎁 Furry Friends: ${data.offerTitle as string} - ${data.offerDescription as string}. Válido até ${new Date(data.validUntil as string).toLocaleDateString('pt-BR')}. Não perca!`;
 
       default:
-        return data.message || 'Nova notificação da Furry Friends';
+        return (data.message as string) || 'Nova notificação da Furry Friends';
     }
   }
 
@@ -178,7 +169,8 @@ export class SMSService {
       );
       return true;
     } catch (error) {
-      this.logger.error('Erro na validação do Twilio:', error.message);
+      const err = error as Error;
+      this.logger.error('Erro na validação do Twilio:', err.message);
       return false;
     }
   }
@@ -214,8 +206,9 @@ export class SMSService {
         })),
       };
     } catch (error) {
-      this.logger.error('Erro ao obter estatísticas de uso:', error.message);
-      return { error: error.message };
+      const err = error as Error;
+      this.logger.error('Erro ao obter estatísticas de uso:', err.message);
+      return { error: err.message };
     }
   }
 
@@ -278,11 +271,12 @@ export class SMSService {
         priceUnit: message.priceUnit,
       };
     } catch (error) {
+      const err = error as Error;
       this.logger.error(
         `Erro ao obter status da mensagem ${messageSid}:`,
-        error.message,
+        err.message,
       );
-      return { error: error.message };
+      return { error: err.message };
     }
   }
 }

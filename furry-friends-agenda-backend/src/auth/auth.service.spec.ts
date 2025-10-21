@@ -66,7 +66,7 @@ describe('AuthService', () => {
         .spyOn(bcrypt, 'compare')
         .mockImplementation(() => Promise.resolve(true));
 
-      const { password, ...expectedResult } = mockUser;
+      const { password: _password, ...expectedResult } = mockUser;
       const result = await service.validateUser(
         'test@example.com',
         'password123',
@@ -102,7 +102,7 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should return an access token and user info on successful login', async () => {
-      const { password, ...validateUserResult } = mockUser; // Full user data minus password
+      const { password: _password, ...validateUserResult } = mockUser; // Full user data minus password
       jest.spyOn(service, 'validateUser').mockResolvedValue(validateUserResult);
       usersService.findOneById.mockResolvedValue(mockUser);
       jwtService.sign.mockReturnValue('test-token');
@@ -146,7 +146,7 @@ describe('AuthService', () => {
       const createdUser = { ...mockUser, ...registerDto, id: 'new-uuid' };
       usersService.createUser.mockResolvedValue(createdUser);
 
-      const { password, ...expectedResult } = createdUser;
+      const { password: _password, ...expectedResult } = createdUser;
       const result = await service.register(registerDto);
 
       expect(usersService.createUser).toHaveBeenCalledWith(

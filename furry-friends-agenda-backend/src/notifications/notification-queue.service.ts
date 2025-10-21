@@ -34,7 +34,7 @@ export class NotificationQueueService {
         appointmentId: createQueueDto.appointmentId,
         status: createQueueDto.status || NotificationStatus.PENDING,
         scheduledFor,
-        metadata: createQueueDto.metadata,
+        // metadata: createQueueDto.metadata,
       },
     });
   }

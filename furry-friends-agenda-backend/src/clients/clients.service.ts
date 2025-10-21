@@ -33,7 +33,10 @@ export class ClientsService {
         data: updateClientDto,
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
         throw new NotFoundException(`Client with ID "${id}" not found`);
       }
       throw error;
@@ -44,7 +47,10 @@ export class ClientsService {
     try {
       return await this.prisma.client.delete({ where: { id } });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
         throw new NotFoundException(`Client with ID "${id}" not found`);
       }
       throw error;

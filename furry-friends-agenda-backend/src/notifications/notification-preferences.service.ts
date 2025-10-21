@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationType, NotificationChannel } from '@prisma/client';
 
@@ -66,13 +61,6 @@ export class NotificationPreferencesService {
     userId: string,
   ) {
     const defaultPreferences = this.getDefaultPreferences();
-
-    const whereClause: any = {};
-    if (userType === 'client') {
-      whereClause.clientId = userId;
-    } else {
-      whereClause.groomerId = userId;
-    }
 
     return this.prisma.notificationPreference.create({
       data: {
@@ -224,7 +212,7 @@ export class NotificationPreferencesService {
     } catch (error) {
       // Se houver erro ao buscar preferências, usar padrão conservador
       this.logger.warn(
-        `Erro ao buscar preferências para ${userType} ${userId}: ${error.message}`,
+        `Erro ao buscar preferências para ${userType} ${userId}: ${(error as Error).message}`,
       );
       return this.getDefaultPreferenceForNotification(
         notificationType,
@@ -238,11 +226,7 @@ export class NotificationPreferencesService {
     channel: string,
   ): boolean {
     const defaults = this.getDefaultPreferences();
-    return (
-      defaults[notificationType as keyof typeof defaults]?.[
-        channel as keyof (typeof defaults)[keyof typeof defaults]
-      ] ?? false
-    );
+    return (defaults as any)[notificationType]?.[channel] ?? false;
   }
 
   async getNotificationChannelsForUser(
@@ -263,7 +247,7 @@ export class NotificationPreferencesService {
 
     return Object.entries(notificationPrefs)
       .filter(([_, enabled]) => enabled)
-      .map(([channel, _]) => channel as NotificationChannel);
+      .map(([channel]) => channel as NotificationChannel);
   }
 
   async bulkUpdatePreferences(

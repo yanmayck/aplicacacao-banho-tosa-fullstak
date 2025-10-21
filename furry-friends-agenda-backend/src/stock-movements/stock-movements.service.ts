@@ -6,33 +6,30 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStockMovementDto } from './dto/create-stock-movement.dto';
 import { UpdateStockMovementDto } from './dto/update-stock-movement.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class StockMovementsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createStockMovementDto: CreateStockMovementDto) {
-    try {
-      // Verificar se produto existe
-      const product = await this.prisma.product.findUnique({
-        where: { id: createStockMovementDto.productId },
-      });
+    // Verificar se produto existe
+    const product = await this.prisma.product.findUnique({
+      where: { id: createStockMovementDto.productId },
+    });
 
-      if (!product) {
-        throw new BadRequestException(
-          `Product with ID "${createStockMovementDto.productId}" not found`,
-        );
-      }
-
-      return await this.prisma.stockMovement.create({
-        data: createStockMovementDto,
-        include: {
-          product: true,
-        },
-      });
-    } catch (error) {
-      throw error;
+    if (!product) {
+      throw new BadRequestException(
+        `Product with ID "${createStockMovementDto.productId}" not found`,
+      );
     }
+
+    return await this.prisma.stockMovement.create({
+      data: createStockMovementDto,
+      include: {
+        product: true,
+      },
+    });
   }
 
   async findAll() {
@@ -89,7 +86,10 @@ export class StockMovementsService {
         },
       });
     } catch (error) {
-      if (error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        (error as any).code === 'P2025'
+      ) {
         throw new NotFoundException(`Stock movement with ID "${id}" not found`);
       }
       throw error;
@@ -102,7 +102,10 @@ export class StockMovementsService {
         where: { id },
       });
     } catch (error) {
-      if (error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        (error as any).code === 'P2025'
+      ) {
         throw new NotFoundException(`Stock movement with ID "${id}" not found`);
       }
       throw error;

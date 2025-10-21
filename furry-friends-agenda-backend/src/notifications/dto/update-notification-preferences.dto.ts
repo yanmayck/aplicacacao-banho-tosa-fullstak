@@ -1,4 +1,4 @@
-import { IsObject, IsBoolean, IsOptional } from 'class-validator';
+import { IsObject, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateNotificationPreferencesDto {

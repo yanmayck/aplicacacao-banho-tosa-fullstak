@@ -3,7 +3,6 @@ import { RolesGuard } from './roles.guard';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
-import { ROLES_KEY } from '../decorators/roles.decorator';
 
 const mockReflector = {
   getAllAndOverride: jest.fn(),

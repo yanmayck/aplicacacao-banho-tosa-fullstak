@@ -7,72 +7,17 @@ export declare class AppointmentsController {
     constructor(appointmentsService: AppointmentsService);
     create(createAppointmentDto: CreateAppointmentDto, req: {
         user: JwtPayload;
-    }): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        clientId: string;
-        petId: string;
-        groomerId: string | null;
-        dateTime: Date;
-        notes: string | null;
-        status: import(".prisma/client").$Enums.AppointmentStatus;
-        totalPrice: number;
-    }>;
+    }): Promise<import("./types/appointment.types").Appointment>;
     findAll(req: {
         user: JwtPayload;
-    }): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        clientId: string;
-        petId: string;
-        groomerId: string | null;
-        dateTime: Date;
-        notes: string | null;
-        status: import(".prisma/client").$Enums.AppointmentStatus;
-        totalPrice: number;
-    }[]>;
+    }): Promise<import("./types/appointment.types").Appointment[]>;
     findOne(id: string, req: {
         user: JwtPayload;
-    }): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        clientId: string;
-        petId: string;
-        groomerId: string | null;
-        dateTime: Date;
-        notes: string | null;
-        status: import(".prisma/client").$Enums.AppointmentStatus;
-        totalPrice: number;
-    } | null>;
+    }): Promise<import("./types/appointment.types").Appointment | null>;
     update(id: string, updateAppointmentDto: UpdateAppointmentDto, req: {
         user: JwtPayload;
-    }): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        clientId: string;
-        petId: string;
-        groomerId: string | null;
-        dateTime: Date;
-        notes: string | null;
-        status: import(".prisma/client").$Enums.AppointmentStatus;
-        totalPrice: number;
-    }>;
+    }): Promise<import("./types/appointment.types").Appointment>;
     remove(id: string, req: {
         user: JwtPayload;
-    }): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        clientId: string;
-        petId: string;
-        groomerId: string | null;
-        dateTime: Date;
-        notes: string | null;
-        status: import(".prisma/client").$Enums.AppointmentStatus;
-        totalPrice: number;
-    }>;
+    }): Promise<import("./types/appointment.types").Appointment>;
 }

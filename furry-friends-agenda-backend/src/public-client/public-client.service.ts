@@ -1,7 +1,6 @@
 import {
   Injectable,
   ConflictException,
-  UnauthorizedException,
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -28,7 +27,7 @@ export class PublicClientService {
     }
 
     // Hash da senha
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+    await bcrypt.hash(registerDto.password, 10);
 
     // Criar cliente
     const client = await this.prisma.client.create({

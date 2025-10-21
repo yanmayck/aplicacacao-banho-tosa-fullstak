@@ -4,6 +4,7 @@ import {
   NotificationType,
   NotificationChannel,
   NotificationStatus,
+  Prisma,
 } from '@prisma/client';
 import {
   TwilioSMSWebhookPayload,
@@ -27,20 +28,12 @@ export class WebhookService {
       // Salvar log do webhook
       await this.saveWebhookLog('twilio-sms', payload);
 
-      const {
-        MessageSid,
-        MessageStatus,
-        From,
-        To,
-        Body,
-        ErrorCode,
-        ErrorMessage,
-      } = payload;
+      const { MessageSid, MessageStatus, ErrorCode, ErrorMessage } = payload;
 
       // Atualizar status da mensagem na fila
       if (MessageSid) {
         await this.updateQueueItemStatus(MessageSid, MessageStatus, {
-          providerResponse: payload,
+          providerResponse: payload as any,
           errorCode: ErrorCode,
           errorMessage: ErrorMessage,
         });
@@ -48,7 +41,7 @@ export class WebhookService {
 
       // Se houver erro, tentar reenviar ou notificar admin
       if (MessageStatus === 'failed' && ErrorCode) {
-        await this.handleFailedSMS(MessageSid, ErrorCode, ErrorMessage);
+        await this.handleFailedSMS(MessageSid, ErrorCode, ErrorMessage || '');
       }
 
       return { success: true, messageId: MessageSid };
@@ -64,19 +57,11 @@ export class WebhookService {
 
       await this.saveWebhookLog('twilio-whatsapp', payload);
 
-      const {
-        MessageSid,
-        MessageStatus,
-        From,
-        To,
-        Body,
-        ErrorCode,
-        ErrorMessage,
-      } = payload;
+      const { MessageSid, MessageStatus, ErrorCode, ErrorMessage } = payload;
 
       if (MessageSid) {
         await this.updateQueueItemStatus(MessageSid, MessageStatus, {
-          providerResponse: payload,
+          providerResponse: payload as any,
           errorCode: ErrorCode,
           errorMessage: ErrorMessage,
         });
@@ -109,11 +94,11 @@ export class WebhookService {
         if (sg_message_id) {
           await this.updateQueueItemStatus(
             sg_message_id,
-            this.mapSendGridStatus(status),
+            this.mapSendGridStatus(status || ''),
             {
-              providerResponse: event,
+              providerResponse: event as any,
               email,
-              timestamp,
+              timestamp: new Date(Number(timestamp) * 1000).toISOString(),
               reason,
             },
           );
@@ -121,7 +106,7 @@ export class WebhookService {
 
         // Se houver bounce ou erro, tomar ações apropriadas
         if (eventType === 'bounce' || eventType === 'deferred') {
-          await this.handleFailedEmail(sg_message_id, reason);
+          await this.handleFailedEmail(sg_message_id, reason || '');
         }
       }
 
@@ -148,18 +133,22 @@ export class WebhookService {
           if (entry.changes && entry.changes.length > 0) {
             for (const change of entry.changes) {
               if (change.value) {
-                const { message, status, error } = change.value;
+                const { messages, statuses } = change.value;
 
-                if (message) {
+                if (messages && messages.length > 0) {
                   // Processar mensagem recebida
-                  await this.processIncomingWhatsAppMessage(message);
+                  await this.processIncomingWhatsAppMessage(messages[0]);
                 }
 
-                if (status) {
+                if (statuses && statuses.length > 0) {
                   // Atualizar status da mensagem enviada
-                  await this.updateQueueItemStatus(change.value.id, status, {
-                    providerResponse: change.value,
-                  });
+                  await this.updateQueueItemStatus(
+                    statuses[0].id,
+                    statuses[0].status,
+                    {
+                      providerResponse: change.value as any,
+                    },
+                  );
                 }
               }
             }
@@ -188,7 +177,7 @@ export class WebhookService {
           title: `Webhook ${provider}`,
           content: JSON.stringify(payload),
           status: NotificationStatus.DELIVERED,
-          webhookData: payload,
+          webhookData: payload as any,
         },
       });
     } catch (error) {
@@ -202,31 +191,29 @@ export class WebhookService {
     additionalData?: WebhookLogData,
   ) {
     try {
-      // Buscar item da fila pelo ID externo (armazenado em metadata)
-      const queueItem = await this.prisma.notificationQueue.findFirst({
+      // Find NotificationLog by externalId
+      const log = await this.prisma.notificationLog.findFirst({
         where: {
-          metadata: {
-            path: ['externalId'],
+          providerResponse: {
+            path: ['messageId'], // Assuming messageId is stored in providerResponse
             equals: externalId,
           },
         },
       });
 
-      if (queueItem) {
+      if (log && log.queueId) {
         const mappedStatus = this.mapExternalStatusToInternal(status);
 
         await this.prisma.notificationQueue.update({
-          where: { id: queueItem.id },
+          where: { id: log.queueId },
           data: {
             status: mappedStatus,
-            ...(additionalData && {
-              metadata: { ...queueItem.metadata, ...additionalData },
-            }),
+            errorMessage: additionalData?.errorMessage,
           },
         });
 
         this.logger.log(
-          `Status da fila atualizado: ${queueItem.id} -> ${mappedStatus}`,
+          `Status da fila atualizado: ${log.queueId} -> ${mappedStatus}`,
         );
       }
     } catch (error) {
@@ -270,9 +257,9 @@ export class WebhookService {
     await this.prisma.notification.create({
       data: {
         title: 'Mensagem WhatsApp Recebida',
-        message: `Nova mensagem de ${message.from}: ${message.text?.body || 'Mídia recebida'}`,
+        message: `Nova mensagem de ${message.from as string}: ${(message.text?.body as string) || 'Mídia recebida'}`,
         type: NotificationType.INFO,
-        data: message,
+        data: message as any,
       },
     });
   }
@@ -329,7 +316,7 @@ export class WebhookService {
     offset?: number;
     provider?: string;
   }) {
-    const where: any = {};
+    const where: Prisma.NotificationLogWhereInput = {};
 
     if (filters?.provider) {
       where.channel = this.mapProviderToChannel(filters.provider);
@@ -357,9 +344,6 @@ export class WebhookService {
       },
       _count: {
         id: true,
-      },
-      _avg: {
-        createdAt: true,
       },
     });
 
@@ -392,7 +376,7 @@ export class WebhookService {
           From: '+5511999999999',
           To: '+5511888888888',
           Body: 'Mensagem de teste',
-          ...testData,
+          ...(testData as any),
         });
 
       case 'sendgrid-email':
@@ -402,7 +386,7 @@ export class WebhookService {
             sg_message_id: 'test-email-id',
             email: 'test@example.com',
             timestamp: new Date().toISOString(),
-            ...testData,
+            ...(testData as any),
           },
         ]);
 
@@ -413,18 +397,27 @@ export class WebhookService {
               changes: [
                 {
                   value: {
-                    message: {
-                      from: '5511999999999',
-                      text: { body: 'Mensagem de teste' },
-                    },
-                    status: 'delivered',
-                    ...testData,
+                    messages: [
+                      {
+                        from: '5511999999999',
+                        text: { body: 'Mensagem de teste' },
+                      },
+                    ],
+                    statuses: [
+                      {
+                        id: 'wamid.HBgLNTU0NzkwNzQ1MjA4FQIAERgSM0QzQTQzQTlCM0E5QzgwNkYwRA==',
+                        status: 'delivered',
+                        timestamp: '1603059201',
+                        recipient_id: '5521969285563',
+                      },
+                    ],
+                    ...(testData as any),
                   },
                 },
               ],
             },
           ],
-        });
+        } as WhatsAppBusinessWebhookPayload);
 
       default:
         throw new Error(`Provider não suportado: ${provider}`);

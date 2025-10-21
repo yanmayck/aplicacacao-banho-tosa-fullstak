@@ -28,7 +28,9 @@ describe('JwtAuthGuard', () => {
     it('should throw an error if there is an error', () => {
       const err = new Error('Test Error');
       const mockContext = {} as ExecutionContext;
-      expect(() => guard.handleRequest(err, null, null, mockContext)).toThrow(err);
+      expect(() => guard.handleRequest(err, null, null, mockContext)).toThrow(
+        err,
+      );
     });
 
     it('should throw UnauthorizedException if there is no user', () => {

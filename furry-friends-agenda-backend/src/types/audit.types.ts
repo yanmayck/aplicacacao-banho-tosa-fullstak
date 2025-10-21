@@ -1,3 +1,5 @@
+import { AuditSeverity } from '@prisma/client';
+
 // Interfaces específicas para o sistema de auditoria
 export interface AuditStatistics {
   totalLogs: number;
@@ -20,7 +22,7 @@ export interface AuditStatistics {
 export interface AuditReport {
   filters: any;
   generatedAt: Date;
-  statistics: AuditStatistics;
+  statistics: AuditStatistics | null;
   logsByDate: Record<string, any[]>;
   totalLogs: number;
   logs: any[];
@@ -28,7 +30,7 @@ export interface AuditReport {
 
 export interface AuditConfigData {
   enabled?: boolean;
-  logLevel?: string;
+  logLevel?: AuditSeverity;
   retentionDays?: number;
   archiveAfterDays?: number;
   auditModules?: Record<string, boolean>;

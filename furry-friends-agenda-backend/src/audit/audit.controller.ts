@@ -75,19 +75,13 @@ export class AuditController {
 
   @Get('statistics')
   @Roles(UserRole.ADMIN, UserRole.USER)
-  getAuditStatistics(
-    @Request() req: { user: JwtPayload },
-    @Query() filters?: AuditLogFiltersDto,
-  ) {
-    return this.auditService.getAuditStatistics(filters);
+  getAuditStatistics(@Query() filters?: AuditLogFiltersDto) {
+    return this.auditService.getAuditStatistics(filters || {});
   }
 
   @Get('reports')
   @Roles(UserRole.ADMIN, UserRole.USER)
-  generateAuditReport(
-    @Request() req: { user: JwtPayload },
-    @Query() filters?: AuditLogFiltersDto,
-  ) {
+  generateAuditReport(@Query() filters?: AuditLogFiltersDto) {
     return this.auditService.generateAuditReport(filters || {});
   }
 
@@ -95,17 +89,14 @@ export class AuditController {
 
   @Get('config')
   @Roles(UserRole.ADMIN)
-  getAuditConfig(@Request() req: { user: JwtPayload }) {
+  getAuditConfig() {
     return this.auditService.getAuditConfig();
   }
 
   @Patch('config')
   @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  updateAuditConfig(
-    @Body() configData: any,
-    @Request() req: { user: JwtPayload },
-  ) {
+  updateAuditConfig(@Body() configData: any) {
     return this.auditService.updateAuditConfig(configData);
   }
 
@@ -186,13 +177,13 @@ export class AuditController {
 
   @Post('maintenance/archive')
   @Roles(UserRole.ADMIN)
-  archiveOldLogs(@Request() req: { user: JwtPayload }) {
+  archiveOldLogs() {
     return this.auditService.archiveOldLogs();
   }
 
   @Post('maintenance/cleanup')
   @Roles(UserRole.ADMIN)
-  cleanupOldLogs(@Request() req: { user: JwtPayload }) {
+  cleanupOldLogs() {
     return this.auditService.deleteOldLogs();
   }
 }

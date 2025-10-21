@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as sgMail from '@sendgrid/mail';
+import { MailDataRequired } from '@sendgrid/mail';
 
 export interface EmailOptions {
   to: string | string[];
@@ -45,7 +46,7 @@ export class EmailService {
       // Se SendGrid não estiver configurado, apenas logar
       if (!process.env.SENDGRID_API_KEY) {
         this.logger.log(
-          `[EMAIL SIMULADO] Para: ${options.to}, Assunto: ${options.subject}`,
+          `[EMAIL SIMULADO] Para: ${options.to.toString()}, Assunto: ${options.subject}`,
         );
         this.logger.log(
           `[EMAIL SIMULADO] HTML: ${options.html.substring(0, 200)}...`,
@@ -53,27 +54,25 @@ export class EmailService {
         return { success: true, messageId: 'mock-id' };
       }
 
-      const msg = {
+      const msg: MailDataRequired = {
         to: options.to,
         from: options.from || this.defaultFrom,
         subject: options.subject,
         html: options.html,
         text: options.text,
-        ...(options.cc && { cc: options.cc }),
-        ...(options.bcc && { bcc: options.bcc }),
-        ...(options.attachments && { attachments: options.attachments }),
-        ...(options.templateId && {
-          templateId: options.templateId,
-          dynamicTemplateData: options.dynamicTemplateData,
-        }),
-        ...(options.categories && { categories: options.categories }),
-        ...(options.customArgs && { customArgs: options.customArgs }),
+        cc: options.cc,
+        bcc: options.bcc,
+        attachments: options.attachments,
+        templateId: options.templateId,
+        dynamicTemplateData: options.dynamicTemplateData,
+        categories: options.categories,
+        customArgs: options.customArgs,
       };
 
-      const response = await sgMail.send(msg);
+      const response = await sgMail.send(msg as any);
 
       this.logger.log(
-        `Email enviado com sucesso para ${options.to}. MessageId: ${response[0]?.headers?.['x-message-id']}`,
+        `Email enviado com sucesso para ${options.to.toString()}. MessageId: ${response[0]?.headers?.['x-message-id']}`,
       );
 
       return {
@@ -81,14 +80,15 @@ export class EmailService {
         messageId: response[0]?.headers?.['x-message-id'],
       };
     } catch (error) {
+      const err = error as Error;
       this.logger.error(
-        `Erro ao enviar email para ${options.to}:`,
-        error.message,
+        `Erro ao enviar email para ${options.to.toString()}:`,
+        err.message,
       );
 
       return {
         success: false,
-        error: error.message,
+        error: err.message,
       };
     }
   }
@@ -96,16 +96,18 @@ export class EmailService {
   async sendBulkEmails(
     emails: EmailOptions[],
   ): Promise<Array<{ success: boolean; messageId?: string; error?: string }>> {
-    const results = [];
+    const results: { success: boolean; messageId?: string; error?: string }[] =
+      [];
 
     for (const email of emails) {
       try {
         const result = await this.sendEmail(email);
         results.push(result);
       } catch (error) {
+        const err = error as Error;
         results.push({
           success: false,
-          error: error.message,
+          error: err.message,
         });
       }
     }
@@ -265,71 +267,71 @@ export class EmailService {
     switch (type) {
       case 'APPOINTMENT_CONFIRMATION':
         return {
-          subject: `Agendamento Confirmado - ${data.petName}`,
+          subject: `Agendamento Confirmado - ${data.petName as string}`,
           html: this.createProfessionalEmailTemplate(
             'Agendamento Confirmado',
             `
               <p>Seu agendamento foi confirmado com sucesso!</p>
               <div class="highlight">
                 <strong>Detalhes do Agendamento:</strong><br>
-                🐕 <strong>Pet:</strong> ${data.petName}<br>
-                📅 <strong>Data:</strong> ${new Date(data.appointmentDate).toLocaleDateString('pt-BR')}<br>
-                ⏰ <strong>Horário:</strong> ${new Date(data.appointmentDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}<br>
-                ${data.groomerName ? `👨‍💼 <strong>Tosador:</strong> ${data.groomerName}<br>` : ''}
+                🐕 <strong>Pet:</strong> ${data.petName as string}<br>
+                📅 <strong>Data:</strong> ${new Date(data.appointmentDate as string).toLocaleDateString('pt-BR')}<br>
+                ⏰ <strong>Horário:</strong> ${new Date(data.appointmentDate as string).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}<br>
+                ${data.groomerName ? `👨‍💼 <strong>Tosador:</strong> ${data.groomerName as string}<br>` : ''}
               </div>
               <p>Estamos ansiosos para receber você e seu pet!</p>
             `,
-            data.clientName,
-            data.petName,
+            data.clientName as string,
+            data.petName as string,
             {
               text: 'Ver Agendamento',
-              url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/appointments/${data.appointmentId}`,
+              url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/appointments/${data.appointmentId as string}`,
             },
           ),
         };
 
       case 'APPOINTMENT_REMINDER':
         return {
-          subject: `Lembrete: Agendamento amanhã - ${data.petName}`,
+          subject: `Lembrete: Agendamento amanhã - ${data.petName as string}`,
           html: this.createProfessionalEmailTemplate(
             'Lembrete de Agendamento',
             `
               <p>Este é um lembrete amigável do seu agendamento marcado para amanhã.</p>
               <div class="highlight">
                 <strong>Não se esqueça:</strong><br>
-                🐕 <strong>Pet:</strong> ${data.petName}<br>
-                📅 <strong>Data:</strong> ${new Date(data.appointmentDate).toLocaleDateString('pt-BR')}<br>
-                ⏰ <strong>Horário:</strong> ${new Date(data.appointmentDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}<br>
+                🐕 <strong>Pet:</strong> ${data.petName as string}<br>
+                📅 <strong>Data:</strong> ${new Date(data.appointmentDate as string).toLocaleDateString('pt-BR')}<br>
+                ⏰ <strong>Horário:</strong> ${new Date(data.appointmentDate as string).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}<br>
                 <br>
-                <strong>Preparação:</strong> Traga seu pet com ${data.hoursUntil || 8} horas de jejum.
+                <strong>Preparação:</strong> Traga seu pet com ${(data.hoursUntil as string) || 8} horas de jejum.
               </div>
             `,
-            data.clientName,
-            data.petName,
+            data.clientName as string,
+            data.petName as string,
             {
               text: 'Confirmar Presença',
-              url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/appointments/${data.appointmentId}`,
+              url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/appointments/${data.appointmentId as string}`,
             },
           ),
         };
 
       case 'VACCINE_REMINDER':
         return {
-          subject: `Lembrete de Vacina - ${data.petName}`,
+          subject: `Lembrete de Vacina - ${data.petName as string}`,
           html: this.createProfessionalEmailTemplate(
             'Lembrete de Vacina',
             `
               <p>É hora de cuidar da saúde do seu pet!</p>
               <div class="highlight">
                 <strong>Vacina necessária:</strong><br>
-                🐕 <strong>Pet:</strong> ${data.petName}<br>
-                💉 <strong>Vacina:</strong> ${data.vaccineName}<br>
-                📅 <strong>Vencimento:</strong> ${data.vaccineDate ? new Date(data.vaccineDate).toLocaleDateString('pt-BR') : 'Vencida'}
+                🐕 <strong>Pet:</strong> ${data.petName as string}<br>
+                💉 <strong>Vacina:</strong> ${data.vaccineName as string}<br>
+                📅 <strong>Vencimento:</strong> ${data.vaccineDate ? new Date(data.vaccineDate as string).toLocaleDateString('pt-BR') : 'Vencida'}
               </div>
               <p>Entre em contato conosco para agendar a vacinação.</p>
             `,
-            data.clientName,
-            data.petName,
+            data.clientName as string,
+            data.petName as string,
             {
               text: 'Agendar Vacinação',
               url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/contact`,
@@ -339,20 +341,20 @@ export class EmailService {
 
       case 'SERVICE_STATUS_UPDATE':
         return {
-          subject: `Atualização do Serviço - ${data.petName}`,
+          subject: `Atualização do Serviço - ${data.petName as string}`,
           html: this.createProfessionalEmailTemplate(
             'Atualização do Serviço',
             `
               <p>Informamos sobre o status do serviço do seu pet:</p>
               <div class="highlight">
-                <strong>Status:</strong> ${data.status}<br>
-                🐕 <strong>Pet:</strong> ${data.petName}<br>
-                ${data.estimatedTime ? `⏱️ <strong>Tempo estimado:</strong> ${data.estimatedTime}` : ''}
+                <strong>Status:</strong> ${data.status as string}<br>
+                🐕 <strong>Pet:</strong> ${data.petName as string}<br>
+                ${data.estimatedTime ? `⏱️ <strong>Tempo estimado:</strong> ${data.estimatedTime as string}` : ''}
               </div>
               ${data.status === 'COMPLETED' ? '<p>Seu pet está prontinho e cheiroso! 🐾</p>' : ''}
             `,
-            data.clientName,
-            data.petName,
+            data.clientName as string,
+            data.petName as string,
           ),
         };
 
@@ -361,8 +363,8 @@ export class EmailService {
           subject: 'Notificação - Furry Friends',
           html: this.createProfessionalEmailTemplate(
             'Nova Notificação',
-            `<p>${data.message || 'Você recebeu uma nova notificação.'}</p>`,
-            data.clientName,
+            `<p>${(data.message as string) || 'Você recebeu uma nova notificação.'}</p>`,
+            data.clientName as string,
           ),
         };
     }
@@ -386,7 +388,8 @@ export class EmailService {
 
       return true;
     } catch (error) {
-      this.logger.error('Erro na validação do SendGrid:', error.message);
+      const err = error as Error;
+      this.logger.error('Erro na validação do SendGrid:', err.message);
       return false;
     }
   }

@@ -14,6 +14,13 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { WebhookService } from './webhook.service';
+import {
+  TwilioSMSWebhookPayload,
+  TwilioWhatsAppWebhookPayload,
+  SendGridEmailWebhookPayload,
+  WhatsAppBusinessWebhookPayload,
+  TestWebhookData,
+} from '../types/webhook.types';
 
 @Controller('webhooks/notifications')
 export class NotificationWebhooksController {
@@ -23,7 +30,7 @@ export class NotificationWebhooksController {
 
   @Post('twilio-sms')
   async handleTwilioSMSWebhook(
-    @Body() body: any,
+    @Body() body: TwilioSMSWebhookPayload,
     @Headers() headers: Record<string, string>,
   ) {
     this.logger.log('Webhook Twilio SMS recebido:', { body, headers });
@@ -47,7 +54,7 @@ export class NotificationWebhooksController {
 
   @Post('twilio-whatsapp')
   async handleTwilioWhatsAppWebhook(
-    @Body() body: any,
+    @Body() body: TwilioWhatsAppWebhookPayload,
     @Headers() headers: Record<string, string>,
   ) {
     this.logger.log('Webhook Twilio WhatsApp recebido:', { body, headers });
@@ -57,14 +64,14 @@ export class NotificationWebhooksController {
 
   @Post('sendgrid-email')
   async handleSendGridEmailWebhook(
-    @Body() body: any[],
+    @Body() body: SendGridEmailWebhookPayload[],
     @Headers() headers: Record<string, string>,
   ) {
     this.logger.log('Webhook SendGrid recebido:', { body, headers });
 
     // Verificar assinatura do SendGrid (se configurada)
     if (process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY) {
-      const signature = headers['x-twilio-signature']; // SendGrid usa header diferente
+      // const signature = headers['x-sendgrid-signature']; // Corrigir header
       // Implementar verificação de assinatura
     }
 
@@ -73,14 +80,14 @@ export class NotificationWebhooksController {
 
   @Post('whatsapp-business')
   async handleWhatsAppBusinessWebhook(
-    @Body() body: any,
+    @Body() body: WhatsAppBusinessWebhookPayload,
     @Headers() headers: Record<string, string>,
   ) {
     this.logger.log('Webhook WhatsApp Business recebido:', { body, headers });
 
     // Verificar assinatura do WhatsApp (se configurada)
     if (process.env.WHATSAPP_VERIFY_TOKEN) {
-      const signature = headers['x-hub-signature-256'];
+      // const signature = headers['x-hub-signature-256'];
       // Implementar verificação de assinatura
     }
 
@@ -140,7 +147,10 @@ export class AdminNotificationWebhooksController {
   }
 
   @Post('test/:provider')
-  testWebhook(@Query('provider') provider: string, @Body() testData?: any) {
+  testWebhook(
+    @Query('provider') provider: string,
+    @Body() testData?: TestWebhookData,
+  ) {
     return this.webhookService.testWebhook(provider, testData);
   }
 }

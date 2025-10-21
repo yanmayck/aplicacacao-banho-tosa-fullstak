@@ -49,7 +49,7 @@ export class ClientPetHealthService {
     }
 
     // Obter histórico atual
-    const currentHistory = pet.vaccineHistory || [];
+    const currentHistory = (pet.vaccineHistory as any[]) || [];
 
     // Adicionar nova vacina
     const updatedHistory = [...currentHistory, vaccineData];
@@ -108,7 +108,7 @@ export class ClientPetHealthService {
     });
   }
 
-  async getVaccinesDueSoon(clientId: string, daysAhead: number = 30) {
+  getVaccinesDueSoon(clientId: string) {
     // Por ora, retornar array vazio - funcionalidade pode ser expandida posteriormente
     return [];
   }

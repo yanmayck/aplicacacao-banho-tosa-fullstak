@@ -8,7 +8,6 @@ import {
   Delete,
   Query,
   UseGuards,
-  Request,
   ValidationPipe,
   UsePipes,
   ParseUUIDPipe,
@@ -29,10 +28,7 @@ import {
   CreateCashRegisterDto,
   CloseCashRegisterDto,
 } from './dto/create-cash-register.dto';
-import {
-  FinancialReportFiltersDto,
-  ReportType,
-} from './dto/financial-report-filters.dto';
+import { FinancialReportFiltersDto } from './dto/financial-report-filters.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -48,17 +44,13 @@ export class FinancialController {
   @Post('transactions')
   @Roles(UserRole.ADMIN, UserRole.USER)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  createTransaction(
-    @Body() createTransactionDto: CreateTransactionDto,
-    @Request() req: { user: JwtPayload },
-  ) {
+  createTransaction(@Body() createTransactionDto: CreateTransactionDto) {
     return this.financialService.createTransaction(createTransactionDto);
   }
 
   @Get('transactions')
   @Roles(UserRole.ADMIN, UserRole.USER)
   findAllTransactions(
-    @Request() req: { user: JwtPayload },
     @Query('type') type?: TransactionType,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -77,10 +69,7 @@ export class FinancialController {
 
   @Get('transactions/:id')
   @Roles(UserRole.ADMIN, UserRole.USER)
-  findTransactionById(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: { user: JwtPayload },
-  ) {
+  findTransactionById(@Param('id', ParseUUIDPipe) id: string) {
     return this.financialService.findTransactionById(id);
   }
 
@@ -90,17 +79,13 @@ export class FinancialController {
   updateTransaction(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateTransactionDto: UpdateTransactionDto,
-    @Request() req: { user: JwtPayload },
   ) {
     return this.financialService.updateTransaction(id, updateTransactionDto);
   }
 
   @Delete('transactions/:id')
   @Roles(UserRole.ADMIN)
-  deleteTransaction(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: { user: JwtPayload },
-  ) {
+  deleteTransaction(@Param('id', ParseUUIDPipe) id: string) {
     return this.financialService.deleteTransaction(id);
   }
 
@@ -109,26 +94,19 @@ export class FinancialController {
   @Post('categories')
   @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  createCategory(
-    @Body() createCategoryDto: CreateFinancialCategoryDto,
-    @Request() req: { user: JwtPayload },
-  ) {
+  createCategory(@Body() createCategoryDto: CreateFinancialCategoryDto) {
     return this.financialService.createCategory(createCategoryDto);
   }
 
   @Get('categories')
   @Roles(UserRole.ADMIN, UserRole.USER)
-  findAllCategories(
-    @Request() req: { user: JwtPayload },
-    @Query('activeOnly') activeOnly?: string,
-  ) {
+  findAllCategories(@Query('activeOnly') activeOnly?: string) {
     return this.financialService.findAllCategories(activeOnly !== 'false');
   }
 
   @Get('categories/type/:type')
   @Roles(UserRole.ADMIN, UserRole.USER)
   findCategoriesByType(
-    @Request() req: { user: JwtPayload },
     @Param('type', new ParseEnumPipe(TransactionType)) type: TransactionType,
   ) {
     return this.financialService.findCategoriesByType(type);
@@ -140,17 +118,13 @@ export class FinancialController {
   updateCategory(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateCategoryDto: UpdateFinancialCategoryDto,
-    @Request() req: { user: JwtPayload },
   ) {
     return this.financialService.updateCategory(id, updateCategoryDto);
   }
 
   @Delete('categories/:id')
   @Roles(UserRole.ADMIN)
-  deleteCategory(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: { user: JwtPayload },
-  ) {
+  deleteCategory(@Param('id', ParseUUIDPipe) id: string) {
     return this.financialService.deleteCategory(id);
   }
 
@@ -159,19 +133,13 @@ export class FinancialController {
   @Post('cash-register')
   @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  createCashRegister(
-    @Body() createCashRegisterDto: CreateCashRegisterDto,
-    @Request() req: { user: JwtPayload },
-  ) {
+  createCashRegister(@Body() createCashRegisterDto: CreateCashRegisterDto) {
     return this.financialService.createCashRegister(createCashRegisterDto);
   }
 
   @Get('cash-register/:date')
   @Roles(UserRole.ADMIN, UserRole.USER)
-  getCashRegisterByDate(
-    @Param('date') date: string,
-    @Request() req: { user: JwtPayload },
-  ) {
+  getCashRegisterByDate(@Param('date') date: string) {
     return this.financialService.getCashRegisterByDate(new Date(date));
   }
 
@@ -181,7 +149,6 @@ export class FinancialController {
   closeCashRegister(
     @Param('date') date: string,
     @Body() closeCashRegisterDto: CloseCashRegisterDto,
-    @Request() req: { user: JwtPayload },
   ) {
     return this.financialService.closeCashRegister(
       new Date(date),
@@ -193,17 +160,13 @@ export class FinancialController {
 
   @Get('reports')
   @Roles(UserRole.ADMIN, UserRole.USER)
-  generateFinancialReport(
-    @Request() req: { user: JwtPayload },
-    @Query() filters: FinancialReportFiltersDto,
-  ) {
+  generateFinancialReport(@Query() filters: FinancialReportFiltersDto) {
     return this.financialService.generateFinancialReport(filters);
   }
 
   @Get('reports/summary')
   @Roles(UserRole.ADMIN, UserRole.USER)
   getFinancialSummary(
-    @Request() req: { user: JwtPayload },
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
@@ -223,7 +186,6 @@ export class FinancialController {
   @Roles(UserRole.ADMIN)
   createAutomaticIncomeFromAppointment(
     @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
-    @Request() req: { user: JwtPayload },
   ) {
     return this.financialService.createAutomaticIncomeFromAppointment(
       appointmentId,
@@ -234,10 +196,7 @@ export class FinancialController {
 
   @Get('dashboard/summary')
   @Roles(UserRole.ADMIN, UserRole.USER)
-  getDashboardSummary(
-    @Request() req: { user: JwtPayload },
-    @Query('days') days?: string,
-  ) {
+  getDashboardSummary(@Query('days') days?: string) {
     const daysBack = days ? parseInt(days) : 30;
     const endDate = new Date();
     const startDate = new Date();
@@ -248,10 +207,7 @@ export class FinancialController {
 
   @Get('dashboard/recent-transactions')
   @Roles(UserRole.ADMIN, UserRole.USER)
-  getRecentTransactions(
-    @Request() req: { user: JwtPayload },
-    @Query('limit') limit?: string,
-  ) {
+  getRecentTransactions(@Query('limit') limit?: string) {
     const limitCount = limit ? parseInt(limit) : 10;
     return this.financialService
       .findAllTransactions()

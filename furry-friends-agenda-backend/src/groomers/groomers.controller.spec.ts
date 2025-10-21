@@ -3,7 +3,6 @@ import { GroomersController } from './groomers.controller';
 import { GroomersService } from './groomers.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { UserRole } from '@prisma/client';
 
 const mockGroomersService = {
   create: jest.fn(),

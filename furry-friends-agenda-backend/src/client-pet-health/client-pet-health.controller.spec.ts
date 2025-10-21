@@ -16,8 +16,14 @@ describe('ClientPetHealthController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ClientPetHealthController],
       providers: [
-        { provide: ClientPetHealthService, useValue: mockClientPetHealthService },
-        { provide: JwtService, useValue: { sign: jest.fn(), verify: jest.fn() } },
+        {
+          provide: ClientPetHealthService,
+          useValue: mockClientPetHealthService,
+        },
+        {
+          provide: JwtService,
+          useValue: { sign: jest.fn(), verify: jest.fn() },
+        },
         { provide: Reflector, useValue: { getAllAndOverride: jest.fn() } },
       ],
     })

@@ -1,3 +1,4 @@
+import { NotificationType } from '@prisma/client';
 import {
   Controller,
   Get,
@@ -147,7 +148,7 @@ export class NotificationsAdminController {
       clientIds: string[];
       title: string;
       message: string;
-      type: string;
+      type: NotificationType;
       data?: any;
     },
   ) {

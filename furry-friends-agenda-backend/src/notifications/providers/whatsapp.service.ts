@@ -38,14 +38,16 @@ export class WhatsAppService {
         !process.env.WHATSAPP_PHONE_NUMBER_ID
       ) {
         this.logger.log(
-          `[WHATSAPP SIMULADO] Para: ${options.to}, Mensagem: ${options.message}`,
+          `[WHATSAPP SIMULADO] Para: ${options.to.toString()}, Mensagem: ${options.message}`,
         );
         return { success: true, messageId: 'mock-whatsapp-id' };
       }
 
       const phoneNumber = this.formatWhatsAppNumber(options.to);
       if (!phoneNumber) {
-        throw new Error(`Número do WhatsApp inválido: ${options.to}`);
+        throw new Error(
+          `Número do WhatsApp inválido: ${options.to.toString()}`,
+        );
       }
 
       let requestBody: any;
@@ -96,29 +98,30 @@ export class WhatsAppService {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          `Erro na API do WhatsApp: ${errorData.error?.message || response.statusText}`,
+          `Erro na API do WhatsApp: ${(errorData.error?.message as string) || response.statusText}`,
         );
       }
 
       const data = await response.json();
 
       this.logger.log(
-        `Mensagem WhatsApp enviada com sucesso para ${phoneNumber}. ID: ${data.messages?.[0]?.id}`,
+        `Mensagem WhatsApp enviada com sucesso para ${phoneNumber}. ID: ${data.messages?.[0]?.id as string}`,
       );
 
       return {
         success: true,
-        messageId: data.messages?.[0]?.id,
+        messageId: data.messages?.[0]?.id as string,
       };
     } catch (error) {
+      const err = error as Error;
       this.logger.error(
-        `Erro ao enviar WhatsApp para ${options.to}:`,
-        error.message,
+        `Erro ao enviar WhatsApp para ${options.to.toString()}:`,
+        err.message,
       );
 
       return {
         success: false,
-        error: error.message,
+        error: err.message,
       };
     }
   }
@@ -126,16 +129,18 @@ export class WhatsAppService {
   async sendBulkWhatsAppMessages(
     messages: WhatsAppOptions[],
   ): Promise<Array<{ success: boolean; messageId?: string; error?: string }>> {
-    const results = [];
+    const results: { success: boolean; messageId?: string; error?: string }[] =
+      [];
 
     for (const message of messages) {
       try {
         const result = await this.sendWhatsAppMessage(message);
         results.push(result);
       } catch (error) {
+        const err = error as Error;
         results.push({
           success: false,
-          error: error.message,
+          error: err.message,
         });
       }
     }
@@ -149,12 +154,12 @@ export class WhatsAppService {
       case 'APPOINTMENT_CONFIRMATION':
         return `✅ *Furry Friends* - Agendamento Confirmado!
 
-Olá ${data.clientName}! Seu agendamento foi confirmado com sucesso.
+Olá ${data.clientName as string}! Seu agendamento foi confirmado com sucesso.
 
-🐕 *Pet:* ${data.petName}
-📅 *Data:* ${new Date(data.appointmentDate).toLocaleDateString('pt-BR')}
-⏰ *Horário:* ${new Date(data.appointmentDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-${data.groomerName ? `👨‍💼 *Tosador:* ${data.groomerName}` : ''}
+🐕 *Pet:* ${data.petName as string}
+📅 *Data:* ${new Date(data.appointmentDate as string).toLocaleDateString('pt-BR')}
+⏰ *Horário:* ${new Date(data.appointmentDate as string).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+${data.groomerName ? `👨‍💼 *Tosador:* ${data.groomerName as string}` : ''}
 
 Estamos ansiosos para receber você e seu pet! 🐾
 
@@ -163,12 +168,12 @@ Caso precise reagendar, entre em contato conosco.`;
       case 'APPOINTMENT_REMINDER':
         return `⏰ *Furry Friends* - Lembrete de Agendamento
 
-Olá ${data.clientName}! Não esqueça do agendamento de ${data.petName} amanhã!
+Olá ${data.clientName as string}! Não esqueça do agendamento de ${data.petName as string} amanhã!
 
-📅 *Amanhã,* ${new Date(data.appointmentDate).toLocaleDateString('pt-BR')}
-⏰ *Horário:* ${new Date(data.appointmentDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+📅 *Amanhã,* ${new Date(data.appointmentDate as string).toLocaleDateString('pt-BR')}
+⏰ *Horário:* ${new Date(data.appointmentDate as string).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
 
-⚠️ *Lembrete:* Traga seu pet com ${data.hoursUntil || 8} horas de jejum.
+⚠️ *Lembrete:* Traga seu pet com ${(data.hoursUntil as string) || 8} horas de jejum.
 
 Estamos te esperando! 🐕`;
 
@@ -176,7 +181,7 @@ Estamos te esperando! 🐕`;
         if (data.status === 'COMPLETED') {
           return `✅ *Furry Friends* - Serviço Concluído!
 
-Olá ${data.clientName}! O serviço de ${data.petName} foi concluído com sucesso!
+Olá ${data.clientName as string}! O serviço de ${data.petName as string} foi concluído com sucesso!
 
 🐕 Seu pet está cheiroso e pronto para ir para casa!
 💝 Obrigado pela preferência!
@@ -185,27 +190,27 @@ Agende já o próximo banho e tosa! 🛁`;
         } else if (data.status === 'IN_PROGRESS') {
           return `🔄 *Furry Friends* - Serviço Iniciado
 
-Olá ${data.clientName}! O serviço de ${data.petName} foi iniciado.
+Olá ${data.clientName as string}! O serviço de ${data.petName as string} foi iniciado.
 
 🐕 Em breve estará prontinho e cheiroso!
-⏱️ Tempo estimado: ${data.estimatedTime || 'em breve'}
+⏱️ Tempo estimado: ${(data.estimatedTime as string) || 'em breve'}
 
 Agradecemos a paciência! 🐾`;
         }
         return `📢 *Furry Friends* - Atualização
 
-Olá ${data.clientName}! Há uma atualização no serviço de ${data.petName}:
+Olá ${data.clientName as string}! Há uma atualização no serviço de ${data.petName as string}:
 
-🔄 *Status:* ${data.status}
+🔄 *Status:* ${data.status as string}
 
 Agradecemos a preferência!`;
 
       case 'VACCINE_REMINDER':
         return `💉 *Furry Friends* - Lembrete de Vacina
 
-Olá ${data.clientName}! É hora de cuidar da saúde de ${data.petName}.
+Olá ${data.clientName as string}! É hora de cuidar da saúde de ${data.petName as string}.
 
-⚠️ *Vacina necessária:* ${data.vaccineName}
+⚠️ *Vacina necessária:* ${data.vaccineName as string}
 📅 *Status:* ${data.vaccineDate ? 'Vencida' : 'Próxima do vencimento'}
 
 Entre em contato conosco para agendar a vacinação! 🩺
@@ -215,9 +220,9 @@ Entre em contato conosco para agendar a vacinação! 🩺
       case 'LOYALTY_POINTS':
         return `⭐ *Furry Friends* - Parabéns!
 
-Olá ${data.clientName}! Você ganhou *${data.points} pontos* de fidelidade!
+Olá ${data.clientName as string}! Você ganhou *${data.points as string} pontos* de fidelidade!
 
-🎉 *Motivo:* ${data.reason}
+🎉 *Motivo:* ${data.reason as string}
 
 Continue nos visitando para acumular mais pontos e ganhar descontos especiais! 🏆
 
@@ -226,12 +231,12 @@ Continue nos visitando para acumular mais pontos e ganhar descontos especiais! �
       case 'PROMOTION':
         return `🎁 *Furry Friends* - Oferta Especial!
 
-Olá ${data.clientName}!
+Olá ${data.clientName as string}!
 
-${data.offerTitle}
-${data.offerDescription}
+${data.offerTitle as string}
+${data.offerDescription as string}
 
-⏰ *Válido até:* ${new Date(data.validUntil).toLocaleDateString('pt-BR')}
+⏰ *Válido até:* ${new Date(data.validUntil as string).toLocaleDateString('pt-BR')}
 
 Não perca esta oportunidade! 🐾
 
@@ -240,7 +245,7 @@ Entre em contato conosco para aproveitar!`;
       default:
         return `📢 *Furry Friends*
 
-Olá ${data.clientName}! ${data.message || 'Você recebeu uma nova notificação.'}
+Olá ${data.clientName as string}! ${(data.message as string) || 'Você recebeu uma nova notificação.'}
 
 Agradecemos a preferência! 🐕`;
     }
@@ -275,12 +280,13 @@ Agradecemos a preferência! 🐕`;
 
       const data = await response.json();
       this.logger.log(
-        `Configuração WhatsApp válida. Phone Number ID: ${data.id}, Name: ${data.name}`,
+        `Configuração WhatsApp válida. Phone Number ID: ${data.id as string}, Name: ${data.name as string}`,
       );
 
       return true;
     } catch (error) {
-      this.logger.error('Erro na validação do WhatsApp:', error.message);
+      const err = error as Error;
+      this.logger.error('Erro na validação do WhatsApp:', err.message);
       return false;
     }
   }
@@ -314,9 +320,9 @@ Agradecemos a preferência! 🐕`;
       const data = await response.json();
 
       return {
-        total: data.data?.length || 0,
+        total: (data.data as any[])?.length || 0,
         messages:
-          data.data?.map((msg: any) => ({
+          (data.data as any[])?.map((msg: any) => ({
             id: msg.id,
             from: msg.from,
             to: msg.to,
@@ -326,11 +332,9 @@ Agradecemos a preferência! 🐕`;
           })) || [],
       };
     } catch (error) {
-      this.logger.error(
-        'Erro ao obter estatísticas do WhatsApp:',
-        error.message,
-      );
-      return { error: error.message };
+      const err = error as Error;
+      this.logger.error('Erro ao obter estatísticas do WhatsApp:', err.message);
+      return { error: err.message };
     }
   }
 
@@ -368,7 +372,7 @@ Agradecemos a preferência! 🐕`;
         type: 'body',
         sub_type: 'text',
         index: '0',
-        parameters: Object.entries(variables).map(([key, value]) => ({
+        parameters: Object.entries(variables).map(([_, value]) => ({
           type: 'text',
           text: String(value),
         })),
@@ -412,20 +416,21 @@ Agradecemos a preferência! 🐕`;
       const data = await response.json();
 
       return {
-        id: data.id,
-        status: data.status,
-        timestamp: data.timestamp,
-        recipient_id: data.recipient_id,
+        id: data.id as string,
+        status: data.status as string,
+        timestamp: data.timestamp as string,
+        recipient_id: data.recipient_id as string,
         conversation: data.conversation,
         pricing: data.pricing,
-        errors: data.errors,
+        errors: data.errors as unknown[],
       };
     } catch (error) {
+      const err = error as Error;
       this.logger.error(
         `Erro ao obter status da mensagem ${messageId}:`,
-        error.message,
+        err.message,
       );
-      return { error: error.message };
+      return { error: err.message };
     }
   }
 }

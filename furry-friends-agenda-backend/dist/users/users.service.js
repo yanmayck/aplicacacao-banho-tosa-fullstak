@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = exports.roundsOfHashing = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-const client_1 = require("@prisma/client");
 const bcrypt = require("bcrypt");
 exports.roundsOfHashing = 10;
 let UsersService = class UsersService {
@@ -50,21 +49,10 @@ let UsersService = class UsersService {
         return user;
     }
     async updateUser(id, data) {
-        try {
-            const user = await this.prisma.user.update({
-                where: { id },
-                data,
-            });
-            return user;
-        }
-        catch (error) {
-            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError &&
-                error.code === 'P2025') {
-                throw new common_1.NotFoundException(`User with ID "${id}" not found`);
-            }
-            console.error('Error updating user:', error);
-            throw error;
-        }
+        return this.prisma.user.update({
+            where: { id },
+            data,
+        });
     }
 };
 exports.UsersService = UsersService;

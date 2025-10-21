@@ -28,7 +28,9 @@ describe('NotificationsAdminController', () => {
       ],
     }).compile();
 
-    controller = module.get<NotificationsAdminController>(NotificationsAdminController);
+    controller = module.get<NotificationsAdminController>(
+      NotificationsAdminController,
+    );
   });
 
   it('should be defined', () => {

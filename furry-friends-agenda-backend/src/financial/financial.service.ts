@@ -32,8 +32,6 @@ import {
   TransactionUpdateData,
   FinancialReportData,
   FinancialSummary,
-  CategoryMetrics,
-  GroomerMetrics,
 } from '../types/financial.types';
 
 @Injectable()
@@ -59,7 +57,6 @@ export class FinancialService {
       receiptUrl,
     } = createTransactionDto;
 
-    // Verificar se categoria existe e é do tipo correto
     const category = await this.prisma.financialCategory.findUnique({
       where: { id: categoryId },
     });
@@ -74,7 +71,6 @@ export class FinancialService {
       throw new BadRequestException(`Categoria deve ser do tipo ${type}`);
     }
 
-    // Verificações opcionais
     if (appointmentId) {
       const appointment = await this.prisma.appointment.findUnique({
         where: { id: appointmentId },
@@ -108,52 +104,40 @@ export class FinancialService {
       }
     }
 
-    try {
-      const transactionData: any = {
-        type,
-        amount,
-        description,
-        date: new Date(date),
-        category: { connect: { id: categoryId } },
-        appointment: appointmentId
-          ? { connect: { id: appointmentId } }
-          : undefined,
-        groomer: groomerId ? { connect: { id: groomerId } } : undefined,
-        paymentMethod,
-        notes,
-        receiptUrl,
-        isCashRegisterClosed: false,
-      };
+    const transactionData: Prisma.TransactionCreateInput = {
+      type,
+      amount,
+      description,
+      date: new Date(date),
+      category: { connect: { id: categoryId } },
+      appointment: appointmentId
+        ? { connect: { id: appointmentId } }
+        : undefined,
+      groomer: groomerId ? { connect: { id: groomerId } } : undefined,
+      paymentMethod,
+      notes,
+      receiptUrl,
+      isCashRegisterClosed: false,
+      CashRegister: cashRegisterId
+        ? { connect: { id: cashRegisterId } }
+        : undefined,
+    };
 
-      if (cashRegisterId) {
-        transactionData.cashRegisterId = cashRegisterId;
-      }
-
-      return await this.prisma.transaction.create({
-        data: transactionData,
-        include: {
-          category: true,
-          appointment: {
-            include: {
-              client: true,
-              pet: true,
-              groomer: true,
-            },
+    return this.prisma.transaction.create({
+      data: transactionData,
+      include: {
+        category: true,
+        appointment: {
+          include: {
+            client: true,
+            pet: true,
+            groomer: true,
           },
-          groomer: true,
-          CashRegister: true,
         },
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        console.error(
-          'Erro Prisma ao criar transação:',
-          error.code,
-          error.message,
-        );
-      }
-      throw new BadRequestException('Não foi possível criar a transação');
-    }
+        groomer: true,
+        CashRegister: true,
+      },
+    });
   }
 
   async findAllTransactions(filters?: {
@@ -221,7 +205,7 @@ export class FinancialService {
     id: string,
     updateTransactionDto: UpdateTransactionDto,
   ): Promise<Transaction> {
-    const existingTransaction = await this.findTransactionById(id);
+    await this.findTransactionById(id);
 
     const dataToUpdate: TransactionUpdateData = {};
 
@@ -240,7 +224,6 @@ export class FinancialService {
     if (updateTransactionDto.receiptUrl)
       dataToUpdate.receiptUrl = updateTransactionDto.receiptUrl;
 
-    // Atualizações relacionais
     if (updateTransactionDto.categoryId) {
       const category = await this.prisma.financialCategory.findUnique({
         where: { id: updateTransactionDto.categoryId },
@@ -314,7 +297,6 @@ export class FinancialService {
   ): Promise<FinancialCategory> {
     const { name, description, type, isActive = true } = createCategoryDto;
 
-    // Verificar se já existe categoria com mesmo nome e tipo
     const existingCategory = await this.prisma.financialCategory.findFirst({
       where: { name, type },
     });
@@ -363,7 +345,6 @@ export class FinancialService {
       throw new NotFoundException(`Categoria com ID "${id}" não encontrada`);
     }
 
-    // Verificar se novo nome conflita com categoria existente
     if (
       updateCategoryDto.name &&
       updateCategoryDto.name !== existingCategory.name
@@ -399,7 +380,6 @@ export class FinancialService {
       throw new NotFoundException(`Categoria com ID "${id}" não encontrada`);
     }
 
-    // Verificar se categoria está sendo usada em transações
     const transactionCount = await this.prisma.transaction.count({
       where: { categoryId: id },
     });
@@ -425,7 +405,6 @@ export class FinancialService {
     const registerDate = new Date(date);
     registerDate.setHours(0, 0, 0, 0);
 
-    // Verificar se já existe caixa para esta data
     const existingRegister = await this.prisma.cashRegister.findUnique({
       where: { date: registerDate },
     });
@@ -479,7 +458,6 @@ export class FinancialService {
       throw new BadRequestException('Caixa já está fechado');
     }
 
-    // Calcular totais
     const transactions = await this.prisma.transaction.findMany({
       where: { cashRegisterId: cashRegister.id },
     });
@@ -494,7 +472,6 @@ export class FinancialService {
     const calculatedClosingBalance =
       cashRegister.openingBalance + totalIncome - totalExpenses;
 
-    // Verificar divergência se saldo final foi informado
     if (closeCashRegisterDto.closingBalance !== undefined) {
       const difference = Math.abs(
         calculatedClosingBalance - closeCashRegisterDto.closingBalance,
@@ -532,10 +509,8 @@ export class FinancialService {
       transactionType,
       categoryId,
       groomerId,
-      groupBy = 'month',
     } = filters;
 
-    // Definir período do relatório
     const now = new Date();
     let reportStartDate: Date;
     let reportEndDate: Date = new Date(now);
@@ -552,11 +527,12 @@ export class FinancialService {
             now.getDate(),
           );
           break;
-        case ReportType.WEEKLY:
+        case ReportType.WEEKLY: {
           const weekStart = new Date(now);
           weekStart.setDate(now.getDate() - now.getDay());
           reportStartDate = weekStart;
           break;
+        }
         case ReportType.MONTHLY:
           reportStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
           break;
@@ -568,7 +544,6 @@ export class FinancialService {
       }
     }
 
-    // Buscar transações
     const where: Prisma.TransactionWhereInput = {
       date: {
         gte: reportStartDate,
@@ -590,7 +565,6 @@ export class FinancialService {
       orderBy: { date: 'asc' },
     });
 
-    // Calcular métricas básicas
     const totalIncome = transactions
       .filter((t) => t.type === TransactionType.INCOME)
       .reduce((sum, t) => sum + t.amount, 0);
@@ -601,7 +575,6 @@ export class FinancialService {
 
     const netProfit = totalIncome - totalExpenses;
 
-    // Calcular métricas por categoria
     const categoryMetrics = transactions.reduce(
       (acc, transaction) => {
         const categoryName = transaction.category.name;
@@ -615,7 +588,6 @@ export class FinancialService {
       {} as Record<string, { total: number; count: number }>,
     );
 
-    // Calcular métricas por tosador (para receitas)
     const groomerMetrics = transactions
       .filter((t) => t.type === TransactionType.INCOME && t.groomer)
       .reduce(
@@ -701,7 +673,6 @@ export class FinancialService {
       );
     }
 
-    // Verificar se já existe receita para este agendamento
     const existingTransaction = await this.prisma.transaction.findFirst({
       where: {
         appointmentId,
@@ -715,7 +686,6 @@ export class FinancialService {
       );
     }
 
-    // Buscar categoria padrão de receitas de serviços
     const serviceCategory = await this.prisma.financialCategory.findFirst({
       where: {
         type: TransactionType.INCOME,
@@ -729,7 +699,6 @@ export class FinancialService {
       );
     }
 
-    // Criar receita automática
     return this.prisma.transaction.create({
       data: {
         type: TransactionType.INCOME,

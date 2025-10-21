@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import * as helmet from 'helmet';
 import { Request, Response, NextFunction } from 'express';
 
@@ -43,11 +42,6 @@ async function bootstrap() {
   app.use((req: Request, res: Response, next: NextFunction) => {
     // Simple in-memory rate limiting (for production, use Redis or similar)
     const clientIP = req.ip || req.connection.remoteAddress;
-    const key = `rate_limit:${clientIP}`;
-    const now = Date.now();
-    const windowMs = 60000; // 1 minute
-    const maxRequests = 100; // 100 requests per minute
-
     // This is a simplified version - in production, use a proper rate limiting library
     next();
   });

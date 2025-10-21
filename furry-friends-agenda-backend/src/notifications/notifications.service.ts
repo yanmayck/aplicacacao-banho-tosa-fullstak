@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationType, Prisma } from '@prisma/client';
 
 export interface CreateNotificationDto {
   title: string;
   message: string;
-  type: 'INFO' | 'WARNING' | 'SUCCESS' | 'ERROR' | 'REMINDER' | 'PROMOTION';
+  type: NotificationType;
   clientId?: string;
   groomerId?: string;
-  data?: any;
+  data?: Prisma.JsonValue;
 }
 
 @Injectable()
@@ -22,17 +23,14 @@ export class NotificationsService {
         type: notificationData.type,
         clientId: notificationData.clientId,
         groomerId: notificationData.groomerId,
-        data: notificationData.data,
+        data: notificationData.data as Prisma.InputJsonValue,
         isRead: false,
       },
     });
   }
 
   async getClientNotifications(clientId: string, unreadOnly = false) {
-    const whereClause: {
-      clientId: string;
-      isRead?: boolean;
-    } = { clientId };
+    const whereClause: Prisma.NotificationWhereInput = { clientId };
 
     if (unreadOnly) {
       whereClause.isRead = false;
@@ -45,10 +43,7 @@ export class NotificationsService {
   }
 
   async getGroomerNotifications(groomerId: string, unreadOnly = false) {
-    const whereClause: {
-      groomerId: string;
-      isRead?: boolean;
-    } = { groomerId };
+    const whereClause: Prisma.NotificationWhereInput = { groomerId };
 
     if (unreadOnly) {
       whereClause.isRead = false;
@@ -65,11 +60,7 @@ export class NotificationsService {
     userType: 'client' | 'groomer',
     userId: string,
   ) {
-    const whereClause: {
-      id: string;
-      clientId?: string;
-      groomerId?: string;
-    } = { id: notificationId };
+    const whereClause: Prisma.NotificationWhereInput = { id: notificationId };
 
     if (userType === 'client') {
       whereClause.clientId = userId;
@@ -87,11 +78,7 @@ export class NotificationsService {
   }
 
   async markAllAsRead(userType: 'client' | 'groomer', userId: string) {
-    const whereClause: {
-      isRead: boolean;
-      clientId?: string;
-      groomerId?: string;
-    } = { isRead: false };
+    const whereClause: Prisma.NotificationWhereInput = { isRead: false };
 
     if (userType === 'client') {
       whereClause.clientId = userId;
@@ -137,7 +124,7 @@ export class NotificationsService {
         clientId: appointment.clientId,
         data: {
           appointmentId: appointment.id,
-          appointmentDate: appointment.dateTime,
+          appointmentDate: appointment.dateTime.toISOString(),
         },
       });
 
@@ -170,7 +157,7 @@ export class NotificationsService {
       clientId: appointment.clientId,
       data: {
         appointmentId: appointment.id,
-        appointmentDate: appointment.dateTime,
+        appointmentDate: appointment.dateTime.toISOString(),
       },
     });
 
@@ -180,70 +167,8 @@ export class NotificationsService {
     );
   }
 
-  async sendWhatsAppMessage(phone: string, message: string) {
-    // Esta é uma implementação básica - em produção você integraria com a API do WhatsApp Business
-    console.log(`WhatsApp para ${phone}: ${message}`);
-
-    // Exemplo de integração futura com WhatsApp Business API:
-    // const response = await fetch('https://graph.facebook.com/v17.0/YOUR_PHONE_NUMBER_ID/messages', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     messaging_product: 'whatsapp',
-    //     to: phone,
-    //     type: 'text',
-    //     text: { body: message }
-    //   })
-    // });
-
-    return { success: true, messageId: 'mock-id' };
-  }
-
-  async sendSMS(phone: string, message: string) {
-    // Esta é uma implementação básica - em produção você integraria com serviços como Twilio
-    console.log(`SMS para ${phone}: ${message}`);
-
-    // Exemplo de integração futura com Twilio:
-    // const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    // const authToken = process.env.TWILIO_AUTH_TOKEN;
-    // const client = require('twilio')(accountSid, authToken);
-    //
-    // const result = await client.messages.create({
-    //   body: message,
-    //   from: process.env.TWILIO_PHONE_NUMBER,
-    //   to: phone
-    // });
-
-    return { success: true, messageId: 'mock-id' };
-  }
-
-  async sendEmail(email: string, subject: string, htmlContent: string) {
-    // Esta é uma implementação básica - em produção você integraria com serviços como SendGrid, SES, etc.
-    console.log(`Email para ${email}: ${subject}`);
-
-    // Exemplo de integração futura com SendGrid:
-    // const sgMail = require('@sendgrid/mail');
-    // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    //
-    // const msg = {
-    //   to: email,
-    //   from: process.env.FROM_EMAIL,
-    //   subject: subject,
-    //   html: htmlContent,
-    // };
-    //
-    // await sgMail.send(msg);
-
-    return { success: true, messageId: 'mock-id' };
-  }
-
   async getUnreadCount(userType: 'client' | 'groomer', userId: string) {
-    const whereClause: any = {
-      isRead: false,
-    };
+    const whereClause: Prisma.NotificationWhereInput = { isRead: false };
 
     if (userType === 'client') {
       whereClause.clientId = userId;
@@ -269,8 +194,8 @@ export class NotificationsService {
     if (!pet || !pet.client) return;
 
     // Verificar se há vacinas vencidas ou próximas de vencer
-    const vaccineHistory = pet.vaccineHistory || [];
-    const rabiesVaccine = pet.rabiesVaccine as any;
+    const vaccineHistory = (pet.vaccineHistory as Prisma.JsonArray) || [];
+    const rabiesVaccine = pet.rabiesVaccine as Prisma.JsonObject;
 
     const now = new Date();
     const notifications = [];
@@ -283,7 +208,7 @@ export class NotificationsService {
       const notification = await this.createNotification({
         title,
         message,
-        type: 'WARNING' as const,
+        type: 'WARNING',
         clientId: pet.clientId,
         data: {
           petId: pet.id,
@@ -296,7 +221,7 @@ export class NotificationsService {
     }
 
     // Verificar outras vacinas
-    vaccineHistory.forEach((vaccine: any, index: number) => {
+    vaccineHistory.forEach((vaccine: any) => {
       if (vaccine.date) {
         const vaccineDate = new Date(vaccine.date);
         const daysSinceVaccine =
@@ -310,7 +235,7 @@ export class NotificationsService {
           this.createNotification({
             title,
             message,
-            type: 'WARNING' as const,
+            type: 'WARNING',
             clientId: pet.clientId,
             data: {
               petId: pet.id,
@@ -344,7 +269,7 @@ export class NotificationsService {
 
     let title: string;
     let message: string;
-    let type: string;
+    let type: NotificationType;
 
     switch (status.toUpperCase()) {
       case 'IN_PROGRESS':
@@ -374,7 +299,7 @@ export class NotificationsService {
     const notification = await this.createNotification({
       title,
       message,
-      type: type as any,
+      type: type,
       clientId: appointment.clientId,
       data: {
         appointmentId: appointment.id,
@@ -418,7 +343,7 @@ export class NotificationsService {
     return this.createNotification({
       title,
       message,
-      type: 'WARNING' as const,
+      type: 'WARNING',
       clientId,
       data: {
         amount,
@@ -533,7 +458,7 @@ export class NotificationsService {
           birthDate: pet.birthDate,
           isBirthdayToday,
           daysUntilBirthday,
-        },
+        } as Prisma.JsonObject,
       });
     }
   }
@@ -543,8 +468,8 @@ export class NotificationsService {
     notificationData: {
       title: string;
       message: string;
-      type: string;
-      data?: any;
+      type: NotificationType;
+      data?: Prisma.JsonValue;
     },
   ) {
     const notifications = [];
@@ -578,7 +503,7 @@ export class NotificationsService {
       offset?: number;
     },
   ) {
-    const whereClause: any = {};
+    const whereClause: Prisma.NotificationWhereInput = {};
 
     if (userType === 'client') {
       whereClause.clientId = userId;
@@ -587,7 +512,7 @@ export class NotificationsService {
     }
 
     if (filters?.type) {
-      whereClause.type = filters.type;
+      whereClause.type = filters.type as NotificationType;
     }
 
     if (filters?.startDate || filters?.endDate) {
@@ -612,7 +537,7 @@ export class NotificationsService {
   }
 
   async getNotificationStats(userType: 'client' | 'groomer', userId: string) {
-    const whereClause: any = {};
+    const whereClause: Prisma.NotificationWhereInput = {};
 
     if (userType === 'client') {
       whereClause.clientId = userId;

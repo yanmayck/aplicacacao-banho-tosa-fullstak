@@ -27,13 +27,13 @@ let UsersController = class UsersController {
         if (!user) {
             return null;
         }
-        const { password, ...userWithoutPassword } = user;
+        const { password: _, ...userWithoutPassword } = user;
         return userWithoutPassword;
     }
     async updateMyProfile(req, updateUserDto) {
         const updatedUser = await this.usersService.updateUser(req.user.userId, updateUserDto);
         if (updatedUser) {
-            const { password, ...userWithoutPassword } = updatedUser;
+            const { password: _, ...userWithoutPassword } = updatedUser;
             return userWithoutPassword;
         }
         return null;

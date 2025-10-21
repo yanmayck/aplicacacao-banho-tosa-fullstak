@@ -3,7 +3,7 @@ import { ClientsController } from './clients.controller';
 import { ClientsService } from './clients.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Client, UserRole } from '@prisma/client';
+import { Client } from '@prisma/client';
 
 const mockClientsService = {
   create: jest.fn(),

@@ -10,6 +10,7 @@ import { Observable, tap, catchError } from 'rxjs';
 import { Request } from 'express';
 import { AuditService } from '../audit.service';
 import { AuditActionType, AuditSeverity } from '@prisma/client';
+import { CreateAuditLogDto } from '../dto/audit-log.dto';
 import {
   AuditMetadata,
   AuditParams,
@@ -114,14 +115,14 @@ export class AuditInterceptor implements NestInterceptor {
       const entityId = this.extractEntityId(request.url);
 
       // Preparar dados para auditoria
-      const auditData = {
-        action,
+      const auditData: CreateAuditLogDto = {
+        action: action as AuditActionType,
         actionDescription: this.generateActionDescription(
-          action,
+          action as AuditActionType,
           entityType,
           metadata,
         ),
-        severity,
+        severity: severity as AuditSeverity,
         module: this.getModuleFromUrl(request.url),
         entityType,
         entityId,

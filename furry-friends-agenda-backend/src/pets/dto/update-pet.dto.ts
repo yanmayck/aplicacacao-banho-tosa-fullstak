@@ -8,7 +8,6 @@ import {
   IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CreatePetDto } from './create-pet.dto'; // Import to use nested DTOs
 
 // Re-using DTOs from create-pet.dto.ts for consistency
 class TickMedicineDto {

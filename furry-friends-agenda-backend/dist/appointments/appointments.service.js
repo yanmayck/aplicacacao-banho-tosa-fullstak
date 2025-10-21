@@ -53,41 +53,33 @@ let AppointmentsService = class AppointmentsService {
             servicesToConnect.push(service);
             calculatedTotalPrice += service.price;
         }
-        try {
-            return await this.prisma.appointment.create({
-                data: {
-                    dateTime: new Date(dateTime),
-                    notes,
-                    status: status || client_1.AppointmentStatus.SCHEDULED,
-                    totalPrice: calculatedTotalPrice,
-                    pet: { connect: { id: petId } },
-                    client: { connect: { id: currentClientId } },
-                    groomer: groomerId ? { connect: { id: groomerId } } : undefined,
-                    appointmentServices: {
-                        create: servicesToConnect.map((service) => ({
-                            service: { connect: { id: service.id } },
-                            priceAtTime: service.price,
-                        })),
+        return this.prisma.appointment.create({
+            data: {
+                dateTime: new Date(dateTime),
+                notes,
+                status: status || client_1.AppointmentStatus.SCHEDULED,
+                totalPrice: calculatedTotalPrice,
+                pet: { connect: { id: petId } },
+                client: { connect: { id: currentClientId } },
+                groomer: groomerId ? { connect: { id: groomerId } } : undefined,
+                appointmentServices: {
+                    create: servicesToConnect.map((service) => ({
+                        service: { connect: { id: service.id } },
+                        priceAtTime: service.price,
+                    })),
+                },
+            },
+            include: {
+                pet: true,
+                client: true,
+                groomer: true,
+                appointmentServices: {
+                    include: {
+                        service: true,
                     },
                 },
-                include: {
-                    pet: true,
-                    client: true,
-                    groomer: true,
-                    appointmentServices: {
-                        include: {
-                            service: true,
-                        },
-                    },
-                },
-            });
-        }
-        catch (error) {
-            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
-                console.error('Prisma Error creating appointment: ', error.code, error.message);
-            }
-            throw new common_1.BadRequestException('Could not create appointment. Please check input data.');
-        }
+            },
+        });
     }
     async findAllByClient(clientId) {
         return this.prisma.appointment.findMany({

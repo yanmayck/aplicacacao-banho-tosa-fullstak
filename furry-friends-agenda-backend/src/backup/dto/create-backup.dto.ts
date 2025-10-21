@@ -4,7 +4,6 @@ import {
   IsString,
   IsBoolean,
   IsArray,
-  IsDateString,
 } from 'class-validator';
 
 export enum BackupType {

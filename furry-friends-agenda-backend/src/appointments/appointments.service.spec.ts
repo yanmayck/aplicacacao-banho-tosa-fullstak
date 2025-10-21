@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppointmentsService } from './appointments.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { PrismaModule } from '../prisma/prisma.module';
 import { FinancialService } from '../financial/financial.service';
 import {
   NotFoundException,
@@ -49,7 +48,10 @@ describe('AppointmentsService', () => {
       providers: [
         AppointmentsService,
         { provide: PrismaService, useValue: mockPrismaService },
-        { provide: FinancialService, useValue: { createAutomaticIncomeFromAppointment: jest.fn() } },
+        {
+          provide: FinancialService,
+          useValue: { createAutomaticIncomeFromAppointment: jest.fn() },
+        },
       ],
     }).compile();
 

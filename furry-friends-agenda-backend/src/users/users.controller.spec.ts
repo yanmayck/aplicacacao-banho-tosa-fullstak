@@ -18,11 +18,6 @@ const mockUser: Omit<User, 'password'> = {
   updatedAt: new Date(),
 };
 
-const mockUserWithPassword: User = {
-  ...mockUser,
-  password: 'hashedpassword',
-};
-
 describe('UsersController', () => {
   let controller: UsersController;
   let service: typeof mockUsersService;

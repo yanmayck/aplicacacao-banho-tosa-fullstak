@@ -6,13 +6,11 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AuditLog,
-  AuditActionType,
   AuditSeverity,
   Prisma,
   AuditConfig,
   AuditFilter,
   AuditAlert,
-  AuditAlertTrigger,
 } from '@prisma/client';
 import {
   CreateAuditLogDto,
@@ -25,7 +23,6 @@ import {
   AuditConfigData,
   AuditFilterData,
   AuditAlertData,
-  AlertTriggerData,
 } from '../types/audit.types';
 
 @Injectable()
@@ -91,7 +88,6 @@ export class AuditService {
       limit = 50,
       sortBy = 'timestamp',
       sortOrder = 'desc',
-      groupBy,
       ...filters
     } = query;
 
@@ -282,7 +278,7 @@ export class AuditService {
   // ========== ESTATÍSTICAS E RELATÓRIOS ==========
 
   async getAuditStatistics(
-    filters?: AuditLogFiltersDto,
+    filters: AuditLogFiltersDto,
   ): Promise<AuditStatistics | null> {
     const where = this.buildWhereClause(filters);
 
@@ -430,7 +426,7 @@ export class AuditService {
     if (existingConfig) {
       return this.prisma.auditConfig.update({
         where: { id: existingConfig.id },
-        data: configData,
+        data: configData as any,
       });
     } else {
       return this.prisma.auditConfig.create({
@@ -438,7 +434,7 @@ export class AuditService {
           ...configData,
           enabled: true,
           logLevel: AuditSeverity.MEDIUM,
-        },
+        } as any,
       });
     }
   }
@@ -503,7 +499,7 @@ export class AuditService {
   ): Promise<AuditAlert> {
     return this.prisma.auditAlert.create({
       data: {
-        ...alertData,
+        ...(alertData as any),
         createdBy: userId,
       },
     });
@@ -513,7 +509,10 @@ export class AuditService {
     const where: Prisma.AuditAlertWhereInput = {};
 
     if (userId) {
-      where.OR = [{ createdBy: userId }, { notifyUsers: { has: userId } }];
+      where.OR = [
+        { createdBy: userId },
+        { notifyUsers: { has: userId } as any },
+      ];
     }
 
     return this.prisma.auditAlert.findMany({
@@ -549,7 +548,7 @@ export class AuditService {
 
     return this.prisma.auditAlert.update({
       where: { id },
-      data: alertData,
+      data: alertData as any,
     });
   }
 
@@ -577,14 +576,18 @@ export class AuditService {
   ): Prisma.AuditLogWhereInput {
     const where: Prisma.AuditLogWhereInput = {};
 
-    if (filters.startDate) {
-      where.timestamp = where.timestamp || {};
-      where.timestamp.gte = new Date(filters.startDate);
-    }
-
-    if (filters.endDate) {
-      where.timestamp = where.timestamp || {};
-      where.timestamp.lte = new Date(filters.endDate);
+    if (filters.startDate || filters.endDate) {
+      where.timestamp = {};
+      if (filters.startDate) {
+        (where.timestamp as Prisma.DateTimeFilter).gte = new Date(
+          filters.startDate,
+        );
+      }
+      if (filters.endDate) {
+        (where.timestamp as Prisma.DateTimeFilter).lte = new Date(
+          filters.endDate,
+        );
+      }
     }
 
     if (filters.action) {
@@ -727,6 +730,7 @@ export class AuditService {
 
   async archiveOldLogs(): Promise<number> {
     const config = await this.getAuditConfig();
+    if (!config) return 0;
     const archiveAfterDays = config.archiveAfterDays || 365;
 
     const cutoffDate = new Date();
@@ -750,6 +754,7 @@ export class AuditService {
 
   async deleteOldLogs(): Promise<number> {
     const config = await this.getAuditConfig();
+    if (!config) return 0;
     const retentionDays = config.retentionDays || 90;
 
     const cutoffDate = new Date();

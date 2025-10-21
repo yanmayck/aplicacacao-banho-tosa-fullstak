@@ -29,10 +29,6 @@ async function bootstrap() {
     app.useGlobalFilters(new prisma_exception_filter_1.PrismaExceptionFilter());
     app.use((req, res, next) => {
         const clientIP = req.ip || req.connection.remoteAddress;
-        const key = `rate_limit:${clientIP}`;
-        const now = Date.now();
-        const windowMs = 60000;
-        const maxRequests = 100;
         next();
     });
     const replitDomain = process.env.REPLIT_DEV_DOMAIN;

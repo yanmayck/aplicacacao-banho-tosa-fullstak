@@ -17,12 +17,13 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     let message = 'Ocorreu um erro interno no servidor';
 
     switch (exception.code) {
-      case 'P2002':
+      case 'P2002': {
         // Violação de restrição única (ex: email já existe)
         status = HttpStatus.CONFLICT; // 409 Conflict
         const target = exception.meta?.target as string[];
         message = `Um registro com este ${target.join(', ')} já existe.`;
         break;
+      }
       case 'P2025':
         // Registro para atualizar ou deletar não foi encontrado
         status = HttpStatus.NOT_FOUND; // 404 Not Found

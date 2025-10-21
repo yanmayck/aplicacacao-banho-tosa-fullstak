@@ -28,7 +28,7 @@ let AuthService = class AuthService {
     async validateUser(email, pass) {
         const user = await this.usersService.findOneByEmail(email);
         if (user && (await bcrypt.compare(pass, user.password))) {
-            const { password, ...result } = user;
+            const { password: _password, ...result } = user;
             return result;
         }
         return null;
@@ -66,7 +66,7 @@ let AuthService = class AuthService {
                 name: registerDto.name,
                 role: registerDto.role || client_1.UserRole.USER,
             });
-            const { password, ...result } = newUser;
+            const { password: _password, ...result } = newUser;
             return result;
         }
         catch (error) {

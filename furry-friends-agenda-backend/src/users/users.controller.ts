@@ -27,8 +27,7 @@ export class UsersController {
     if (!user) {
       return null; // Ou lançar NotFoundException, dependendo da preferência
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = user;
+    const { password: _password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
@@ -44,8 +43,7 @@ export class UsersController {
       updateUserDto,
     );
     if (updatedUser) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...userWithoutPassword } = updatedUser;
+      const { password: _password, ...userWithoutPassword } = updatedUser;
       return userWithoutPassword;
     }
     return null;

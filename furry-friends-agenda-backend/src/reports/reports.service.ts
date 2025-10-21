@@ -20,16 +20,8 @@ import {
   ReportMetadataDto,
   ChartDataPointDto,
 } from './dto/report-response.dto';
-import {
-  DateFilter,
-  TypeFilter,
-  BaseReportData,
-  GroomerReportData,
-  ClientAnalysisData,
-  ServiceRankingData,
-  OccupancyMetricsData,
-  AppointmentAnalysisData,
-} from '../types/report.types';
+import { DateFilter, TypeFilter } from '../types/report.types';
+import { Transaction, Client, Appointment, Groomer } from '@prisma/client';
 
 @Injectable()
 export class ReportsService {
@@ -46,7 +38,6 @@ export class ReportsService {
         | ServiceRankingDto[]
         | OccupancyMetricsDto
         | AppointmentAnalysisDto;
-      let metadata: ReportMetadataDto;
 
       switch (filters.type) {
         case ReportType.FINANCIAL:
@@ -83,7 +74,7 @@ export class ReportsService {
 
       const executionTime = Date.now() - startTime;
 
-      metadata = {
+      const metadata: ReportMetadataDto = {
         generatedAt: new Date(),
         totalRecords: Array.isArray(reportData) ? reportData.length : 1,
         filters,
@@ -98,7 +89,7 @@ export class ReportsService {
       };
     } catch (error) {
       throw new BadRequestException(
-        `Erro ao gerar relatório: ${error.message}`,
+        `Erro ao gerar relatório: ${(error as Error).message}`,
       );
     }
   }
@@ -119,14 +110,14 @@ export class ReportsService {
     // Build transaction type filter
     const typeFilter: TypeFilter = {};
     if (transactionType && transactionType !== 'both') {
-      typeFilter.type = transactionType.toUpperCase();
+      typeFilter.type = transactionType.toUpperCase() as 'INCOME' | 'EXPENSE';
     }
 
     // Get all transactions with filters
     const transactions = await this.prisma.transaction.findMany({
       where: {
-        ...dateFilter,
-        ...typeFilter,
+        ...(dateFilter as any),
+        ...(typeFilter as any),
         isCashRegisterClosed: false,
       },
       include: {
@@ -157,13 +148,15 @@ export class ReportsService {
 
     const netProfit = totalIncome - totalExpenses;
     const transactionCount = transactions.length;
+    const incomeTransactions = transactions.filter((t) => t.type === 'INCOME');
     const averageTicket =
-      transactionCount > 0 ? totalIncome / transactionCount : 0;
+      incomeTransactions.length > 0
+        ? totalIncome / incomeTransactions.length
+        : 0;
 
     // Group by category for charts
-    const incomeByCategory = this.groupTransactionsByCategory(
-      transactions.filter((t) => t.type === 'INCOME'),
-    );
+    const incomeByCategory =
+      this.groupTransactionsByCategory(incomeTransactions);
     const expensesByCategory = this.groupTransactionsByCategory(
       transactions.filter((t) => t.type === 'EXPENSE'),
     );
@@ -237,13 +230,13 @@ export class ReportsService {
         },
         transactions: {
           where: {
-            ...dateFilter,
+            ...(dateFilter as any),
             type: 'INCOME',
           },
         },
         commissions: {
           where: {
-            ...dateFilter,
+            ...(dateFilter as any),
             isPaid: true,
           },
         },
@@ -253,21 +246,21 @@ export class ReportsService {
     return groomers.map((groomer) => {
       const appointments = groomer.appointments || [];
       const completedAppointments = appointments.filter(
-        (a: any) => a.status === 'COMPLETED',
+        (a) => a.status === 'COMPLETED',
       );
       const totalRevenue = appointments
-        .filter((a: any) => a.status === 'COMPLETED')
-        .reduce((sum: number, a: any) => sum + a.totalPrice, 0);
+        .filter((a) => a.status === 'COMPLETED')
+        .reduce((sum, a) => sum + a.totalPrice, 0);
 
       const totalCommissions = (groomer.commissions || []).reduce(
-        (sum: number, c: any) => sum + c.commissionAmount,
+        (sum, c) => sum + c.commissionAmount,
         0,
       );
 
       const averageRating =
         (groomer.receivedReviews || []).length > 0
           ? (groomer.receivedReviews || []).reduce(
-              (sum: number, r: any) => sum + r.rating,
+              (sum, r) => sum + r.rating,
               0,
             ) / (groomer.receivedReviews || []).length
           : 0;
@@ -279,8 +272,8 @@ export class ReportsService {
 
       // Top services by this groomer
       const serviceCount = new Map<string, number>();
-      appointments.forEach((appointment: any) => {
-        (appointment.appointmentServices || []).forEach((as: any) => {
+      appointments.forEach((appointment) => {
+        (appointment.appointmentServices || []).forEach((as) => {
           const serviceName = as.service?.name || 'Serviço sem nome';
           serviceCount.set(
             serviceName,
@@ -301,8 +294,7 @@ export class ReportsService {
         this.generateMonthlyPerformanceData(appointments);
 
       // Client retention (simplified calculation)
-      const uniqueClients = new Set(appointments.map((a: any) => a.clientId))
-        .size;
+      const uniqueClients = new Set(appointments.map((a) => a.clientId)).size;
       const clientRetention =
         appointments.length > 0
           ? (uniqueClients / appointments.length) * 100
@@ -355,7 +347,7 @@ export class ReportsService {
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-    const newClients = clients.filter((client: any) => {
+    const newClients = clients.filter((client) => {
       const createdAt = new Date(client.createdAt);
       return createdAt >= threeMonthsAgo;
     }).length;
@@ -366,12 +358,12 @@ export class ReportsService {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-    const churnedClients = clients.filter((client: any) => {
+    const churnedClients = clients.filter((client) => {
       const lastAppointment =
         client.appointments?.length > 0
           ? new Date(
               Math.max(
-                ...client.appointments.map((a: any) =>
+                ...client.appointments.map((a) =>
                   new Date(a.dateTime).getTime(),
                 ),
               ),
@@ -382,22 +374,19 @@ export class ReportsService {
 
     // Calculate averages
     const totalVisits = clients.reduce(
-      (sum: number, client: any) => sum + (client.appointments?.length || 0),
+      (sum, client) => sum + (client.appointments?.length || 0),
       0,
     );
     const averageVisitsPerClient =
       totalClients > 0 ? totalVisits / totalClients : 0;
 
     // Calculate total spent (simplified)
-    const totalSpent = clients.reduce((sum: number, client: any) => {
+    const totalSpent = clients.reduce((sum, client) => {
       return (
         sum +
-        (client.appointments || []).reduce(
-          (appointmentSum: number, appointment: any) => {
-            return appointmentSum + (appointment.totalPrice || 0);
-          },
-          0,
-        )
+        (client.appointments || []).reduce((appointmentSum, appointment) => {
+          return appointmentSum + (appointment.totalPrice || 0);
+        }, 0)
       );
     }, 0);
 
@@ -452,7 +441,7 @@ export class ReportsService {
     const services = await this.prisma.servicePackage.findMany({
       include: {
         appointmentServices: {
-          where: dateFilter,
+          where: dateFilter as any,
           include: {
             appointment: {
               include: {
@@ -562,15 +551,6 @@ export class ReportsService {
     const idleTime = Math.max(0, totalCapacity - averageOccupancy);
 
     // Find busiest and slowest days
-    const dayNames = [
-      'Domingo',
-      'Segunda-feira',
-      'Terça-feira',
-      'Quarta-feira',
-      'Quinta-feira',
-      'Sexta-feira',
-      'Sábado',
-    ];
     const busiestDay =
       dailyOccupancy.length > 0
         ? dailyOccupancy.reduce((max, day) =>
@@ -685,7 +665,7 @@ export class ReportsService {
 
   // Helper methods for data aggregation
   private groupTransactionsByCategory(
-    transactions: Array<{ category?: { name: string }; amount: number }>,
+    transactions: (Transaction & { category: { name: string } | null })[],
   ): ChartDataPointDto[] {
     const categoryMap = new Map<string, number>();
 
@@ -701,7 +681,7 @@ export class ReportsService {
   }
 
   private generateDailyRevenueData(
-    transactions: Array<{ date: Date; amount: number }>,
+    transactions: Transaction[],
   ): ChartDataPointDto[] {
     const dailyMap = new Map<string, number>();
 
@@ -716,7 +696,9 @@ export class ReportsService {
       .sort((a, b) => a.label.localeCompare(b.label));
   }
 
-  private generateMonthlyTrends(transactions: any[]): ChartDataPointDto[] {
+  private generateMonthlyTrends(
+    transactions: Transaction[],
+  ): ChartDataPointDto[] {
     const monthlyMap = new Map<string, number>();
 
     transactions.forEach((transaction) => {
@@ -732,7 +714,7 @@ export class ReportsService {
   }
 
   private generateMonthlyPerformanceData(
-    appointments: any[],
+    appointments: Appointment[],
   ): ChartDataPointDto[] {
     const monthlyMap = new Map<string, number>();
 
@@ -748,7 +730,9 @@ export class ReportsService {
       .sort((a, b) => a.label.localeCompare(b.label));
   }
 
-  private generateClientSegmentation(clients: any[]): ChartDataPointDto[] {
+  private generateClientSegmentation(
+    clients: (Client & { appointments: Appointment[] })[],
+  ): ChartDataPointDto[] {
     const segments = new Map<string, number>();
 
     clients.forEach((client) => {
@@ -768,7 +752,9 @@ export class ReportsService {
       .sort((a, b) => b.value - a.value);
   }
 
-  private generateAcquisitionTrends(clients: any[]): ChartDataPointDto[] {
+  private generateAcquisitionTrends(
+    clients: (Client & { appointments: Appointment[] })[],
+  ): ChartDataPointDto[] {
     const monthlyMap = new Map<string, number>();
 
     clients.forEach((client) => {
@@ -792,7 +778,9 @@ export class ReportsService {
       .sort((a, b) => a.label.localeCompare(b.label));
   }
 
-  private generateLoyaltyDistribution(clients: any[]): ChartDataPointDto[] {
+  private generateLoyaltyDistribution(
+    clients: (Client & { loyaltyPoint: { points: number } | null })[],
+  ): ChartDataPointDto[] {
     const distribution = new Map<string, number>();
 
     clients.forEach((client) => {
@@ -812,7 +800,9 @@ export class ReportsService {
       .sort((a, b) => b.value - a.value);
   }
 
-  private calculateTrend(appointmentServices: any[]): 'up' | 'down' | 'stable' {
+  private calculateTrend(
+    appointmentServices: (any & { appointment: Appointment })[],
+  ): 'up' | 'down' | 'stable' {
     if (appointmentServices.length < 4) return 'stable';
 
     const midPoint = Math.floor(appointmentServices.length / 2);
@@ -829,7 +819,9 @@ export class ReportsService {
     return 'stable';
   }
 
-  private calculateGrowthRate(appointmentServices: any[]): number {
+  private calculateGrowthRate(
+    appointmentServices: (any & { appointment: Appointment })[],
+  ): number {
     if (appointmentServices.length < 2) return 0;
 
     const sorted = appointmentServices.sort(
@@ -852,7 +844,9 @@ export class ReportsService {
     return (growth / daysDiff) * 30; // Growth rate per month
   }
 
-  private generateDailyOccupancyData(appointments: any[]): ChartDataPointDto[] {
+  private generateDailyOccupancyData(
+    appointments: Appointment[],
+  ): ChartDataPointDto[] {
     const dailyMap = new Map<string, number>();
 
     appointments.forEach((appointment) => {
@@ -872,7 +866,9 @@ export class ReportsService {
       .sort((a, b) => a.label.localeCompare(b.label));
   }
 
-  private generatePeakHoursData(appointments: any[]): ChartDataPointDto[] {
+  private generatePeakHoursData(
+    appointments: Appointment[],
+  ): ChartDataPointDto[] {
     const hourlyMap = new Map<number, number>();
 
     appointments.forEach((appointment) => {
@@ -885,7 +881,9 @@ export class ReportsService {
       .sort((a, b) => parseInt(a.label) - parseInt(b.label));
   }
 
-  private generateWeeklyTrends(appointments: any[]): ChartDataPointDto[] {
+  private generateWeeklyTrends(
+    appointments: Appointment[],
+  ): ChartDataPointDto[] {
     const weeklyMap = new Map<string, number>();
 
     appointments.forEach((appointment) => {
@@ -902,7 +900,9 @@ export class ReportsService {
       .sort((a, b) => a.label.localeCompare(b.label));
   }
 
-  private generateTimeDistribution(appointments: any[]): ChartDataPointDto[] {
+  private generateTimeDistribution(
+    appointments: Appointment[],
+  ): ChartDataPointDto[] {
     const hourlyMap = new Map<number, number>();
 
     appointments.forEach((appointment) => {
@@ -918,7 +918,9 @@ export class ReportsService {
       );
   }
 
-  private generateGroomerWorkload(appointments: any[]): ChartDataPointDto[] {
+  private generateGroomerWorkload(
+    appointments: (Appointment & { groomer: Groomer | null })[],
+  ): ChartDataPointDto[] {
     const groomerMap = new Map<string, number>();
 
     appointments.forEach((appointment) => {

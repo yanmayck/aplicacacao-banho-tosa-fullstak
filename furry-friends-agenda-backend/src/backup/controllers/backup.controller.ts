@@ -12,16 +12,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { BackupService } from '../services/backup.service';
-import {
-  CreateBackupDto,
-  RestoreBackupDto,
-  BackupType,
-} from '../dto/create-backup.dto';
-import {
-  BackupProgress,
-  BackupMetadata,
-  IntegrityCheckResult,
-} from '../interfaces/backup.interface';
+import { CreateBackupDto, RestoreBackupDto } from '../dto/create-backup.dto';
 import { Response } from 'express';
 
 @Controller('backup')

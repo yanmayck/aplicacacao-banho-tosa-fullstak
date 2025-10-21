@@ -14,7 +14,6 @@ const mockPrismaService = {
 
 describe('PublicClientService', () => {
   let service: PublicClientService;
-  let prisma: typeof mockPrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -22,12 +21,14 @@ describe('PublicClientService', () => {
       providers: [
         PublicClientService,
         { provide: PrismaService, useValue: mockPrismaService },
-        { provide: JwtService, useValue: { sign: jest.fn(), verify: jest.fn() } },
+        {
+          provide: JwtService,
+          useValue: { sign: jest.fn(), verify: jest.fn() },
+        },
       ],
     }).compile();
 
     service = module.get<PublicClientService>(PublicClientService);
-    prisma = module.get(PrismaService);
   });
 
   it('should be defined', () => {

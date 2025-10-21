@@ -30,7 +30,7 @@ export class NotificationTemplatesService {
         channel: createTemplateDto.channel || NotificationChannel.IN_APP,
         isActive: createTemplateDto.isActive ?? true,
         variables: createTemplateDto.variables || [],
-        metadata: createTemplateDto.metadata || {},
+        // metadata: createTemplateDto.metadata || {},
       },
     });
   }
@@ -103,9 +103,10 @@ export class NotificationTemplatesService {
         ...(updateTemplateDto.variables && {
           variables: updateTemplateDto.variables,
         }),
-        ...(updateTemplateDto.metadata && {
-          metadata: updateTemplateDto.metadata,
-        }),
+        ...(updateTemplateDto.metadata &&
+          {
+            // metadata: updateTemplateDto.metadata,
+          }),
       },
     });
   }
@@ -155,8 +156,8 @@ export class NotificationTemplatesService {
         type: template.type,
         channel: template.channel,
         isActive: false, // Manter inativo por padrão
-        variables: template.variables,
-        metadata: template.metadata,
+        variables: template.variables as any,
+        // metadata: template.metadata,
       },
     });
   }
@@ -164,7 +165,11 @@ export class NotificationTemplatesService {
   async preview(id: string, variables?: Record<string, any>) {
     const template = await this.findOne(id);
 
-    if (!template.variables || template.variables.length === 0) {
+    if (
+      !template.variables ||
+      !Array.isArray(template.variables) ||
+      template.variables.length === 0
+    ) {
       return {
         title: template.title,
         content: template.content,
@@ -258,7 +263,7 @@ export class NotificationTemplatesService {
 
       if (!existing) {
         await this.prisma.notificationTemplate.create({
-          data: templateData,
+          data: templateData as any,
         });
       }
     }

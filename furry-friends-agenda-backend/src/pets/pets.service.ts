@@ -23,7 +23,7 @@ export class PetsService {
       );
     }
 
-    const { clientId, ...petData } = createPetDto;
+    const { ...petData } = createPetDto;
 
     const data: Prisma.PetCreateInput = {
       ...petData,

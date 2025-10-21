@@ -13,13 +13,5 @@ export declare class AuthController {
         createdAt: Date;
         updatedAt: Date;
     }, "password"> | null>;
-    login(loginDto: LoginDto): Promise<{
-        access_token: string;
-        user: {
-            id: string;
-            email: string;
-            name: string | null;
-            role: import(".prisma/client").$Enums.UserRole;
-        };
-    }>;
+    login(loginDto: LoginDto): Promise<import("./types/auth.types").LoginResponse>;
 }

@@ -8,12 +8,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import {
-  Appointment,
   Prisma,
   AppointmentStatus as PrismaAppointmentStatus,
-  ServicePackage,
 } from '@prisma/client';
 import { FinancialService } from '../financial/financial.service';
+import {
+  Appointment as AppointmentType,
+  ServicePackage as ServicePackageType,
+} from './types/appointment.types';
 
 @Injectable()
 export class AppointmentsService {
@@ -25,7 +27,7 @@ export class AppointmentsService {
   async create(
     createAppointmentDto: CreateAppointmentDto,
     currentClientId: string,
-  ): Promise<Appointment> {
+  ): Promise<AppointmentType> {
     const { petId, serviceIds, dateTime, notes, groomerId, status } =
       createAppointmentDto;
 
@@ -55,7 +57,7 @@ export class AppointmentsService {
     }
 
     let calculatedTotalPrice = 0;
-    const servicesToConnect: ServicePackage[] = [];
+    const servicesToConnect: ServicePackageType[] = [];
     for (const serviceId of serviceIds) {
       const service = await this.prisma.servicePackage.findUnique({
         where: { id: serviceId },
@@ -69,49 +71,36 @@ export class AppointmentsService {
       calculatedTotalPrice += service.price;
     }
 
-    try {
-      return await this.prisma.appointment.create({
-        data: {
-          dateTime: new Date(dateTime),
-          notes,
-          status: status || PrismaAppointmentStatus.SCHEDULED,
-          totalPrice: calculatedTotalPrice,
-          pet: { connect: { id: petId } },
-          client: { connect: { id: currentClientId } },
-          groomer: groomerId ? { connect: { id: groomerId } } : undefined,
-          appointmentServices: {
-            create: servicesToConnect.map((service) => ({
-              service: { connect: { id: service.id } },
-              priceAtTime: service.price,
-            })),
+    return this.prisma.appointment.create({
+      data: {
+        dateTime: new Date(dateTime),
+        notes,
+        status: status || PrismaAppointmentStatus.SCHEDULED,
+        totalPrice: calculatedTotalPrice,
+        pet: { connect: { id: petId } },
+        client: { connect: { id: currentClientId } },
+        groomer: groomerId ? { connect: { id: groomerId } } : undefined,
+        appointmentServices: {
+          create: servicesToConnect.map((service) => ({
+            service: { connect: { id: service.id } },
+            priceAtTime: service.price,
+          })),
+        },
+      },
+      include: {
+        pet: true,
+        client: true,
+        groomer: true,
+        appointmentServices: {
+          include: {
+            service: true,
           },
         },
-        include: {
-          pet: true,
-          client: true,
-          groomer: true,
-          appointmentServices: {
-            include: {
-              service: true,
-            },
-          },
-        },
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        console.error(
-          'Prisma Error creating appointment: ',
-          error.code,
-          error.message,
-        );
-      }
-      throw new BadRequestException(
-        'Could not create appointment. Please check input data.',
-      );
-    }
+      },
+    });
   }
 
-  async findAllByClient(clientId: string): Promise<Appointment[]> {
+  async findAllByClient(clientId: string): Promise<AppointmentType[]> {
     return this.prisma.appointment.findMany({
       where: { clientId },
       include: {
@@ -130,7 +119,7 @@ export class AppointmentsService {
   async findOneByClient(
     id: string,
     clientId: string,
-  ): Promise<Appointment | null> {
+  ): Promise<AppointmentType | null> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id },
       include: {
@@ -160,7 +149,7 @@ export class AppointmentsService {
     id: string,
     updateAppointmentDto: UpdateAppointmentDto,
     currentClientId: string,
-  ): Promise<Appointment> {
+  ): Promise<AppointmentType> {
     const existingAppointment = await this.findOneByClient(id, currentClientId);
 
     const dataToUpdate: Prisma.AppointmentUpdateInput = {};
@@ -188,7 +177,7 @@ export class AppointmentsService {
 
     if (updateAppointmentDto.serviceIds) {
       let newTotalPrice = 0;
-      const newServicesToConnect: ServicePackage[] = [];
+      const newServicesToConnect: ServicePackageType[] = [];
       for (const serviceId of updateAppointmentDto.serviceIds) {
         const service = await this.prisma.servicePackage.findUnique({
           where: { id: serviceId },
@@ -242,7 +231,7 @@ export class AppointmentsService {
     });
   }
 
-  async remove(id: string, clientId: string): Promise<Appointment> {
+  async remove(id: string, clientId: string): Promise<AppointmentType> {
     await this.findOneByClient(id, clientId);
     return this.prisma.appointment.delete({
       where: { id },
@@ -255,7 +244,7 @@ export class AppointmentsService {
     id: string,
     status: PrismaAppointmentStatus,
     currentClientId: string,
-  ): Promise<Appointment> {
+  ): Promise<AppointmentType> {
     await this.findOneByClient(id, currentClientId);
 
     // Atualizar status do agendamento
@@ -292,7 +281,7 @@ export class AppointmentsService {
   }
 
   async getAppointmentFinancialSummary(appointmentId: string): Promise<{
-    appointment: Appointment;
+    appointment: AppointmentType;
     estimatedRevenue: number;
     commission: number;
     netRevenue: number;

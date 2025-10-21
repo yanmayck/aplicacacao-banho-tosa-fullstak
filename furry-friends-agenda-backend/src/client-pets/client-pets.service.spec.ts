@@ -15,7 +15,6 @@ const mockPrismaService = {
 
 describe('ClientPetsService', () => {
   let service: ClientPetsService;
-  let prisma: typeof mockPrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -27,7 +26,6 @@ describe('ClientPetsService', () => {
     }).compile();
 
     service = module.get<ClientPetsService>(ClientPetsService);
-    prisma = module.get(PrismaService);
   });
 
   it('should be defined', () => {

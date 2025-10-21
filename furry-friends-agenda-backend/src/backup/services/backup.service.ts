@@ -21,7 +21,6 @@ import {
 import {
   BackupMetadata,
   BackupProgress,
-  BackupConfig,
   BackupResult,
   RestoreResult,
   DatabaseTable,
@@ -59,10 +58,7 @@ export class BackupService {
   /**
    * Cria um novo backup
    */
-  async createBackup(
-    createBackupDto: CreateBackupDto,
-    userId?: string,
-  ): Promise<BackupResult> {
+  async createBackup(createBackupDto: CreateBackupDto): Promise<BackupResult> {
     const backupId = this.generateBackupId();
     const startTime = new Date();
 
@@ -138,12 +134,12 @@ export class BackupService {
       this.backupProgress.set(backupId, {
         ...this.backupProgress.get(backupId)!,
         status: BackupStatus.FAILED,
-        currentStep: `Erro: ${error.message}`,
+        currentStep: `Erro: ${(error as Error).message}`,
       });
 
       return {
         success: false,
-        error: error.message,
+        error: (error as Error).message,
         duration: Date.now() - startTime.getTime(),
         tablesBackedUp: [],
       };
@@ -198,7 +194,7 @@ export class BackupService {
 
     this.updateProgress(backupId, 4, 'Salvando arquivo de backup...');
 
-    const backupContent = JSON.stringify(
+    JSON.stringify(
       {
         metadata: {
           backupId,
@@ -280,7 +276,7 @@ export class BackupService {
     const fileName = `config-backup-${backupId}.json`;
     const filePath = path.join(this.backupPath, fileName);
 
-    const backupContent = JSON.stringify(configData, null, 2);
+    JSON.stringify(configData, null, 2);
 
     // Criptografa se necessário
     let finalPath = filePath;
@@ -361,7 +357,7 @@ export class BackupService {
 
     try {
       // Busca metadados do backup
-      const metadata = await this.getBackupMetadata(restoreDto.backupId);
+      const metadata = this.getBackupMetadata(restoreDto.backupId);
       if (!metadata) {
         throw new NotFoundException(
           `Backup ${restoreDto.backupId} não encontrado`,
@@ -410,7 +406,7 @@ export class BackupService {
       }
 
       // Restaura dados
-      const restoreResult = await this.performRestore(dataPath, restoreDto);
+      const restoreResult = this.performRestore(dataPath, restoreDto);
 
       // Limpa arquivos temporários
       this.cleanupTempFiles(tempDir);
@@ -427,7 +423,7 @@ export class BackupService {
         tablesRestored: [],
         rowsAffected: 0,
         duration: Date.now() - startTime.getTime(),
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -435,10 +431,7 @@ export class BackupService {
   /**
    * Obtém lista de backups
    */
-  async getBackups(
-    limit: number = 50,
-    offset: number = 0,
-  ): Promise<BackupMetadata[]> {
+  getBackups(limit: number = 50, offset: number = 0): BackupMetadata[] {
     // Em uma implementação real, isso seria armazenado no banco de dados
     // Por simplicidade, vamos listar arquivos do diretório
     const files = fs
@@ -482,7 +475,7 @@ export class BackupService {
   /**
    * Cancela um backup em andamento
    */
-  async cancelBackup(backupId: string): Promise<boolean> {
+  cancelBackup(backupId: string): boolean {
     const progress = this.backupProgress.get(backupId);
     if (progress && progress.status === BackupStatus.IN_PROGRESS) {
       this.backupProgress.set(backupId, {
@@ -500,7 +493,7 @@ export class BackupService {
    * Verifica integridade de um backup
    */
   async verifyBackupIntegrity(backupId: string): Promise<IntegrityCheckResult> {
-    const metadata = await this.getBackupMetadata(backupId);
+    const metadata = this.getBackupMetadata(backupId);
     if (!metadata) {
       throw new NotFoundException(`Backup ${backupId} não encontrado`);
     }
@@ -526,7 +519,7 @@ export class BackupService {
         expectedChecksum: metadata.checksum,
         fileSize: 0,
         expectedSize: metadata.fileSize,
-        errors: [error.message],
+        errors: [(error as Error).message],
       };
     }
   }
@@ -552,7 +545,7 @@ export class BackupService {
     }
   }
 
-  private async getDatabaseTables(): Promise<DatabaseTable[]> {
+  private getDatabaseTables(): DatabaseTable[] {
     // Em uma implementação real, isso seria feito consultando o Prisma
     // Por simplicidade, retornamos uma lista básica
     return [
@@ -564,28 +557,26 @@ export class BackupService {
     ];
   }
 
-  private async exportTableData(tableName: string): Promise<any[]> {
+  private exportTableData(tableName: string): any[] {
     // Em uma implementação real, isso usaria Prisma para buscar dados
     // Por simplicidade, retornamos array vazio
     return [];
   }
 
-  private async saveBackupMetadata(metadata: BackupMetadata): Promise<void> {
+  private saveBackupMetadata(metadata: BackupMetadata): void {
     // Em uma implementação real, isso seria salvo no banco de dados
     this.logger.log(`Backup metadata salvo: ${metadata.id}`);
   }
 
-  private async getBackupMetadata(
-    backupId: string,
-  ): Promise<BackupMetadata | null> {
+  private getBackupMetadata(backupId: string): BackupMetadata | null {
     // Em uma implementação real, isso seria buscado do banco de dados
     return null;
   }
 
-  private async performRestore(
+  private performRestore(
     dataPath: string,
     restoreDto: RestoreBackupDto,
-  ): Promise<RestoreResult> {
+  ): RestoreResult {
     // Implementação básica de restauração
     return {
       success: true,
