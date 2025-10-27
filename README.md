@@ -59,28 +59,20 @@ cd furry-friends-agenda
 cp .env.example .env
 # Edite .env com suas configurações
 
-# 3. Instale dependências
-npm install
-
-# 4. Inicie serviços de desenvolvimento
+# 3. Inicie todos os serviços (recomendado para desenvolvimento)
 docker-compose -f docker-compose.dev.yml up -d
 
-# 5. Execute migrações
-cd furry-friends-agenda-backend
-npx prisma migrate dev
-
-# 6. Inicie aplicações
-# Terminal 1 - Backend
-npm run start:dev
-
-# Terminal 2 - Frontend
-cd ../furry-friends-agenda-app
-npm run dev
-
 # Acesse:
-# Frontend: http://localhost:5173
+# Frontend: http://localhost:8080
 # Backend API: http://localhost:3333
 # Prisma Studio: http://localhost:5555
+
+# Para executar migrações manualmente (quando necessário):
+# docker-compose -f docker-compose.dev.yml exec backend npx prisma migrate dev
+
+# Para desenvolvimento local (sem Docker):
+# Backend: cd furry-friends-agenda-backend && npm install && npm run start:dev
+# Frontend: cd furry-friends-agenda-app && npm install && npm run dev
 ```
 
 ---

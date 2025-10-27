@@ -3,18 +3,13 @@ version: '3.8'
 services:
   # Backend rodando em modo de desenvolvimento
   furry_friends_backend:
-    build:
-      context: ./furry-friends-agenda-backend
-      # Aponta para o novo Dockerfile de desenvolvimento
-      dockerfile: Dockerfile.dev
-    # O comando para rodar em modo de desenvolvimento com watch
-    command: npm run start:dev
+    image: node:20-slim
+    working_dir: /usr/src/app
+    command: ["sh", "-c", "apt-get update && apt-get install -y openssl libssl-dev && npm install && npx prisma generate && npm run start:dev"]
     ports:
-      - "3333:3000" # Mapeia a porta do container para a mesma porta do host
+      - "3333:3000"
     volumes:
-      # Monta o código-fonte do backend para live-reloading
       - ./furry-friends-agenda-backend:/usr/src/app
-      # Adiciona um volume para node_modules para evitar que o do host sobrescreva o do container
       - /usr/src/app/node_modules
     depends_on:
       - db
@@ -23,20 +18,18 @@ services:
 
   # Frontend rodando com o servidor de desenvolvimento do Vite
   furry_friends_frontend:
-    build:
-      context: ./furry-friends-agenda-app
-      dockerfile: Dockerfile
-      # Especifica para usar o estágio 'development-server' do Dockerfile
-      target: development-server
+    image: node:20-slim
+    working_dir: /app
     ports:
       - "8080:8080"
     volumes:
-      # Monta o código-fonte do frontend para live-reloading
       - ./furry-friends-agenda-app:/app
-      # Adiciona um volume para node_modules
       - /app/node_modules
     env_file:
       - .env
+    environment:
+      NODE_ENV: development
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 8080"
 
   # O serviço de banco de dados permanece o mesmo
   db:
@@ -48,16 +41,16 @@ services:
     env_file:
       - .env
 
-  # O Prisma Studio permanece o mesmo, muito útil para desenvolvimento
+  # Prisma Studio para desenvolvimento
   prisma-studio:
     image: node:20-slim
     working_dir: /app
-    # Comando corrigido: trocando --host por --hostname
-    command: npx prisma studio --hostname 0.0.0.0
+    command: ["sh", "-c", "npm install && npx prisma studio --hostname 0.0.0.0 --port 5555"]
     ports:
       - "5555:5555"
     volumes:
       - ./furry-friends-agenda-backend:/app
+      - /app/node_modules
     depends_on:
       - db
     env_file:
