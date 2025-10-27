@@ -2,7 +2,7 @@
 
 ## Sistema de Gestão Inteligente para Pet Shop
 
-**Última Atualização:** 09/09/2025
+**Última Atualização:** 27/10/2025
 
 Este documento detalha todas as funcionalidades, lógicas de negócio e requisitos para a criação de uma plataforma completa, moderna e inteligente para a gestão de pet shops, alinhado com o `ROADMAP.md` e o código-fonte atual.
 
@@ -13,6 +13,7 @@ Este documento detalha todas as funcionalidades, lógicas de negócio e requisit
 - **PONTO CRÍTICO (MVP):** O **Módulo Financeiro Básico** é a prioridade máxima para o MVP. A implementação atual não contempla o fechamento de contas, registro de pagamentos ou emissão de NFS-e. As adições abaixo são essenciais.
 - **DADOS FALTANTES PARA NFS-e:** O `CPF/CNPJ` do cliente e os dados fiscais da empresa são bloqueadores para a funcionalidade de nota fiscal e precisam ser adicionados ao banco de dados.
 - **LÓGICA DE NEGÓCIO:** Funcionalidades como "atribuição automática de tosadores" precisam ter sua lógica implementada no backend para substituir os placeholders atuais.
+- **TESTES E QUALIDADE:** Há 26 problemas de linting identificados (7 erros, 19 warnings) que precisam ser resolvidos antes da implementação completa dos testes frontend.
 
 ---
 

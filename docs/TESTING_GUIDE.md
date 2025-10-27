@@ -53,6 +53,8 @@ npm install --save-dev vitest @vitest/ui jsdom @testing-library/react @testing-l
 
 E configurar o Vite (`vite.config.ts`) e criar um arquivo de setup para os testes.
 
+**Status Atual:** Há 26 problemas de linting identificados (7 erros, 19 warnings) relacionados principalmente ao uso de `any` em testes e componentes que exportam funções junto com componentes. Estes precisam ser resolvidos antes da configuração completa dos testes.
+
 ### 2.2. Testes de Componente e Unitários
 
 - **O que testam?** Componentes de UI de forma isolada e funções utilitárias. O objetivo é garantir que os componentes renderizem corretamente e respondam às interações do usuário.

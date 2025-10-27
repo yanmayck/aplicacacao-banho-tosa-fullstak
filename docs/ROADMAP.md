@@ -22,6 +22,7 @@ Este documento descreve as funcionalidades e melhorias planejadas para transform
   - [ ] **Testes de Frontend:** Configurar e implementar os testes unitários e de componentes no frontend, conforme planejado no `TESTING_GUIDE.md`.
   - [ ] **Lógica de Backend:** Substituir lógicas de placeholder (como a atribuição automática de tosadores) por implementações funcionais.
   - [ ] **Tratamento de Erros:** Melhorar o feedback para o usuário em casos de erro de API ou de validação.
+  - [ ] **Correção de Linting:** Resolver os 26 problemas de linting identificados (7 erros, 19 warnings) no erro.txt.
 
 - [ ] **Polimento Geral (UI/UX):**
   - [ ] Revisar todos os fluxos de usuário para garantir que sejam intuitivos.

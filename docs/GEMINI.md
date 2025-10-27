@@ -38,7 +38,7 @@ To start all services (frontend, backend, and database), run:
 docker-compose up -d
 ```
 
-*   The frontend will be available at `http://localhost:8080`.
+*   The frontend will be available at `http://localhost:8080` (development) or `http://localhost:5000` (Replit).
 *   The backend will be available at `http://localhost:3333`.
 *   Prisma Studio (for database management) will be available at `http://localhost:5555`.
 

@@ -1094,3 +1094,36 @@ Todas as operações são logadas com:
 
 **Última atualização:** Outubro 2025
 **Versão da API:** 2.0
+
+---
+
+## 📝 Notas de Implementação
+
+### Funcionalidades Identificadas como Não Implementadas
+
+Com base na análise do código-fonte atual, as seguintes funcionalidades descritas nesta documentação ainda não estão implementadas:
+
+1. **Pagamentos (`Payment` model)**: Não há modelo de pagamento no banco de dados. Os agendamentos não registram pagamentos específicos.
+
+2. **Empresa (`CompanyProfile` model)**: Não há modelo para armazenar dados fiscais da empresa (CNPJ, Inscrição Municipal) necessários para NFS-e.
+
+3. **Atribuição Automática de Tosadores**: A lógica `autoAssignGroomer` mencionada na documentação não está implementada no backend.
+
+4. **Campos Fiscais em Clientes**: Os campos `cpfCnpj` não estão presentes no modelo `Client`.
+
+5. **Status de NFS-e**: O status "Nota Fiscal Emitida" não está implementado no fluxo de agendamentos.
+
+6. **Integração com APIs Externas**: Não há implementação de integração com APIs de emissão de NFS-e ou gateways de pagamento.
+
+### Problemas de Qualidade Identificados
+
+- **26 problemas de linting**: 7 erros e 19 warnings relacionados principalmente ao uso de `any` em testes e componentes que exportam funções junto com componentes.
+- **Testes frontend não configurados**: Embora haja arquivos de teste, a infraestrutura de testes (Vitest, React Testing Library) não está configurada.
+
+### Recomendações para MVP
+
+1. **Priorizar módulo financeiro básico** conforme ROADMAP.md
+2. **Implementar campos fiscais** necessários para NFS-e
+3. **Resolver problemas de linting** antes de configurar testes
+4. **Implementar lógica de atribuição automática** de tosadores
+5. **Configurar infraestrutura de testes** frontend
