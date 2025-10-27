@@ -1,0 +1,23 @@
+{
+  "name": "furry-plugins/whatsapp-notifications",
+  "version": "1.0.0",
+  "description": "Envio de notificações via WhatsApp para o Furry Friends Agenda",
+  "main": "plugin.js",
+  "author": "Furry Friends Team",
+  "license": "MIT",
+  "keywords": ["furry-friends", "plugin", "whatsapp", "notifications"],
+  "furryFriends": {
+    "type": "plugin",
+    "category": "notifications",
+    "minVersion": "1.0.0",
+    "maxVersion": "2.0.0",
+    "permissions": [
+      "notifications.send",
+      "clients.read",
+      "appointments.read"
+    ]
+  },
+  "dependencies": {
+    "axios": "^1.0.0"
+  }
+}

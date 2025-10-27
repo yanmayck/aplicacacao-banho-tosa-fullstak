@@ -1227,3 +1227,87 @@ model AuditReport {
   @@index([generatedBy])
   @@index([isPublic])
 }
+
+// ========== MODELOS DE PLUGINS ==========
+
+// Enum para níveis de log de plugin
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  CRITICAL
+}
+
+// Modelo principal de plugins
+model Plugin {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  version     String
+  description String?
+  author      String
+  homepage    String?
+  repository  String?
+
+  // Status
+  isActive    Boolean @default(false)
+  isInstalled Boolean @default(false)
+
+  // Metadados
+  config       Json? // Configuração atual
+  permissions  Json? // Permissões concedidas
+  dependencies Json? // Plugins dependentes
+
+  // Controle de versão
+  installedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+  activatedAt DateTime?
+
+  // Relacionamentos
+  hooks     PluginHook[]
+  PluginLog PluginLog[]
+
+  // Índices
+  @@index([isActive])
+  @@index([isInstalled])
+  @@index([author])
+}
+
+// Modelo para hooks de plugins
+model PluginHook {
+  id       String @id @default(cuid())
+  pluginId String
+  plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+
+  hookName String // Nome do hook
+  priority Int    @default(0) // Ordem de execução (0 = mais alta)
+
+  // Configuração específica
+  config   Json?
+  isActive Boolean @default(true)
+
+  // Métricas
+  executionCount       Int       @default(0)
+  lastExecutedAt       DateTime?
+  averageExecutionTime Float?
+
+  @@unique([pluginId, hookName])
+  @@index([hookName])
+  @@index([pluginId, hookName])
+}
+
+// Modelo para logs de plugins
+model PluginLog {
+  id       String @id @default(cuid())
+  pluginId String
+  plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+
+  level   LogLevel
+  message String
+  data    Json? // Dados adicionais
+
+  createdAt DateTime @default(now())
+
+  @@index([pluginId, createdAt])
+  @@index([level])
+}
