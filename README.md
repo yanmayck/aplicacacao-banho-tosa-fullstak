@@ -10,27 +10,27 @@ O **Furry Friends Agenda** é uma plataforma completa de gestão para pet shops,
 
 ### 🏗️ Arquitetura e Design
 
-- **[🏛️ Arquitetura do Sistema](ARCHITECTURE.md)** - Visão completa da arquitetura, componentes e padrões
-- **[🏢 Arquitetura Multi-Tenancy](MULTI-TENANCY.md)** - Sistema multi-tenant e isolamento de dados
-- **[🔌 Sistema de Plugins](plugins.md)** - Como funciona o sistema de extensibilidade
-- **[🔒 Segurança](SECURITY.md)** - Políticas e práticas de segurança
+- **[🏛️ Arquitetura do Sistema](docs/ARCHITECTURE.md)** - Visão completa da arquitetura, componentes e padrões
+- **[🏢 Arquitetura Multi-Tenancy](docs/MULTI-TENANCY.md)** - Sistema multi-tenant e isolamento de dados
+- **[🔌 Sistema de Plugins](docs/plugins.md)** - Como funciona o sistema de extensibilidade
+- **[🔒 Segurança](docs/SECURITY.md)** - Políticas e práticas de segurança
 
 ### 💻 Desenvolvimento
 
-- **[🛠️ Guia de Desenvolvimento](DEVELOPMENT.md)** - Setup, padrões e melhores práticas
-- **[🚀 Deployment](DEPLOYMENT.md)** - Estratégias de deployment e infraestrutura
-- **[📡 API Reference](API.md)** - Documentação completa da API REST
+- **[🛠️ Guia de Desenvolvimento](docs/DEVELOPMENT.md)** - Setup, padrões e melhores práticas
+- **[🚀 Deployment](docs/DEPLOYMENT.md)** - Estratégias de deployment e infraestrutura
+- **[📡 API Reference](docs/API.md)** - Documentação completa da API REST
 
 ### 📊 Documentos Específicos
 
-- **[💰 Pagamentos](payments.md)** - Sistema de pagamentos e gateways
-- **[📈 Diagramas](diagrams.md)** - Diagramas de arquitetura e fluxos
-- **[📋 Plano de Implementação](implementation-plan.md)** - Roadmap e próximos passos
-- **[📋 Documento Mestre de Funcionalidades](melhorias.md)** - Requisitos detalhados e lógicas de negócio
-- **[🤖 Guia Gemini](GEMINI.md)** - Visão geral técnica e setup
-- **[🔄 Guia Replit](replit.md)** - Configuração para ambiente Replit
-- **[🧪 Guia de Testes](TESTING_GUIDE.md)** - Estratégia completa de testes
-- **[🗺️ Roadmap](ROADMAP.md)** - Plano de evolução do produto
+- **[💰 Pagamentos](docs/payments.md)** - Sistema de pagamentos e gateways
+- **[📈 Diagramas](docs/diagrams.md)** - Diagramas de arquitetura e fluxos
+- **[📋 Plano de Implementação](docs/implementation-plan.md)** - Roadmap e próximos passos
+- **[📋 Documento Mestre de Funcionalidades](docs/melhorias.md)** - Requisitos detalhados e lógicas de negócio
+- **[🤖 Guia Gemini](docs/GEMINI.md)** - Visão geral técnica e setup
+- **[🔄 Guia Replit](docs/replit.md)** - Configuração para ambiente Replit
+- **[🧪 Guia de Testes](docs/TESTING_GUIDE.md)** - Estratégia completa de testes
+- **[🗺️ Roadmap](docs/ROADMAP.md)** - Plano de evolução do produto
 
 ---
 
