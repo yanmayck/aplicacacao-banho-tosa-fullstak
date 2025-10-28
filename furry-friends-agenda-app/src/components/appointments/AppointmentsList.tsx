@@ -1,6 +1,4 @@
-
 import React, { useState } from "react";
-import { Layout } from "@/components/Layout";
 import { useAppointments } from "@/context/appointments/AppointmentContext";
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2 } from "lucide-react";
@@ -84,68 +82,62 @@ const AppointmentsList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Layout activePage="appointments" setActivePage={() => {}}>
-        <div className="flex justify-center items-center h-full">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      </Layout>
+      <div className="flex justify-center items-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Layout activePage="appointments" setActivePage={() => {}}>
-        <div className="text-red-500">Erro ao carregar agendamentos: {error.message}</div>
-      </Layout>
+      <div className="text-red-500">Erro ao carregar agendamentos: {error.message}</div>
     );
   }
   
   return (
-    <Layout activePage="appointments" setActivePage={() => {}}>
-      <div className="space-y-4">
-        {showForm ? (
-          <AppointmentForm appointment={editingAppointment || undefined} onClose={handleCloseForm} />
-        ) : (
-          <>
-            <div className="flex flex-col md:flex-row gap-3 justify-between items-start md:items-end">
-              <AppointmentFilters {...filterProps} />
-              
-              <Button onClick={() => setShowForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Agendamento
-              </Button>
-            </div>
+    <div className="space-y-4">
+      {showForm ? (
+        <AppointmentForm appointment={editingAppointment || undefined} onClose={handleCloseForm} />
+      ) : (
+        <>
+          <div className="flex flex-col md:flex-row gap-3 justify-between items-start md:items-end">
+            <AppointmentFilters {...filterProps} />
             
-            <AppointmentsTable
-              filteredAppointments={paginatedData}
-              handleEditAppointment={handleEditAppointment}
-              handleDeleteAppointment={handleDeleteAppointment}
-              handleStatusChange={handleStatusChange}
-              handleAutoAssign={handleAutoAssign}
-              handleEditPoints={handleEditPoints}
-            />
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Agendamento
+            </Button>
+          </div>
+          
+          <AppointmentsTable
+            filteredAppointments={paginatedData}
+            handleEditAppointment={handleEditAppointment}
+            handleDeleteAppointment={handleDeleteAppointment}
+            handleStatusChange={handleStatusChange}
+            handleAutoAssign={handleAutoAssign}
+            handleEditPoints={handleEditPoints}
+          />
 
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={goToPage}
-              hasNextPage={hasNextPage}
-              hasPrevPage={hasPrevPage}
-              totalItems={totalItems}
-              itemsPerPage={itemsPerPage}
-            />
-            
-            <PointsEditDialog
-              isOpen={isPointsDialogOpen}
-              onClose={() => setIsPointsDialogOpen(false)}
-              initialPoints={selectedAppointmentId ? 
-                (filteredAppointments.find(a => a.id === selectedAppointmentId)?.points || 1) : 1}
-              onSave={handleSavePoints}
-            />
-          </>
-        )}
-      </div>
-    </Layout>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+            hasNextPage={hasNextPage}
+            hasPrevPage={hasPrevPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+          />
+          
+          <PointsEditDialog
+            isOpen={isPointsDialogOpen}
+            onClose={() => setIsPointsDialogOpen(false)}
+            initialPoints={selectedAppointmentId ? 
+              (filteredAppointments.find(a => a.id === selectedAppointmentId)?.points || 1) : 1}
+            onSave={handleSavePoints}
+          />
+        </>
+      )}
+    </div>
   );
 };
 

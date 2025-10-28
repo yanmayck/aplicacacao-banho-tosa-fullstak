@@ -3,14 +3,15 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { StoreProvider } from "@/context/StoreContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
+import { Layout } from "./components/Layout"; // Importando o Layout
 
-// Lazy load components for better performance
-const Index = lazy(() => import("./pages/Index"));
+// Lazy load pages and components
+const Dashboard = lazy(() => import("./components/Dashboard"));
 const BanhoTosa = lazy(() => import("./pages/BanhoTosa"));
 const Login = lazy(() => import("./pages/Login"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -30,46 +31,56 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+// Layout para rotas protegidas
+const ProtectedLayout = () => {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return (
+    <Layout>
+      <Outlet />
+    </Layout>
+  );
 };
+
+// Layout para rotas de admin
+const AdminLayout = () => {
+    const { isAdmin } = useAuth();
+
+    if (!isAdmin()) {
+        return <Navigate to="/" replace />;
+    }
+
+    return <Outlet />;
+}
 
 // Main App component
 const AppContent = () => {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated } = useAuth();
   
   return (
     <BrowserRouter>
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />} />
+          <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" replace />} />
 
-          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-
-          {/* Rotas individuais para cada seção */}
-          <Route path="/clients" element={<ProtectedRoute><ClientsList /></ProtectedRoute>} />
-          <Route path="/pets" element={<ProtectedRoute><PetsList /></ProtectedRoute>} />
-          <Route path="/appointments" element={<ProtectedRoute><AppointmentsList /></ProtectedRoute>} />
-          <Route path="/groomers" element={<ProtectedRoute><GroomersList /></ProtectedRoute>} />
-          <Route path="/packages" element={<ProtectedRoute><PackagesList /></ProtectedRoute>} />
-          <Route path="/banho-tosa" element={<ProtectedRoute><BanhoTosa /></ProtectedRoute>} />
-          <Route path="/reports" element={
-            <ProtectedRoute>
-              {isAdmin() ? <Reports /> : <Navigate to="/" replace />}
-            </ProtectedRoute>
-          } />
-          <Route path="/backup" element={
-            <ProtectedRoute>
-              {isAdmin() ? <Backup /> : <Navigate to="/" replace />}
-            </ProtectedRoute>
-          } />
+          <Route element={<ProtectedLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/clients" element={<ClientsList />} />
+            <Route path="/pets" element={<PetsList />} />
+            <Route path="/appointments" element={<AppointmentsList />} />
+            <Route path="/groomers" element={<GroomersList />} />
+            <Route path="/packages" element={<PackagesList />} />
+            <Route path="/banho-tosa" element={<BanhoTosa />} />
+            <Route element={<AdminLayout />}>
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/backup" element={<Backup />} />
+            </Route>
+          </Route>
 
           <Route path="*" element={<NotFound />} />
         </Routes>

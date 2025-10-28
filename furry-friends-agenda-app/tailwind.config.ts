@@ -54,30 +54,6 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				},
-				petshop: {
-					purple: '#7e69ab',
-					blue: '#6ba5d3',
-					"light-blue": '#60a5fa',
-					"light-green": '#86efac',
-					yellow: '#fcd34d',
-					"bg-light": '#f9fafb',
-					"text-dark": '#1e293b'
-				},
-				status: {
-					waiting: '#fcd34d',
-					progress: '#60a5fa',
-					completed: '#86efac',
-				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

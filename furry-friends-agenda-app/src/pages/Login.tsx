@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Scissors } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-
 import { Link } from "react-router-dom";
 
 const Login: React.FC = () => {
@@ -36,28 +35,30 @@ const Login: React.FC = () => {
   };
   
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md p-6">
-        <div className="text-center mb-6">
-          <div className="flex justify-center mb-2">
-            <Scissors className="h-12 w-12 text-petshop-purple" />
+    <div className="h-screen flex items-center justify-center bg-background">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-primary/10 rounded-full">
+                <Scissors className="h-8 w-8 text-primary" />
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">PetShop Manager</h1>
-          <p className="text-gray-500">Faça login para acessar o sistema</p>
-        </div>
-        
-        <div className="space-y-4">
-          <div>
+          <CardTitle className="text-2xl">PetShop Manager</CardTitle>
+          <CardDescription>Faça login para acessar o sistema</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input 
               id="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)} 
-              placeholder="Digite seu email"
+              placeholder="seu@email.com"
+              type="email"
             />
           </div>
           
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="password">Senha</Label>
             <Input 
               id="password" 
@@ -73,7 +74,14 @@ const Login: React.FC = () => {
               Entrar
             </Button>
           </div>
-        </div>
+
+          <div className="text-center text-sm">
+            Não tem uma conta?{" "}
+            <Link to="/register" className="underline text-primary">
+              Cadastre-se
+            </Link>
+          </div>
+        </CardContent>
       </Card>
     </div>
   );

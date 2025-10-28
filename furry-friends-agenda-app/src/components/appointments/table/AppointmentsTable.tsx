@@ -31,7 +31,7 @@ export const AppointmentsTable: React.FC<AppointmentsTableProps> = React.memo(({
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-muted">
             <tr>
               <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Cliente / Pet
@@ -56,7 +56,7 @@ export const AppointmentsTable: React.FC<AppointmentsTableProps> = React.memo(({
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-gray-200">
             {filteredAppointments.length > 0 ? (
               filteredAppointments.map((appointment) => (
                 <AppointmentRow

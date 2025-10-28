@@ -1,6 +1,4 @@
-
 import React, { useState } from "react";
-import { Layout } from "@/components/Layout";
 import { useStore } from "@/context/StoreContext";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -134,177 +132,241 @@ const Reports: React.FC = () => {
   };
   
   return (
-    <Layout activePage="reports" setActivePage={() => {}}>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-          <div>
-            <Label htmlFor="month">Mês</Label>
-            <Select 
-              value={selectedMonth.toString()} 
-              onValueChange={(value) => setSelectedMonth(parseInt(value))}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue id="month" placeholder="Selecione o mês" />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map((month, index) => (
-                  <SelectItem key={index} value={index.toString()}>
-                    {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <Label htmlFor="year">Ano</Label>
-            <Select 
-              value={selectedYear.toString()} 
-              onValueChange={(value) => setSelectedYear(parseInt(value))}
-            >
-              <SelectTrigger className="w-[120px]">
-                <SelectValue id="year" placeholder="Selecione o ano" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+        <div>
+          <Label htmlFor="month">Mês</Label>
+          <Select 
+            value={selectedMonth.toString()} 
+            onValueChange={(value) => setSelectedMonth(parseInt(value))}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue id="month" placeholder="Selecione o mês" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month, index) => (
+                <SelectItem key={index} value={index.toString()}>
+                  {month}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="commissions">Comissões</TabsTrigger>
-            <TabsTrigger value="points">Pontuação</TabsTrigger>
-          </TabsList>
+        <div>
+          <Label htmlFor="year">Ano</Label>
+          <Select 
+            value={selectedYear.toString()} 
+            onValueChange={(value) => setSelectedYear(parseInt(value))}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue id="year" placeholder="Selecione o ano" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="commissions">Comissões</TabsTrigger>
+          <TabsTrigger value="points">Pontuação</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="commissions">
+          <Card className="p-4">
+            <h2 className="text-xl font-bold mb-4">Comissões por Tosador</h2>
+            
+            <div className="mb-6 h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={commissionChartData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <Legend />
+                  <Bar name={`Comissões (${months[selectedMonth]} ${selectedYear})`} dataKey="value" fill="#9b87f5" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-muted">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tosador</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comissões (Mês)</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comissões (Total)</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agendamentos (Mês)</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agendamentos (Total)</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pets Atendidos (Mês)</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pets Atendidos (Total)</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-card divide-y divide-gray-200">
+                  {groomerStats.length > 0 ? (
+                    groomerStats.map((groomer) => (
+                      <tr key={groomer.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{groomer.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(groomer.monthlyCommissions)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(groomer.totalCommissions)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.monthlyAppointments}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.totalAppointments}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.monthlyPets}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.totalPets}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                        Nenhum dado disponível para este período.
+                      </td>
+                    </tr>
+                  )}
+                  {groomerStats.length > 0 && (
+                    <tr className="bg-muted">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Total</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {formatCurrency(groomerStats.reduce((sum, groomer) => sum + groomer.monthlyCommissions, 0))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {formatCurrency(groomerStats.reduce((sum, groomer) => sum + groomer.totalCommissions, 0))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {groomerStats.reduce((sum, groomer) => sum + groomer.monthlyAppointments, 0)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {groomerStats.reduce((sum, groomer) => sum + groomer.totalAppointments, 0)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
           
-          <TabsContent value="commissions">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
             <Card className="p-4">
-              <h2 className="text-xl font-bold mb-4">Comissões por Tosador</h2>
-              
-              <div className="mb-6 h-[300px]">
+              <h2 className="text-xl font-bold mb-4">Agendamentos por Tosador</h2>
+              <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={commissionChartData}
+                    data={appointmentChartData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                    <Tooltip />
                     <Legend />
-                    <Bar name={`Comissões (${months[selectedMonth]} ${selectedYear})`} dataKey="value" fill="#9b87f5" />
+                    <Bar name={`Agendamentos (${months[selectedMonth]} ${selectedYear})`} dataKey="value" fill="#8884d8" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tosador</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comissões (Mês)</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comissões (Total)</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agendamentos (Mês)</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agendamentos (Total)</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pets Atendidos (Mês)</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pets Atendidos (Total)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {groomerStats.length > 0 ? (
-                      groomerStats.map((groomer) => (
-                        <tr key={groomer.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{groomer.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(groomer.monthlyCommissions)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(groomer.totalCommissions)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.monthlyAppointments}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.totalAppointments}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.monthlyPets}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.totalPets}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
-                          Nenhum dado disponível para este período.
-                        </td>
-                      </tr>
-                    )}
-                    {groomerStats.length > 0 && (
-                      <tr className="bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Total</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {formatCurrency(groomerStats.reduce((sum, groomer) => sum + groomer.monthlyCommissions, 0))}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {formatCurrency(groomerStats.reduce((sum, groomer) => sum + groomer.totalCommissions, 0))}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {groomerStats.reduce((sum, groomer) => sum + groomer.monthlyAppointments, 0)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {groomerStats.reduce((sum, groomer) => sum + groomer.totalAppointments, 0)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
             </Card>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-              <Card className="p-4">
-                <h2 className="text-xl font-bold mb-4">Agendamentos por Tosador</h2>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={appointmentChartData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar name={`Agendamentos (${months[selectedMonth]} ${selectedYear})`} dataKey="value" fill="#8884d8" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
-              
-              <Card className="p-4">
-                <h2 className="text-xl font-bold mb-4">Tipos de Serviço</h2>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={serviceChartData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar name={`Serviços (${months[selectedMonth]} ${selectedYear})`} dataKey="value" fill="#82ca9d" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="points">
             <Card className="p-4">
-              <h2 className="text-xl font-bold mb-4">Pontuação por Tosador</h2>
-              
-              <div className="mb-6 h-[300px]">
+              <h2 className="text-xl font-bold mb-4">Tipos de Serviço</h2>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={serviceChartData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar name={`Serviços (${months[selectedMonth]} ${selectedYear})`} dataKey="value" fill="#82ca9d" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="points">
+          <Card className="p-4">
+            <h2 className="text-xl font-bold mb-4">Pontuação por Tosador</h2>
+            
+            <div className="mb-6 h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={pointsChartData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar name={`Pontos (${months[selectedMonth]} ${selectedYear})`} dataKey="value" fill="#f59e0b" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-muted">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tosador</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total de Pontos</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serviços Realizados</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Média de Pontos/Serviço</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-card divide-y divide-gray-200">
+                  {groomerStats.length > 0 ? (
+                    groomerStats.map((groomer) => (
+                      <tr key={groomer.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{groomer.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.monthlyPoints}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.monthlyAppointments}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {groomer.monthlyAppointments > 0 ? (groomer.monthlyPoints / groomer.monthlyAppointments).toFixed(1) : 0}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
+                        Nenhum dado disponível para este período.
+                      </td>
+                    </tr>
+                  )}
+                  {groomerStats.length > 0 && (
+                    <tr className="bg-muted">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Total</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {groomerStats.reduce((sum, groomer) => sum + groomer.monthlyPoints, 0)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {groomerStats.reduce((sum, groomer) => sum + groomer.monthlyAppointments, 0)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          
+          <div className="grid grid-cols-1 gap-4 mt-4">
+            <Card className="p-4">
+              <h2 className="text-xl font-bold mb-4">Média de Pontos por Serviço</h2>
+              <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={pointsChartData}
@@ -315,81 +377,15 @@ const Reports: React.FC = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar name={`Pontos (${months[selectedMonth]} ${selectedYear})`} dataKey="value" fill="#f59e0b" />
+                    <Bar name={`Média de Pontos por Serviço (${months[selectedMonth]} ${selectedYear})`} dataKey="average" fill="#10b981" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tosador</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total de Pontos</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serviços Realizados</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Média de Pontos/Serviço</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {groomerStats.length > 0 ? (
-                      groomerStats.map((groomer) => (
-                        <tr key={groomer.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{groomer.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.monthlyPoints}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{groomer.monthlyAppointments}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {groomer.monthlyAppointments > 0 ? (groomer.monthlyPoints / groomer.monthlyAppointments).toFixed(1) : 0}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
-                          Nenhum dado disponível para este período.
-                        </td>
-                      </tr>
-                    )}
-                    {groomerStats.length > 0 && (
-                      <tr className="bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Total</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {groomerStats.reduce((sum, groomer) => sum + groomer.monthlyPoints, 0)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {groomerStats.reduce((sum, groomer) => sum + groomer.monthlyAppointments, 0)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
             </Card>
-            
-            <div className="grid grid-cols-1 gap-4 mt-4">
-              <Card className="p-4">
-                <h2 className="text-xl font-bold mb-4">Média de Pontos por Serviço</h2>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={pointsChartData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar name={`Média de Pontos por Serviço (${months[selectedMonth]} ${selectedYear})`} dataKey="average" fill="#10b981" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </Layout>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
