@@ -11,6 +11,7 @@ O **Furry Friends Agenda** é uma plataforma completa de gestão para pet shops,
 ### 🏗️ Arquitetura e Design
 
 - **[🏛️ Arquitetura do Sistema](ARCHITECTURE.md)** - Visão completa da arquitetura, componentes e padrões
+- **[🏢 Arquitetura Multi-Tenancy](MULTI-TENANCY.md)** - Sistema multi-tenant e isolamento de dados
 - **[🔌 Sistema de Plugins](plugins.md)** - Como funciona o sistema de extensibilidade
 - **[🔒 Segurança](SECURITY.md)** - Políticas e práticas de segurança
 
