@@ -50,6 +50,7 @@ export class AuthService {
       username: fullUser.email,
       sub: fullUser.id,
       role: fullUser.role,
+      companyId: fullUser.companyId,
     };
     console.log('BACKEND: Gerando token com payload:', payload);
     return {
@@ -71,7 +72,10 @@ export class AuthService {
         email: registerDto.email,
         password: registerDto.password,
         name: registerDto.name,
-        role: registerDto.role || UserRole.USER,
+        role: registerDto.role || UserRole.EMPLOYEE,
+        company: {
+          connect: { id: registerDto.companyId || 'default-company-id' },
+        },
       });
       const { password: _password, ...result } = newUser;
       return result;

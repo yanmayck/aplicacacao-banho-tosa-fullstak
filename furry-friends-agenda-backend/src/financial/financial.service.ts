@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -33,15 +34,20 @@ import {
   FinancialReportData,
   FinancialSummary,
 } from '../types/financial.types';
+import { BaseService } from '../common/base.service';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @Injectable()
-export class FinancialService {
-  constructor(private prisma: PrismaService) {}
+export class FinancialService extends BaseService {
+  constructor(protected prisma: PrismaService) {
+    super(prisma);
+  }
 
   // ========== GESTÃO DE TRANSAÇÕES ==========
 
   async createTransaction(
     createTransactionDto: CreateTransactionDto,
+    user: JwtPayload,
   ): Promise<Transaction> {
     const {
       type,
@@ -104,7 +110,7 @@ export class FinancialService {
       }
     }
 
-    const transactionData: Prisma.TransactionCreateInput = {
+    const transactionData = this.applyCompanyFilterToCreate({
       type,
       amount,
       description,
@@ -121,7 +127,7 @@ export class FinancialService {
       CashRegister: cashRegisterId
         ? { connect: { id: cashRegisterId } }
         : undefined,
-    };
+    }, user, 'Transaction') as any;
 
     return this.prisma.transaction.create({
       data: transactionData,
@@ -140,14 +146,14 @@ export class FinancialService {
     });
   }
 
-  async findAllTransactions(filters?: {
+  async findAllTransactions(user: JwtPayload, filters?: {
     type?: TransactionType;
     startDate?: Date;
     endDate?: Date;
     categoryId?: string;
     groomerId?: string;
   }): Promise<Transaction[]> {
-    const where: Prisma.TransactionWhereInput = {};
+    const where: Prisma.TransactionWhereInput = this.applyCompanyFilter({}, user, 'Transaction');
 
     if (filters?.type) where.type = filters.type;
     if (filters?.categoryId) where.categoryId = filters.categoryId;
@@ -177,7 +183,7 @@ export class FinancialService {
     });
   }
 
-  async findTransactionById(id: string): Promise<Transaction> {
+  async findTransactionById(id: string, user: JwtPayload): Promise<Transaction> {
     const transaction = await this.prisma.transaction.findUnique({
       where: { id },
       include: {
@@ -198,14 +204,21 @@ export class FinancialService {
       throw new NotFoundException(`Transação com ID "${id}" não encontrada`);
     }
 
+    // Verificar se a transação pertence à empresa do usuário
+    const companyFilter = this.getCompanyFilter(user);
+    if ('companyId' in companyFilter && transaction.companyId !== companyFilter.companyId) {
+      throw new NotFoundException(`Transação com ID "${id}" não encontrada`);
+    }
+
     return transaction;
   }
 
   async updateTransaction(
     id: string,
     updateTransactionDto: UpdateTransactionDto,
+    user: JwtPayload,
   ): Promise<Transaction> {
-    await this.findTransactionById(id);
+    await this.findTransactionById(id, user);
 
     const dataToUpdate: TransactionUpdateData = {};
 
@@ -283,8 +296,8 @@ export class FinancialService {
     });
   }
 
-  async deleteTransaction(id: string): Promise<Transaction> {
-    await this.findTransactionById(id);
+  async deleteTransaction(id: string, user: JwtPayload): Promise<Transaction> {
+    await this.findTransactionById(id, user);
     return this.prisma.transaction.delete({
       where: { id },
     });
@@ -294,6 +307,7 @@ export class FinancialService {
 
   async createCategory(
     createCategoryDto: CreateFinancialCategoryDto,
+    user: JwtPayload,
   ): Promise<FinancialCategory> {
     const { name, description, type, isActive = true } = createCategoryDto;
 
@@ -307,19 +321,26 @@ export class FinancialService {
       );
     }
 
+    const data = this.applyCompanyFilterToCreate({
+      name,
+      description,
+      type,
+      isActive,
+    }, user, 'FinancialCategory');
+
     return this.prisma.financialCategory.create({
-      data: {
-        name,
-        description,
-        type,
-        isActive,
-      },
+      data,
     });
   }
 
-  async findAllCategories(activeOnly = true): Promise<FinancialCategory[]> {
+  async findAllCategories(user: JwtPayload, activeOnly = true): Promise<FinancialCategory[]> {
+    const where = this.applyCompanyFilter(
+      activeOnly ? { isActive: true } : {},
+      user,
+      'FinancialCategory'
+    );
     return this.prisma.financialCategory.findMany({
-      where: activeOnly ? { isActive: true } : {},
+      where,
       orderBy: { name: 'asc' },
     });
   }
@@ -399,6 +420,7 @@ export class FinancialService {
 
   async createCashRegister(
     createCashRegisterDto: CreateCashRegisterDto,
+    user: JwtPayload,
   ): Promise<CashRegister> {
     const { date, openingBalance = 0, notes } = createCashRegisterDto;
 
@@ -413,12 +435,14 @@ export class FinancialService {
       throw new ConflictException(`Caixa para a data ${date} já existe`);
     }
 
+    const data = this.applyCompanyFilterToCreate({
+      date: registerDate,
+      openingBalance,
+      notes,
+    }, user, 'CashRegister');
+
     return this.prisma.cashRegister.create({
-      data: {
-        date: registerDate,
-        openingBalance,
-        notes,
-      },
+      data,
     });
   }
 
@@ -646,6 +670,7 @@ export class FinancialService {
 
   async createAutomaticIncomeFromAppointment(
     appointmentId: string,
+    user: JwtPayload,
   ): Promise<Transaction> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
@@ -665,6 +690,12 @@ export class FinancialService {
       throw new NotFoundException(
         `Agendamento com ID "${appointmentId}" não encontrado`,
       );
+    }
+
+    // Verificar se o agendamento pertence à empresa do usuário
+    const companyFilter = this.getCompanyFilter(user);
+    if ('companyId' in companyFilter && appointment.companyId !== companyFilter.companyId) {
+      throw new ForbiddenException('Appointment belongs to another company');
     }
 
     if (appointment.status !== 'COMPLETED') {
@@ -699,20 +730,22 @@ export class FinancialService {
       );
     }
 
+    const data = this.applyCompanyFilterToCreate({
+      type: TransactionType.INCOME,
+      amount: appointment.totalPrice,
+      description: `Serviço - ${appointment.pet.name} (${appointment.appointmentServices.map((s) => s.service.name).join(', ')})`,
+      date: appointment.dateTime,
+      category: { connect: { id: serviceCategory.id } },
+      appointment: { connect: { id: appointmentId } },
+      groomer: appointment.groomer
+        ? { connect: { id: appointment.groomer.id } }
+        : undefined,
+      paymentMethod: 'Dinheiro', // Pode ser ajustado conforme necessidade
+      isCashRegisterClosed: false,
+    }, user, 'Transaction') as any;
+
     return this.prisma.transaction.create({
-      data: {
-        type: TransactionType.INCOME,
-        amount: appointment.totalPrice,
-        description: `Serviço - ${appointment.pet.name} (${appointment.appointmentServices.map((s) => s.service.name).join(', ')})`,
-        date: appointment.dateTime,
-        category: { connect: { id: serviceCategory.id } },
-        appointment: { connect: { id: appointmentId } },
-        groomer: appointment.groomer
-          ? { connect: { id: appointment.groomer.id } }
-          : undefined,
-        paymentMethod: 'Dinheiro', // Pode ser ajustado conforme necessidade
-        isCashRegisterClosed: false,
-      },
+      data,
       include: {
         category: true,
         appointment: true,

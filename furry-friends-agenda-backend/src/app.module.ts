@@ -35,6 +35,7 @@ import { ProductCategoriesModule } from './product-categories/product-categories
 import { StockMovementsModule } from './stock-movements/stock-movements.module';
 import { BackupModule } from './backup/backup.module';
 import { AuditModule } from './audit/audit.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { AuditModule } from './audit/audit.module';
     StockMovementsModule,
     BackupModule,
     AuditModule,
+    AdminModule,
   ],
   controllers: [
     AppController,

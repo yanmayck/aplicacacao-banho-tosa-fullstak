@@ -4,6 +4,7 @@ export interface AuthPayload {
   sub: string;
   username: string;
   role: UserRole;
+  companyId: string;
 }
 
 export interface LoginResponse {

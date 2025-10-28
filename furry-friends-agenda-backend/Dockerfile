@@ -18,8 +18,12 @@ RUN npm install
 # Copiar o restante do código-fonte (será sobreposto pelo volume no docker-compose, mas é bom ter para consistência)
 COPY . .
 
+# Copiar entrypoint script e torná-lo executável
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 # Comando para iniciar em modo de desenvolvimento com hot-reload
-CMD ["npm", "run", "start:dev"]
+CMD ["./docker-entrypoint.sh", "npm", "run", "start:dev"]
 
 
 # ---- Estágio de Build ----

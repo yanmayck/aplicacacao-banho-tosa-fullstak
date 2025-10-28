@@ -13,11 +13,16 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  role      UserRole @default(USER) // Alterado de roles String[]
+  id       String   @id @default(cuid())
+  email    String   @unique
+  password String
+  name     String?
+  role     UserRole @default(EMPLOYEE) // Alterado de roles String[]
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   // Relação com Client (um User pode ser um Client)
@@ -37,10 +42,104 @@ model User {
   auditAlerts AuditAlert[]
 }
 
-// Novo Enum UserRole (como no frontend)
+// Novo Enum UserRole com roles granulares para multi-tenancy
 enum UserRole {
-  USER
-  ADMIN
+  SUPER_ADMIN
+  COMPANY_ADMIN
+  MANAGER
+  EMPLOYEE
+  GROOMER
+}
+
+// Modelo Company para multi-tenancy
+model Company {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique // Para URLs amigáveis
+  description String?
+  logo        String? // URL do logo
+  website     String?
+  phone       String?
+  email       String?
+  address     String?
+
+  // Configurações da empresa
+  settings Json? // Configurações específicas da empresa
+
+  // Status
+  isActive Boolean @default(true)
+
+  // Relacionamentos
+  users                   User[]
+  clients                 Client[]
+  pets                    Pet[]
+  groomers                Groomer[]
+  appointments            Appointment[]
+  services                ServicePackage[]
+  packages                Package[]
+  products                Product[]
+  categories              ProductCategory[]
+  suppliers               Supplier[]
+  transactions            Transaction[]
+  cashRegisters           CashRegister[]
+  commissions             Commission[]
+  reviews                 Review[]
+  loyaltyPoints           LoyaltyPoint[]
+  notifications           Notification[]
+  notificationTemplates   NotificationTemplate[]
+  notificationPreferences NotificationPreference[]
+  notificationQueues      NotificationQueue[]
+  notificationLogs        NotificationLog[]
+  stockMovements          StockMovement[]
+  stockAlerts             StockAlert[]
+  purchaseOrders          PurchaseOrder[]
+  inventoryReports        InventoryReport[]
+  financialReports        FinancialReport[]
+  auditLogs               AuditLog[]
+  auditFilters            AuditFilter[]
+  auditAlerts             AuditAlert[]
+  auditReports            AuditReport[]
+  plugins                 Plugin[]
+  pluginLogs              PluginLog[]
+  publicPortal            PublicPortal?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([slug])
+}
+
+// Modelo PublicPortal para portal público da empresa
+model PublicPortal {
+  id        String  @id @default(cuid())
+  companyId String  @unique
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Configurações do portal
+  isEnabled Boolean @default(false)
+  theme     Json? // Configurações de tema
+  customCss String? // CSS personalizado
+  customJs  String? // JavaScript personalizado
+
+  // Funcionalidades habilitadas
+  features Json? // { "services": true, "appointments": true, "reviews": true }
+
+  // SEO e metadados
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+
+  // Configurações de contato
+  contactInfo Json? // Informações de contato customizadas
+
+  // Estatísticas
+  viewCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isEnabled])
 }
 
 // Novo Modelo Client (como no frontend)
@@ -82,6 +181,10 @@ model Client {
   // Opcional: se um cliente está associado a uma conta de usuário do sistema
   userId String? @unique
   user   User?   @relation(fields: [userId], references: [id])
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 }
 
 model Pet {
@@ -103,6 +206,8 @@ model Pet {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 }
 
 // Novo Modelo Groomer (como no frontend)
@@ -141,6 +246,8 @@ model Groomer {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 }
 
 model Package {
@@ -154,6 +261,8 @@ model Package {
   pickupPrice       Float
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  Company           Company? @relation(fields: [companyId], references: [id])
+  companyId         String?
 }
 
 // Renomeado de ServiceType para Service e ajustado (como no frontend)
@@ -167,6 +276,8 @@ model ServicePackage {
   serviceProducts     ServiceProduct[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  Company             Company?             @relation(fields: [companyId], references: [id])
+  companyId           String?
 }
 
 model Appointment {
@@ -211,6 +322,10 @@ model Appointment {
   // Removida relação direta com ServiceType:
   // serviceType         ServiceType @relation(fields: [serviceTypeId], references: [id])
   // serviceTypeId       String
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 }
 
 // Novo: Tabela de junção para Appointment e Service (como no frontend)
@@ -312,6 +427,10 @@ model Transaction {
   updatedAt    DateTime      @updatedAt
   CashRegister CashRegister? @relation(fields: [cashRegisterId], references: [id])
 
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
   // Índices para performance
   @@index([date])
   @@index([type, date])
@@ -337,6 +456,8 @@ model CashRegister {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 }
 
 // Modelo para comissões dos tosadores
@@ -361,6 +482,10 @@ model Commission {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 
   @@index([groomerId, paymentPeriod])
   @@index([isPaid])
@@ -390,6 +515,10 @@ model Review {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
   @@index([clientId])
   @@index([appointmentId])
   @@index([groomerId])
@@ -412,6 +541,10 @@ model LoyaltyPoint {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 }
 
 // Modelo para templates de notificações
@@ -439,6 +572,10 @@ model NotificationTemplate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
   @@index([type, channel])
   @@index([isActive])
 }
@@ -459,6 +596,10 @@ model NotificationPreference {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 }
 
 // Modelo para filas de notificações
@@ -506,6 +647,10 @@ model NotificationQueue {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
   @@index([status, scheduledFor])
   @@index([clientId])
   @@index([groomerId])
@@ -549,6 +694,8 @@ model NotificationLog {
   webhookData Json?
 
   createdAt DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 
   @@index([status, createdAt])
   @@index([clientId, createdAt])
@@ -589,6 +736,10 @@ model Notification {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 
   @@index([clientId, isRead, createdAt])
   @@index([groomerId, isRead, createdAt])
@@ -674,6 +825,10 @@ model ProductCategory {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 }
 
 // Modelo para fornecedores
@@ -695,6 +850,10 @@ model Supplier {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 }
 
 // Modelo principal de produtos
@@ -750,6 +909,8 @@ model Product {
 
   // Itens de pedidos de compra do produto
   purchaseOrderItems PurchaseOrderItem[]
+  Company            Company?            @relation(fields: [companyId], references: [id])
+  companyId          String?
 
   // Índices para performance
   @@index([categoryId])
@@ -809,6 +970,8 @@ model StockMovement {
 
   createdAt DateTime @default(now())
   createdBy String? // User ID que fez a movimentação
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 
   // Índices para performance
   @@index([productId, createdAt])
@@ -839,6 +1002,10 @@ model StockAlert {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 
   @@index([productId])
   @@index([type, isRead])
@@ -882,6 +1049,8 @@ model PurchaseOrder {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 
   @@index([supplierId])
   @@index([status, orderDate])
@@ -942,6 +1111,8 @@ model InventoryReport {
 
   generatedAt DateTime @default(now())
   generatedBy String? // User ID que gerou o relatório
+  Company     Company? @relation(fields: [companyId], references: [id])
+  companyId   String?
 
   @@index([type, startDate])
   @@index([generatedAt])
@@ -968,6 +1139,8 @@ model FinancialReport {
 
   generatedAt DateTime @default(now())
   generatedBy String? // User ID que gerou o relatório
+  Company     Company? @relation(fields: [companyId], references: [id])
+  companyId   String?
 
   @@index([type, startDate])
   @@index([generatedAt])
@@ -1056,6 +1229,8 @@ model AuditLog {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 
   @@index([timestamp])
   @@index([userId, timestamp])
@@ -1141,6 +1316,8 @@ model AuditFilter {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 
   @@index([userId])
   @@index([isPublic])
@@ -1173,6 +1350,8 @@ model AuditAlert {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 }
 
 // Modelo para triggers de alertas
@@ -1222,6 +1401,8 @@ model AuditReport {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 
   @@index([generatedAt])
   @@index([generatedBy])
@@ -1266,6 +1447,8 @@ model Plugin {
   // Relacionamentos
   hooks     PluginHook[]
   PluginLog PluginLog[]
+  Company   Company?     @relation(fields: [companyId], references: [id])
+  companyId String
 
   // Índices
   @@index([isActive])
@@ -1307,6 +1490,8 @@ model PluginLog {
   data    Json? // Dados adicionais
 
   createdAt DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
 
   @@index([pluginId, createdAt])
   @@index([level])

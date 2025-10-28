@@ -22,12 +22,16 @@ import {
 } from './dto/report-response.dto';
 import { DateFilter, TypeFilter } from '../types/report.types';
 import { Transaction, Client, Appointment, Groomer } from '@prisma/client';
+import { BaseService } from '../common/base.service';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @Injectable()
-export class ReportsService {
-  constructor(private prisma: PrismaService) {}
+export class ReportsService extends BaseService {
+  constructor(protected prisma: PrismaService) {
+    super(prisma);
+  }
 
-  async generateReport(filters: ReportFiltersDto): Promise<ReportResponseDto> {
+  async generateReport(filters: ReportFiltersDto, user: JwtPayload): Promise<ReportResponseDto> {
     const startTime = Date.now();
 
     try {
@@ -43,6 +47,7 @@ export class ReportsService {
         case ReportType.FINANCIAL:
           reportData = await this.generateFinancialReport(
             filters as FinancialReportFiltersDto,
+            user,
           );
           break;
         case ReportType.GROOMER_PERFORMANCE:
@@ -96,6 +101,7 @@ export class ReportsService {
 
   private async generateFinancialReport(
     filters: FinancialReportFiltersDto,
+    user: JwtPayload,
   ): Promise<FinancialReportDto> {
     const { startDate, endDate, transactionType } = filters;
 
@@ -114,28 +120,33 @@ export class ReportsService {
     }
 
     // Get all transactions with filters
-    const transactions = await this.prisma.transaction.findMany({
-      where: {
-        ...(dateFilter as any),
-        ...(typeFilter as any),
-        isCashRegisterClosed: false,
-      },
-      include: {
-        category: true,
-        appointment: {
-          include: {
-            client: true,
-            groomer: true,
-            appointmentServices: {
-              include: {
-                service: true,
+    const transactions = await this.findManyWithCompanyFilter(
+      this.prisma.transaction,
+      {
+        where: {
+          ...(dateFilter as any),
+          ...(typeFilter as any),
+          isCashRegisterClosed: false,
+        },
+        include: {
+          category: true,
+          appointment: {
+            include: {
+              client: true,
+              groomer: true,
+              appointmentServices: {
+                include: {
+                  service: true,
+                },
               },
             },
           },
         },
+        orderBy: { date: 'asc' },
       },
-      orderBy: { date: 'asc' },
-    });
+      user,
+      'Transaction'
+    ) as Transaction[];
 
     // Calculate totals
     const totalIncome = transactions
