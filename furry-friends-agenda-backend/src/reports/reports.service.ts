@@ -31,7 +31,10 @@ export class ReportsService extends BaseService {
     super(prisma);
   }
 
-  async generateReport(filters: ReportFiltersDto, user: JwtPayload): Promise<ReportResponseDto> {
+  async generateReport(
+    filters: ReportFiltersDto,
+    user: JwtPayload,
+  ): Promise<ReportResponseDto> {
     const startTime = Date.now();
 
     try {
@@ -124,8 +127,8 @@ export class ReportsService extends BaseService {
       this.prisma.transaction,
       {
         where: {
-          ...(dateFilter as any),
-          ...(typeFilter as any),
+          ...dateFilter,
+          ...typeFilter,
           isCashRegisterClosed: false,
         },
         include: {
@@ -145,8 +148,8 @@ export class ReportsService extends BaseService {
         orderBy: { date: 'asc' },
       },
       user,
-      'Transaction'
-    ) as Transaction[];
+      'Transaction',
+    );
 
     // Calculate totals
     const totalIncome = transactions

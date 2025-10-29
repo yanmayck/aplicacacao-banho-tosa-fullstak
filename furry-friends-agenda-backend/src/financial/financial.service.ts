@@ -110,24 +110,28 @@ export class FinancialService extends BaseService {
       }
     }
 
-    const transactionData = this.applyCompanyFilterToCreate({
-      type,
-      amount,
-      description,
-      date: new Date(date),
-      category: { connect: { id: categoryId } },
-      appointment: appointmentId
-        ? { connect: { id: appointmentId } }
-        : undefined,
-      groomer: groomerId ? { connect: { id: groomerId } } : undefined,
-      paymentMethod,
-      notes,
-      receiptUrl,
-      isCashRegisterClosed: false,
-      CashRegister: cashRegisterId
-        ? { connect: { id: cashRegisterId } }
-        : undefined,
-    }, user, 'Transaction') as any;
+    const transactionData = this.applyCompanyFilterToCreate(
+      {
+        type,
+        amount,
+        description,
+        date: new Date(date),
+        category: { connect: { id: categoryId } },
+        appointment: appointmentId
+          ? { connect: { id: appointmentId } }
+          : undefined,
+        groomer: groomerId ? { connect: { id: groomerId } } : undefined,
+        paymentMethod,
+        notes,
+        receiptUrl,
+        isCashRegisterClosed: false,
+        CashRegister: cashRegisterId
+          ? { connect: { id: cashRegisterId } }
+          : undefined,
+      },
+      user,
+      'Transaction',
+    ) as any;
 
     return this.prisma.transaction.create({
       data: transactionData,
@@ -146,14 +150,21 @@ export class FinancialService extends BaseService {
     });
   }
 
-  async findAllTransactions(user: JwtPayload, filters?: {
-    type?: TransactionType;
-    startDate?: Date;
-    endDate?: Date;
-    categoryId?: string;
-    groomerId?: string;
-  }): Promise<Transaction[]> {
-    const where: Prisma.TransactionWhereInput = this.applyCompanyFilter({}, user, 'Transaction');
+  async findAllTransactions(
+    user: JwtPayload,
+    filters?: {
+      type?: TransactionType;
+      startDate?: Date;
+      endDate?: Date;
+      categoryId?: string;
+      groomerId?: string;
+    },
+  ): Promise<Transaction[]> {
+    const where: Prisma.TransactionWhereInput = this.applyCompanyFilter(
+      {},
+      user,
+      'Transaction',
+    );
 
     if (filters?.type) where.type = filters.type;
     if (filters?.categoryId) where.categoryId = filters.categoryId;
@@ -183,7 +194,10 @@ export class FinancialService extends BaseService {
     });
   }
 
-  async findTransactionById(id: string, user: JwtPayload): Promise<Transaction> {
+  async findTransactionById(
+    id: string,
+    user: JwtPayload,
+  ): Promise<Transaction> {
     const transaction = await this.prisma.transaction.findUnique({
       where: { id },
       include: {
@@ -206,7 +220,10 @@ export class FinancialService extends BaseService {
 
     // Verificar se a transação pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && transaction.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      transaction.companyId !== companyFilter.companyId
+    ) {
       throw new NotFoundException(`Transação com ID "${id}" não encontrada`);
     }
 
@@ -321,23 +338,30 @@ export class FinancialService extends BaseService {
       );
     }
 
-    const data = this.applyCompanyFilterToCreate({
-      name,
-      description,
-      type,
-      isActive,
-    }, user, 'FinancialCategory');
+    const data = this.applyCompanyFilterToCreate(
+      {
+        name,
+        description,
+        type,
+        isActive,
+      },
+      user,
+      'FinancialCategory',
+    );
 
     return this.prisma.financialCategory.create({
       data,
     });
   }
 
-  async findAllCategories(user: JwtPayload, activeOnly = true): Promise<FinancialCategory[]> {
+  async findAllCategories(
+    user: JwtPayload,
+    activeOnly = true,
+  ): Promise<FinancialCategory[]> {
     const where = this.applyCompanyFilter(
       activeOnly ? { isActive: true } : {},
       user,
-      'FinancialCategory'
+      'FinancialCategory',
     );
     return this.prisma.financialCategory.findMany({
       where,
@@ -435,11 +459,15 @@ export class FinancialService extends BaseService {
       throw new ConflictException(`Caixa para a data ${date} já existe`);
     }
 
-    const data = this.applyCompanyFilterToCreate({
-      date: registerDate,
-      openingBalance,
-      notes,
-    }, user, 'CashRegister');
+    const data = this.applyCompanyFilterToCreate(
+      {
+        date: registerDate,
+        openingBalance,
+        notes,
+      },
+      user,
+      'CashRegister',
+    );
 
     return this.prisma.cashRegister.create({
       data,
@@ -694,7 +722,10 @@ export class FinancialService extends BaseService {
 
     // Verificar se o agendamento pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && appointment.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      appointment.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Appointment belongs to another company');
     }
 
@@ -730,19 +761,23 @@ export class FinancialService extends BaseService {
       );
     }
 
-    const data = this.applyCompanyFilterToCreate({
-      type: TransactionType.INCOME,
-      amount: appointment.totalPrice,
-      description: `Serviço - ${appointment.pet.name} (${appointment.appointmentServices.map((s) => s.service.name).join(', ')})`,
-      date: appointment.dateTime,
-      category: { connect: { id: serviceCategory.id } },
-      appointment: { connect: { id: appointmentId } },
-      groomer: appointment.groomer
-        ? { connect: { id: appointment.groomer.id } }
-        : undefined,
-      paymentMethod: 'Dinheiro', // Pode ser ajustado conforme necessidade
-      isCashRegisterClosed: false,
-    }, user, 'Transaction') as any;
+    const data = this.applyCompanyFilterToCreate(
+      {
+        type: TransactionType.INCOME,
+        amount: appointment.totalPrice,
+        description: `Serviço - ${appointment.pet.name} (${appointment.appointmentServices.map((s) => s.service.name).join(', ')})`,
+        date: appointment.dateTime,
+        category: { connect: { id: serviceCategory.id } },
+        appointment: { connect: { id: appointmentId } },
+        groomer: appointment.groomer
+          ? { connect: { id: appointment.groomer.id } }
+          : undefined,
+        paymentMethod: 'Dinheiro', // Pode ser ajustado conforme necessidade
+        isCashRegisterClosed: false,
+      },
+      user,
+      'Transaction',
+    ) as any;
 
     return this.prisma.transaction.create({
       data,

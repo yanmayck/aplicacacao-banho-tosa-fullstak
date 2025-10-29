@@ -14,7 +14,7 @@ export class HookService {
   async executeHook(
     hookName: SystemHooks,
     data: HookData,
-    context: Partial<HookContext> = {}
+    context: Partial<HookContext> = {},
   ): Promise<any[]> {
     this.logger.debug(`Executando hook: ${hookName}`);
     return this.pluginRegistry.executeHook(hookName, data, context);
@@ -26,10 +26,13 @@ export class HookService {
   async executeHookSync(
     hookName: SystemHooks,
     data: HookData,
-    context: Partial<HookContext> = {}
+    context: Partial<HookContext> = {},
   ): Promise<any[]> {
     this.logger.debug(`Executando hook síncrono: ${hookName}`);
-    return this.pluginRegistry.executeHook(hookName, data, { ...context, cancellable: true });
+    return this.pluginRegistry.executeHook(hookName, data, {
+      ...context,
+      cancellable: true,
+    });
   }
 
   /**
@@ -52,7 +55,11 @@ export class HookService {
   /**
    * Hook para criação de entidade
    */
-  async onEntityCreated(entityType: string, entity: any, context?: Partial<HookContext>) {
+  async onEntityCreated(
+    entityType: string,
+    entity: any,
+    context?: Partial<HookContext>,
+  ) {
     const hookName = `${entityType}.created` as SystemHooks;
     return this.executeHook(hookName, { entity, entityType }, context);
   }
@@ -60,7 +67,12 @@ export class HookService {
   /**
    * Hook para atualização de entidade
    */
-  async onEntityUpdated(entityType: string, entity: any, changes: any, context?: Partial<HookContext>) {
+  async onEntityUpdated(
+    entityType: string,
+    entity: any,
+    changes: any,
+    context?: Partial<HookContext>,
+  ) {
     const hookName = `${entityType}.updated` as SystemHooks;
     return this.executeHook(hookName, { entity, entityType, changes }, context);
   }
@@ -68,7 +80,11 @@ export class HookService {
   /**
    * Hook para exclusão de entidade
    */
-  async onEntityDeleted(entityType: string, entityId: string, context?: Partial<HookContext>) {
+  async onEntityDeleted(
+    entityType: string,
+    entityId: string,
+    context?: Partial<HookContext>,
+  ) {
     const hookName = `${entityType}.deleted` as SystemHooks;
     return this.executeHook(hookName, { entityId, entityType }, context);
   }
@@ -76,7 +92,11 @@ export class HookService {
   /**
    * Hook para eventos de sistema
    */
-  async onSystemEvent(event: string, data: any, context?: Partial<HookContext>) {
+  async onSystemEvent(
+    event: string,
+    data: any,
+    context?: Partial<HookContext>,
+  ) {
     const hookName = `system.${event}` as SystemHooks;
     return this.executeHook(hookName, data, context);
   }
@@ -84,7 +104,11 @@ export class HookService {
   /**
    * Hook para eventos de negócio
    */
-  async onBusinessEvent(event: string, data: any, context?: Partial<HookContext>) {
+  async onBusinessEvent(
+    event: string,
+    data: any,
+    context?: Partial<HookContext>,
+  ) {
     const hookName = `business.${event}` as SystemHooks;
     return this.executeHook(hookName, data, context);
   }
@@ -95,21 +119,36 @@ export class HookService {
    * Hook executado quando um agendamento é criado
    */
   async onAppointmentCreated(appointment: any, context?: Partial<HookContext>) {
-    return this.executeHook(SystemHooks.APPOINTMENT_CREATED, { appointment }, context);
+    return this.executeHook(
+      SystemHooks.APPOINTMENT_CREATED,
+      { appointment },
+      context,
+    );
   }
 
   /**
    * Hook executado quando um agendamento é concluído
    */
-  async onAppointmentCompleted(appointment: any, context?: Partial<HookContext>) {
-    return this.executeHook(SystemHooks.APPOINTMENT_COMPLETED, { appointment }, context);
+  async onAppointmentCompleted(
+    appointment: any,
+    context?: Partial<HookContext>,
+  ) {
+    return this.executeHook(
+      SystemHooks.APPOINTMENT_COMPLETED,
+      { appointment },
+      context,
+    );
   }
 
   /**
    * Hook executado quando um pagamento é recebido
    */
   async onPaymentCompleted(payment: any, context?: Partial<HookContext>) {
-    return this.executeHook(SystemHooks.PAYMENT_COMPLETED, { payment }, context);
+    return this.executeHook(
+      SystemHooks.PAYMENT_COMPLETED,
+      { payment },
+      context,
+    );
   }
 
   /**
@@ -122,8 +161,15 @@ export class HookService {
   /**
    * Hook executado quando uma transação financeira é criada
    */
-  async onFinancialTransactionCreated(transaction: any, context?: Partial<HookContext>) {
-    return this.executeHook(SystemHooks.FINANCIAL_TRANSACTION_CREATED, { transaction }, context);
+  async onFinancialTransactionCreated(
+    transaction: any,
+    context?: Partial<HookContext>,
+  ) {
+    return this.executeHook(
+      SystemHooks.FINANCIAL_TRANSACTION_CREATED,
+      { transaction },
+      context,
+    );
   }
 
   /**

@@ -29,26 +29,29 @@ export class AuditController {
   // ========== LOGS DE AUDITORIA ==========
 
   @Post('logs')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   createLog(@Body() createLogDto: any, @Request() req: { user: JwtPayload }) {
     return this.auditService.createLog(createLogDto, req.user.userId);
   }
 
   @Get('logs')
-  @Roles(UserRole.ADMIN, UserRole.USER)
-  findAllLogs(@Query() query: AuditLogQueryDto) {
-    return this.auditService.findLogs(query);
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
+  findAllLogs(
+    @Query() query: AuditLogQueryDto,
+    @Request() req: { user: JwtPayload },
+  ) {
+    return this.auditService.findLogs(query, req.user);
   }
 
   @Get('logs/:id')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   findLogById(@Param('id', ParseUUIDPipe) id: string) {
     return this.auditService.findLogById(id);
   }
 
   @Get('logs/entity/:entityType/:entityId')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   getLogsByEntity(
     @Param('entityType') entityType: string,
     @Param('entityId') entityId: string,
@@ -57,13 +60,13 @@ export class AuditController {
   }
 
   @Get('logs/user/:userId')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   getLogsByUser(@Param('userId', ParseUUIDPipe) userId: string) {
     return this.auditService.getLogsByUser(userId);
   }
 
   @Get('logs/module/:module')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   getLogsByModule(
     @Param('module') module: string,
     @Query() filters?: AuditLogFiltersDto,
@@ -74,13 +77,13 @@ export class AuditController {
   // ========== ESTATÍSTICAS E RELATÓRIOS ==========
 
   @Get('statistics')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   getAuditStatistics(@Query() filters?: AuditLogFiltersDto) {
     return this.auditService.getAuditStatistics(filters || {});
   }
 
   @Get('reports')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   generateAuditReport(@Query() filters?: AuditLogFiltersDto) {
     return this.auditService.generateAuditReport(filters || {});
   }
@@ -88,13 +91,13 @@ export class AuditController {
   // ========== CONFIGURAÇÕES ==========
 
   @Get('config')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   getAuditConfig() {
     return this.auditService.getAuditConfig();
   }
 
   @Patch('config')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   updateAuditConfig(@Body() configData: any) {
     return this.auditService.updateAuditConfig(configData);
@@ -103,7 +106,7 @@ export class AuditController {
   // ========== FILTROS SALVOS ==========
 
   @Post('filters')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   saveFilter(
     @Body() filterData: { name: string; description?: string; filters: any },
@@ -113,48 +116,48 @@ export class AuditController {
       filterData.name,
       filterData.description || '',
       filterData.filters,
-      req.user.userId,
+      req.user,
     );
   }
 
   @Get('filters')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   getSavedFilters(@Request() req: { user: JwtPayload }) {
-    return this.auditService.getSavedFilters(req.user.userId);
+    return this.auditService.getSavedFilters(req.user);
   }
 
   @Get('filters/public')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   getPublicFilters() {
     return this.auditService.getSavedFilters();
   }
 
   @Delete('filters/:id')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   deleteSavedFilter(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: { user: JwtPayload },
   ) {
-    return this.auditService.deleteSavedFilter(id, req.user.userId);
+    return this.auditService.deleteSavedFilter(id, req.user);
   }
 
   // ========== ALERTAS ==========
 
   @Post('alerts')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   createAlert(@Body() alertData: any, @Request() req: { user: JwtPayload }) {
     return this.auditService.createAlert(alertData, req.user.userId);
   }
 
   @Get('alerts')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   getAlerts(@Request() req: { user: JwtPayload }) {
     return this.auditService.getAlerts(req.user.userId);
   }
 
   @Patch('alerts/:id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   updateAlert(
     @Param('id', ParseUUIDPipe) id: string,
@@ -165,7 +168,7 @@ export class AuditController {
   }
 
   @Delete('alerts/:id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   deleteAlert(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: { user: JwtPayload },
@@ -176,13 +179,13 @@ export class AuditController {
   // ========== MANUTENÇÃO ==========
 
   @Post('maintenance/archive')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   archiveOldLogs() {
     return this.auditService.archiveOldLogs();
   }
 
   @Post('maintenance/cleanup')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   cleanupOldLogs() {
     return this.auditService.deleteOldLogs();
   }

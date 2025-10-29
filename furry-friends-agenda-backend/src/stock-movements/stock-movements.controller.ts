@@ -25,7 +25,7 @@ export class StockMovementsController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   create(@Body() createStockMovementDto: CreateStockMovementDto) {
     return this.stockMovementsService.create(createStockMovementDto);
@@ -53,7 +53,7 @@ export class StockMovementsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -64,7 +64,7 @@ export class StockMovementsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.stockMovementsService.remove(id);
   }

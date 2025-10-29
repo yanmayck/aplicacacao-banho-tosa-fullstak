@@ -4,6 +4,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BaseService } from '../common/base.service';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import {
   AuditLog,
   AuditSeverity,
@@ -26,8 +28,10 @@ import {
 } from '../types/audit.types';
 
 @Injectable()
-export class AuditService {
-  constructor(private prisma: PrismaService) {}
+export class AuditService extends BaseService {
+  constructor(protected prisma: PrismaService) {
+    super(prisma);
+  }
 
   // ========== GESTÃO DE LOGS DE AUDITORIA ==========
 
@@ -35,6 +39,7 @@ export class AuditService {
     createLogDto: CreateAuditLogDto,
     userId?: string,
     clientId?: string,
+    user?: JwtPayload,
   ): Promise<AuditLog> {
     const startTime = Date.now();
 
@@ -42,9 +47,10 @@ export class AuditService {
       const log = await this.prisma.auditLog.create({
         data: {
           ...createLogDto,
-          userId,
-          clientId,
+          userId: userId || undefined,
+          clientId: clientId || undefined,
           executionTime: Date.now() - startTime,
+          companyId: user?.companyId,
         },
         include: {
           user: {
@@ -76,7 +82,10 @@ export class AuditService {
     }
   }
 
-  async findLogs(query: AuditLogQueryDto): Promise<{
+  async findLogs(
+    query: AuditLogQueryDto,
+    user: JwtPayload,
+  ): Promise<{
     logs: AuditLog[];
     total: number;
     page: number;
@@ -95,11 +104,13 @@ export class AuditService {
 
     // Construir filtros WHERE
     const where = this.buildWhereClause(filters);
+    // Aplicar filtro de empresa
+    const whereWithCompany = this.applyCompanyFilter(where, user, 'AuditLog');
 
     // Buscar logs com paginação
     const [logs, total] = await Promise.all([
       this.prisma.auditLog.findMany({
-        where,
+        where: whereWithCompany,
         include: {
           user: {
             select: {
@@ -122,7 +133,7 @@ export class AuditService {
         skip,
         take: limit,
       }),
-      this.prisma.auditLog.count({ where }),
+      this.prisma.auditLog.count({ where: whereWithCompany }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -445,23 +456,32 @@ export class AuditService {
     name: string,
     description: string,
     filters: AuditFilterData['filters'],
-    userId: string,
+    user: JwtPayload,
   ): Promise<AuditFilter> {
-    return this.prisma.auditFilter.create({
-      data: {
+    const data = this.applyCompanyFilterToCreate(
+      {
         name,
         description,
         filters,
-        userId,
+        userId: user.userId,
       },
+      user,
+      'AuditFilter',
+    );
+    return this.prisma.auditFilter.create({
+      data,
     });
   }
 
-  async getSavedFilters(userId?: string): Promise<AuditFilter[]> {
-    const where: Prisma.AuditFilterWhereInput = {};
+  async getSavedFilters(user: JwtPayload): Promise<AuditFilter[]> {
+    const where: Prisma.AuditFilterWhereInput = this.applyCompanyFilter(
+      {},
+      user,
+      'AuditFilter',
+    );
 
-    if (userId) {
-      where.OR = [{ userId }, { isPublic: true }];
+    if (user.role !== 'SUPER_ADMIN') {
+      where.OR = [{ userId: user.userId }, { isPublic: true }];
     } else {
       where.isPublic = true;
     }
@@ -474,12 +494,16 @@ export class AuditService {
     });
   }
 
-  async deleteSavedFilter(id: string, userId: string): Promise<AuditFilter> {
+  async deleteSavedFilter(id: string, user: JwtPayload): Promise<AuditFilter> {
     const filter = await this.prisma.auditFilter.findFirst({
-      where: {
-        id,
-        userId,
-      },
+      where: this.applyCompanyFilter(
+        {
+          id,
+          userId: user.userId,
+        },
+        user,
+        'AuditFilter',
+      ),
     });
 
     if (!filter) {
@@ -495,23 +519,32 @@ export class AuditService {
 
   async createAlert(
     alertData: AuditAlertData,
-    userId: string,
+    user: JwtPayload,
   ): Promise<AuditAlert> {
-    return this.prisma.auditAlert.create({
-      data: {
+    const data = this.applyCompanyFilterToCreate(
+      {
         ...(alertData as any),
-        createdBy: userId,
+        createdBy: user.userId,
       },
+      user,
+      'AuditAlert',
+    );
+    return this.prisma.auditAlert.create({
+      data,
     });
   }
 
-  async getAlerts(userId?: string): Promise<AuditAlert[]> {
-    const where: Prisma.AuditAlertWhereInput = {};
+  async getAlerts(user: JwtPayload): Promise<AuditAlert[]> {
+    const where: Prisma.AuditAlertWhereInput = this.applyCompanyFilter(
+      {},
+      user,
+      'AuditAlert',
+    );
 
-    if (userId) {
+    if (user.role !== 'SUPER_ADMIN') {
       where.OR = [
-        { createdBy: userId },
-        { notifyUsers: { has: userId } as any },
+        { createdBy: user.userId },
+        { notifyUsers: { has: user.userId } as any },
       ];
     }
 
@@ -533,13 +566,17 @@ export class AuditService {
   async updateAlert(
     id: string,
     alertData: AuditAlertData,
-    userId: string,
+    user: JwtPayload,
   ): Promise<AuditAlert> {
     const alert = await this.prisma.auditAlert.findFirst({
-      where: {
-        id,
-        createdBy: userId,
-      },
+      where: this.applyCompanyFilter(
+        {
+          id,
+          createdBy: user.userId,
+        },
+        user,
+        'AuditAlert',
+      ),
     });
 
     if (!alert) {
@@ -552,12 +589,16 @@ export class AuditService {
     });
   }
 
-  async deleteAlert(id: string, userId: string): Promise<AuditAlert> {
+  async deleteAlert(id: string, user: JwtPayload): Promise<AuditAlert> {
     const alert = await this.prisma.auditAlert.findFirst({
-      where: {
-        id,
-        createdBy: userId,
-      },
+      where: this.applyCompanyFilter(
+        {
+          id,
+          createdBy: user.userId,
+        },
+        user,
+        'AuditAlert',
+      ),
     });
 
     if (!alert) {

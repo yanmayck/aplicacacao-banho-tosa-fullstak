@@ -6,7 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Badge } from '../ui/badge';
-import { Calendar, Download, Filter, TrendingUp, Users, DollarSign, Activity, BarChart3 } from 'lucide-react';
+import { Calendar, Download, Filter, TrendingUp, Users, DollarSign, Activity, BarChart3, FileText, PieChart, Target, Clock } from 'lucide-react';
 import { useReports, ReportFilters } from '../../context/reports/ReportsContext';
 import { FinancialReportView } from './FinancialReportView';
 import { GroomerPerformanceView } from './GroomerPerformanceView';
@@ -21,12 +21,15 @@ export function ReportsDashboard() {
   const [activeTab, setActiveTab] = useState('financial');
 
   const reportTypes = [
-    { value: 'financial', label: 'Relatório Financeiro', icon: DollarSign },
-    { value: 'groomer_performance', label: 'Performance de Tosadores', icon: Users },
-    { value: 'client_analysis', label: 'Análise de Clientes', icon: TrendingUp },
-    { value: 'service_ranking', label: 'Ranking de Serviços', icon: BarChart3 },
-    { value: 'occupancy_metrics', label: 'Métricas de Ocupação', icon: Activity },
-    { value: 'appointment_analysis', label: 'Análise de Agendamentos', icon: Calendar },
+    { value: 'financial', label: 'Relatório Financeiro', icon: DollarSign, description: 'Análise completa de receitas, despesas e lucros' },
+    { value: 'groomer_performance', label: 'Performance de Tosadores', icon: Users, description: 'Avaliação de produtividade e comissões' },
+    { value: 'client_analysis', label: 'Análise de Clientes', icon: TrendingUp, description: 'Comportamento e retenção de clientes' },
+    { value: 'service_ranking', label: 'Ranking de Serviços', icon: BarChart3, description: 'Serviços mais populares e rentáveis' },
+    { value: 'occupancy_metrics', label: 'Métricas de Ocupação', icon: Activity, description: 'Utilização da capacidade do estabelecimento' },
+    { value: 'appointment_analysis', label: 'Análise de Agendamentos', icon: Calendar, description: 'Padrões de agendamento e cancelamentos' },
+    { value: 'cash_flow', label: 'Fluxo de Caixa', icon: PieChart, description: 'Controle detalhado de entradas e saídas' },
+    { value: 'productivity', label: 'Produtividade', icon: Target, description: 'Métricas de eficiência operacional' },
+    { value: 'time_analysis', label: 'Análise Temporal', icon: Clock, description: 'Tendências ao longo do tempo' },
   ];
 
   const handleGenerateReport = async (reportType: string) => {
@@ -97,18 +100,25 @@ export function ReportsDashboard() {
                 <Card
                   key={reportType.value}
                   className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleGenerateReport(reportType.value)}
                 >
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3">
                       <div className="p-2 bg-primary/10 rounded-lg">
                         <Icon className="w-5 h-5 text-primary" />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-medium">{reportType.label}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Clique para gerar
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {reportType.description}
                         </p>
+                        <Button
+                          size="sm"
+                          onClick={() => handleGenerateReport(reportType.value)}
+                          className="w-full"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Gerar Relatório
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -128,10 +138,10 @@ export function ReportsDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="space-y-2">
               <Label htmlFor="period">Período</Label>
-              <Select onValueChange={(value) => updateFilters({ period: value as ReportFilters['period'] })}>
+              <Select onValueChange={(value) => updateFilters({ period: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecionar período" />
                 </SelectTrigger>
@@ -165,19 +175,51 @@ export function ReportsDashboard() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reportType">Tipo de Relatório</Label>
-              <Select onValueChange={(value) => updateFilters({ type: value as ReportFilters['type'] })}>
+              <Label htmlFor="groomer">Tosador</Label>
+              <Select onValueChange={(value) => updateFilters({ groomerId: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecionar tipo" />
+                  <SelectValue placeholder="Todos os tosadores" />
                 </SelectTrigger>
                 <SelectContent>
-                  {reportTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="">Todos os tosadores</SelectItem>
+                  {/* TODO: Add groomer options */}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Categoria</Label>
+              <Select onValueChange={(value) => updateFilters({ categoryId: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas as categorias" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas as categorias</SelectItem>
+                  {/* TODO: Add category options */}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Filtros Avançados */}
+          <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="includeCancelled" className="rounded" />
+                <Label htmlFor="includeCancelled" className="text-sm">Incluir cancelados</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="groupByGroomer" className="rounded" />
+                <Label htmlFor="groupByGroomer" className="text-sm">Agrupar por tosador</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="showDetails" className="rounded" />
+                <Label htmlFor="showDetails" className="text-sm">Mostrar detalhes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="exportReady" className="rounded" />
+                <Label htmlFor="exportReady" className="text-sm">Pronto para exportação</Label>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -208,13 +250,16 @@ export function ReportsDashboard() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-9">
                 <TabsTrigger value="financial">Financeiro</TabsTrigger>
                 <TabsTrigger value="groomers">Tosadores</TabsTrigger>
                 <TabsTrigger value="clients">Clientes</TabsTrigger>
                 <TabsTrigger value="services">Serviços</TabsTrigger>
                 <TabsTrigger value="occupancy">Ocupação</TabsTrigger>
                 <TabsTrigger value="appointments">Agendamentos</TabsTrigger>
+                <TabsTrigger value="cash_flow">Fluxo de Caixa</TabsTrigger>
+                <TabsTrigger value="productivity">Produtividade</TabsTrigger>
+                <TabsTrigger value="time_analysis">Temporal</TabsTrigger>
               </TabsList>
 
               <TabsContent value="financial" className="mt-6">
@@ -239,6 +284,30 @@ export function ReportsDashboard() {
 
               <TabsContent value="appointments" className="mt-6">
                 <AppointmentAnalysisView data={state.currentReport?.data} />
+              </TabsContent>
+
+              <TabsContent value="cash_flow" className="mt-6">
+                <div className="text-center py-8 text-muted-foreground">
+                  <PieChart className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Relatório de Fluxo de Caixa em desenvolvimento</p>
+                  <p className="text-sm">Análise detalhada de entradas e saídas por período</p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="productivity" className="mt-6">
+                <div className="text-center py-8 text-muted-foreground">
+                  <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Métricas de Produtividade em desenvolvimento</p>
+                  <p className="text-sm">Indicadores de eficiência operacional e performance</p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="time_analysis" className="mt-6">
+                <div className="text-center py-8 text-muted-foreground">
+                  <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Análise Temporal em desenvolvimento</p>
+                  <p className="text-sm">Tendências e padrões ao longo do tempo</p>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>

@@ -2,7 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PetsService } from './pets.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
-import { Pet, Client } from '@prisma/client';
+import { Pet, Client, UserRole } from '@prisma/client';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 const mockPrismaService = {
   pet: {
@@ -26,6 +27,7 @@ const mockClient: Client = {
   address: null,
   createdAt: new Date(),
   updatedAt: new Date(),
+  companyId: 'company-uuid',
 };
 
 const mockPet: Pet = {
@@ -42,6 +44,21 @@ const mockPet: Pet = {
   vaccineHistory: [],
   createdAt: new Date(),
   updatedAt: new Date(),
+  companyId: 'company-uuid',
+};
+
+const mockUser: JwtPayload = {
+  userId: 'user-uuid',
+  username: 'testuser',
+  role: UserRole.COMPANY_ADMIN,
+  companyId: 'company-uuid',
+};
+
+const mockSuperAdmin: JwtPayload = {
+  userId: 'super-uuid',
+  username: 'superadmin',
+  role: UserRole.SUPER_ADMIN,
+  companyId: 'super-company-uuid',
 };
 
 describe('PetsService', () => {
@@ -69,7 +86,7 @@ describe('PetsService', () => {
   });
 
   describe('create', () => {
-    it('should create a pet for a valid client', async () => {
+    it('should create a pet for a valid client in same company', async () => {
       prisma.client.findUnique.mockResolvedValue(mockClient);
       prisma.pet.create.mockResolvedValue(mockPet);
       const createDto = {
@@ -78,10 +95,11 @@ describe('PetsService', () => {
         clientId: 'client-uuid',
       };
 
-      const result = await service.create(createDto, 'user-uuid');
+      const result = await service.create(createDto, mockUser);
 
       expect(prisma.client.findUnique).toHaveBeenCalledWith({
-        where: { userId: 'user-uuid' },
+        where: { id: 'client-uuid' },
+        select: { id: true, companyId: true },
       });
       expect(prisma.pet.create).toHaveBeenCalled();
       expect(result).toEqual(mockPet);
@@ -95,31 +113,92 @@ describe('PetsService', () => {
         clientId: 'client-uuid',
       };
 
-      await expect(
-        service.create(createDto, 'non-existent-user-uuid'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.create(createDto, mockUser)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw ForbiddenException if client belongs to different company', async () => {
+      const otherCompanyClient = { ...mockClient, companyId: 'other-company' };
+      prisma.client.findUnique.mockResolvedValue(otherCompanyClient);
+      const createDto = {
+        name: 'Fido',
+        species: 'Dog',
+        clientId: 'client-uuid',
+      };
+
+      await expect(service.create(createDto, mockUser)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should allow SUPER_ADMIN to create pet for any client', async () => {
+      const otherCompanyClient = { ...mockClient, companyId: 'other-company' };
+      prisma.client.findUnique.mockResolvedValue(otherCompanyClient);
+      prisma.pet.create.mockResolvedValue({
+        ...mockPet,
+        companyId: 'other-company',
+      });
+      const createDto = {
+        name: 'Fido',
+        species: 'Dog',
+        clientId: 'client-uuid',
+        companyId: 'other-company',
+      };
+
+      const result = await service.create(createDto, mockSuperAdmin);
+
+      expect(result).toEqual({ ...mockPet, companyId: 'other-company' });
     });
   });
 
   describe('findOneByOwner', () => {
-    it('should return a pet if found and owned by the client', async () => {
+    it('should return a pet if found and owned by the client in same company', async () => {
+      prisma.client.findUnique.mockResolvedValue(mockClient);
       prisma.pet.findUnique.mockResolvedValue(mockPet);
-      const result = await service.findOneByOwner('pet-uuid', 'client-uuid');
+      const result = await service.findOneByOwner(
+        'pet-uuid',
+        'client-uuid',
+        mockUser,
+      );
       expect(result).toEqual(mockPet);
     });
 
     it('should throw NotFoundException if pet not found', async () => {
+      prisma.client.findUnique.mockResolvedValue(mockClient);
       prisma.pet.findUnique.mockResolvedValue(null);
       await expect(
-        service.findOneByOwner('wrong-pet-uuid', 'client-uuid'),
+        service.findOneByOwner('wrong-pet-uuid', 'client-uuid', mockUser),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ForbiddenException if pet is not owned by the client', async () => {
+      prisma.client.findUnique.mockResolvedValue(mockClient);
       prisma.pet.findUnique.mockResolvedValue(mockPet);
       await expect(
-        service.findOneByOwner('pet-uuid', 'wrong-client-uuid'),
+        service.findOneByOwner('pet-uuid', 'wrong-client-uuid', mockUser),
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw ForbiddenException if client belongs to different company', async () => {
+      const otherCompanyClient = { ...mockClient, companyId: 'other-company' };
+      prisma.client.findUnique.mockResolvedValue(otherCompanyClient);
+      await expect(
+        service.findOneByOwner('pet-uuid', 'client-uuid', mockUser),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow SUPER_ADMIN to access any pet', async () => {
+      const otherCompanyClient = { ...mockClient, companyId: 'other-company' };
+      const otherCompanyPet = { ...mockPet, companyId: 'other-company' };
+      prisma.client.findUnique.mockResolvedValue(otherCompanyClient);
+      prisma.pet.findUnique.mockResolvedValue(otherCompanyPet);
+      const result = await service.findOneByOwner(
+        'pet-uuid',
+        'client-uuid',
+        mockSuperAdmin,
+      );
+      expect(result).toEqual(otherCompanyPet);
     });
   });
 

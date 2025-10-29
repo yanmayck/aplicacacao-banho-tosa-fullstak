@@ -27,7 +27,7 @@ export class ProductCategoriesController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   create(@Body() createProductCategoryDto: CreateProductCategoryDto) {
     return this.productCategoriesService.create(createProductCategoryDto);
@@ -45,7 +45,7 @@ export class ProductCategoriesController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -56,7 +56,7 @@ export class ProductCategoriesController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.productCategoriesService.remove(id);
   }

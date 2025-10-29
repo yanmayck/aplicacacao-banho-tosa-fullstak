@@ -38,7 +38,10 @@ export class CompanyUsersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCompanyUserDto: UpdateCompanyUserDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateCompanyUserDto: UpdateCompanyUserDto,
+  ) {
     // TODO: Implementar lógica de atualização de usuário da empresa
     return { message: `Company user ${id} update not implemented yet` };
   }

@@ -254,7 +254,9 @@ export class AuditInterceptor implements NestInterceptor {
     const sensitiveFields = ['password', 'token', 'secret', 'key'];
 
     if (Array.isArray(data)) {
-      return data.map((item) => this.sanitizeResponseData(item)) as SanitizedResponseData;
+      return data.map((item) =>
+        this.sanitizeResponseData(item),
+      ) as SanitizedResponseData;
     }
 
     const sanitized = { ...data } as Record<string, unknown>;

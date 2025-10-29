@@ -120,7 +120,7 @@ export class NotificationWebhooksController {
 
 @Controller('admin/notification-webhooks')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN)
 export class AdminNotificationWebhooksController {
   private readonly logger = new Logger(
     AdminNotificationWebhooksController.name,

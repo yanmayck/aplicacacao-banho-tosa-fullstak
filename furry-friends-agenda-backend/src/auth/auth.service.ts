@@ -39,7 +39,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const fullUser = await this.usersService.findOneById(user.id);
+    const fullUser = await this.usersService.findOneById(user.id, {
+      userId: user.id,
+      username: user.email,
+      role: user.role,
+      companyId: user.companyId,
+    });
     if (!fullUser) {
       throw new InternalServerErrorException(
         'User not found after validation.',
@@ -68,15 +73,23 @@ export class AuthService {
     registerDto: RegisterDto,
   ): Promise<Omit<User, 'password'> | null> {
     try {
-      const newUser = await this.usersService.createUser({
-        email: registerDto.email,
-        password: registerDto.password,
-        name: registerDto.name,
-        role: registerDto.role || UserRole.EMPLOYEE,
-        company: {
-          connect: { id: registerDto.companyId || 'default-company-id' },
+      const newUser = await this.usersService.createUser(
+        {
+          email: registerDto.email,
+          password: registerDto.password,
+          name: registerDto.name,
+          role: registerDto.role || UserRole.EMPLOYEE,
+          company: {
+            connect: { id: registerDto.companyId || 'default-company-id' },
+          },
         },
-      });
+        {
+          userId: 'system',
+          username: 'system',
+          role: UserRole.SUPER_ADMIN,
+          companyId: registerDto.companyId || 'default-company-id',
+        },
+      );
       const { password: _password, ...result } = newUser;
       return result;
     } catch (error) {

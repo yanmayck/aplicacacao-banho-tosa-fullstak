@@ -20,6 +20,7 @@ import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from '@prisma/client';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 // import { Pet } from '@prisma/client'; // O tipo Pet não será reconhecido até o prisma generate
 
 @UseGuards(JwtAuthGuard) // Aplicar JwtAuthGuard a todas as rotas deste controller
@@ -29,24 +30,18 @@ export class PetsController {
 
   @Post()
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  create(
-    @Body() createPetDto: CreatePetDto,
-    @Request() req: { user: JwtPayload },
-  ) {
-    return this.petsService.create(createPetDto, req.user.userId);
+  create(@Body() createPetDto: CreatePetDto, @GetUser() user: JwtPayload) {
+    return this.petsService.create(createPetDto, user);
   }
 
   @Get()
-  findAll(@Request() req: { user: JwtPayload }) {
-    return this.petsService.findAllByOwner(req.user.userId);
+  findAll(@GetUser() user: JwtPayload) {
+    return this.petsService.findAllByOwner(user.userId, user);
   }
 
   @Get(':id')
-  findOne(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: { user: JwtPayload },
-  ) {
-    return this.petsService.findOneByOwner(id, req.user.userId);
+  findOne(@Param('id', ParseUUIDPipe) id: string, @GetUser() user: JwtPayload) {
+    return this.petsService.findOneByOwner(id, user.userId, user);
   }
 
   @Patch(':id')
@@ -54,18 +49,15 @@ export class PetsController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updatePetDto: UpdatePetDto,
-    @Request() req: { user: JwtPayload },
+    @GetUser() user: JwtPayload,
   ) {
-    return this.petsService.update(id, updatePetDto, req.user.userId);
+    return this.petsService.update(id, updatePetDto, user);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
-  remove(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: { user: JwtPayload },
-  ) {
-    return this.petsService.remove(id, req.user.userId);
+  @Roles(UserRole.SUPER_ADMIN)
+  remove(@Param('id', ParseUUIDPipe) id: string, @GetUser() user: JwtPayload) {
+    return this.petsService.remove(id, user);
   }
 }

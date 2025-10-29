@@ -25,11 +25,12 @@ export class TenantGuard implements CanActivate {
     const companyIdFromQuery = request.query?.companyId;
 
     // Verifica se o usuário pertence à empresa dos dados acessados
-    const targetCompanyId = companyIdFromParams || companyIdFromBody || companyIdFromQuery;
+    const targetCompanyId =
+      companyIdFromParams || companyIdFromBody || companyIdFromQuery;
 
     if (targetCompanyId && targetCompanyId !== companyIdFromUser) {
       throw new ForbiddenException(
-        'Acesso negado: Você não tem permissão para acessar dados de outra empresa'
+        'Acesso negado: Você não tem permissão para acessar dados de outra empresa',
       );
     }
 

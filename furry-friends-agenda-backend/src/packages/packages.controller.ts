@@ -51,7 +51,7 @@ export class PackagesController {
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.packagesService.remove(id);
   }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,15 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth();
+
+  // Auto-login para desenvolvimento
+  useEffect(() => {
+    const enableDevAutoLogin = import.meta.env.VITE_ENABLE_DEV_AUTO_LOGIN === 'true';
+    if (enableDevAutoLogin) {
+      setEmail("superadmin@furryfriends.com");
+      setPassword("SuperAdmin123!");
+    }
+  }, []);
   
   const handleLogin = () => {
     if (!email || !password) {

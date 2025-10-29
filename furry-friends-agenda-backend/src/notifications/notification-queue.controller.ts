@@ -21,7 +21,7 @@ import { CreateNotificationQueueDto } from './dto/create-notification-queue.dto'
 
 @Controller('admin/notification-queue')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN)
 export class NotificationQueueController {
   constructor(private readonly queueService: NotificationQueueService) {}
 

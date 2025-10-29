@@ -21,7 +21,7 @@ import { CreateNotificationTemplateDto } from './dto/create-notification-templat
 
 @Controller('admin/notification-templates')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN)
 export class NotificationTemplatesController {
   constructor(
     private readonly templatesService: NotificationTemplatesService,

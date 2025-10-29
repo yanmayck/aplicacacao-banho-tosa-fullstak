@@ -26,6 +26,7 @@ export class ClientPetsService {
         observations: createPetDto.observations,
         foodType: createPetDto.foodType,
         clientId,
+        companyId: 'default-company', // TODO: implementar isolamento multi-tenant
       },
     });
   }

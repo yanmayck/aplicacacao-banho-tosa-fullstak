@@ -7,6 +7,13 @@ export interface AuthPayload {
   companyId: string;
 }
 
+export interface JwtPayload {
+  userId: string;
+  username: string;
+  role: UserRole;
+  companyId: string;
+}
+
 export interface LoginResponse {
   access_token: string;
   user: {

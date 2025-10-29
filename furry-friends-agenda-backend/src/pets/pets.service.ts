@@ -20,7 +20,7 @@ export class PetsService extends BaseService {
     // Verificar se o cliente existe e pertence à empresa do usuário
     const client = await this.prisma.client.findUnique({
       where: { id: createPetDto.clientId },
-      select: { id: true, companyId: true }
+      select: { id: true, companyId: true },
     });
 
     if (!client) {
@@ -31,25 +31,32 @@ export class PetsService extends BaseService {
 
     // Aplicar filtro de empresa
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && client.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      client.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Client belongs to another company');
     }
 
     const { clientId, ...petData } = createPetDto;
 
-    const data = this.applyCompanyFilterToCreate({
-      ...petData,
-      client: { connect: { id: clientId } },
-      lastTickMedicine: petData.lastTickMedicine
-        ? JSON.parse(JSON.stringify(petData.lastTickMedicine))
-        : undefined,
-      rabiesVaccine: petData.rabiesVaccine
-        ? JSON.parse(JSON.stringify(petData.rabiesVaccine))
-        : undefined,
-      vaccineHistory: petData.vaccineHistory
-        ? JSON.parse(JSON.stringify(petData.vaccineHistory))
-        : undefined,
-    }, user, 'Pet') as any;
+    const data = this.applyCompanyFilterToCreate(
+      {
+        ...petData,
+        client: { connect: { id: clientId } },
+        lastTickMedicine: petData.lastTickMedicine
+          ? JSON.parse(JSON.stringify(petData.lastTickMedicine))
+          : undefined,
+        rabiesVaccine: petData.rabiesVaccine
+          ? JSON.parse(JSON.stringify(petData.rabiesVaccine))
+          : undefined,
+        vaccineHistory: petData.vaccineHistory
+          ? JSON.parse(JSON.stringify(petData.vaccineHistory))
+          : undefined,
+      },
+      user,
+      'Pet',
+    ) as any;
 
     return this.prisma.pet.create({ data });
   }
@@ -58,7 +65,7 @@ export class PetsService extends BaseService {
     // Verificar se o cliente pertence à empresa do usuário
     const client = await this.prisma.client.findUnique({
       where: { id: clientId },
-      select: { id: true, companyId: true }
+      select: { id: true, companyId: true },
     });
 
     if (!client) {
@@ -66,7 +73,10 @@ export class PetsService extends BaseService {
     }
 
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && client.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      client.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Client belongs to another company');
     }
 
@@ -74,15 +84,19 @@ export class PetsService extends BaseService {
       this.prisma.pet,
       { where: { clientId } },
       user,
-      'Pet'
+      'Pet',
     );
   }
 
-  async findOneByOwner(id: string, clientId: string, user: JwtPayload): Promise<Pet | null> {
+  async findOneByOwner(
+    id: string,
+    clientId: string,
+    user: JwtPayload,
+  ): Promise<Pet | null> {
     // Primeiro verificar se o cliente pertence à empresa
     const client = await this.prisma.client.findUnique({
       where: { id: clientId },
-      select: { id: true, companyId: true }
+      select: { id: true, companyId: true },
     });
 
     if (!client) {
@@ -90,7 +104,10 @@ export class PetsService extends BaseService {
     }
 
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && client.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      client.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Client belongs to another company');
     }
 
@@ -103,7 +120,10 @@ export class PetsService extends BaseService {
     }
 
     // Verificar se o pet pertence à empresa do usuário
-    if ('companyId' in companyFilter && pet.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      pet.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Pet belongs to another company');
     }
 
@@ -122,7 +142,7 @@ export class PetsService extends BaseService {
     // Primeiro verificar se o pet existe e pertence à empresa
     const pet = await this.prisma.pet.findUnique({
       where: { id },
-      select: { id: true, clientId: true, companyId: true }
+      select: { id: true, clientId: true, companyId: true },
     });
 
     if (!pet) {
@@ -131,13 +151,18 @@ export class PetsService extends BaseService {
 
     // Verificar se o pet pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && pet.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      pet.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Pet belongs to another company');
     }
 
     // Verificar se o cliente do pet pertence ao usuário (se não for SUPER_ADMIN)
     if (user.role !== 'SUPER_ADMIN' && user.userId !== pet.clientId) {
-      throw new ForbiddenException('You can only update pets that belong to your client account');
+      throw new ForbiddenException(
+        'You can only update pets that belong to your client account',
+      );
     }
 
     return this.prisma.pet.update({
@@ -161,7 +186,7 @@ export class PetsService extends BaseService {
     // Primeiro verificar se o pet existe e pertence à empresa
     const pet = await this.prisma.pet.findUnique({
       where: { id },
-      select: { id: true, clientId: true, companyId: true }
+      select: { id: true, clientId: true, companyId: true },
     });
 
     if (!pet) {
@@ -170,13 +195,18 @@ export class PetsService extends BaseService {
 
     // Verificar se o pet pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && pet.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      pet.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Pet belongs to another company');
     }
 
     // Verificar se o cliente do pet pertence ao usuário (se não for SUPER_ADMIN)
     if (user.role !== 'SUPER_ADMIN' && user.userId !== pet.clientId) {
-      throw new ForbiddenException('You can only delete pets that belong to your client account');
+      throw new ForbiddenException(
+        'You can only delete pets that belong to your client account',
+      );
     }
 
     return this.prisma.pet.delete({

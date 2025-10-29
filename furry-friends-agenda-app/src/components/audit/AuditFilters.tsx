@@ -6,7 +6,7 @@ import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Badge } from '../ui/badge';
-import { Calendar, Filter, Save, Trash2 } from 'lucide-react';
+import { Calendar, Filter, Save, Trash2, Settings, Download, RefreshCw } from 'lucide-react';
 import { AuditLogFilters, AuditActionType, AuditSeverity } from '../../types/audit';
 import { auditService } from '../../services/auditService';
 
@@ -20,6 +20,8 @@ export function AuditFilters({ compact = false }: AuditFiltersProps) {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [filterName, setFilterName] = useState('');
   const [filterDescription, setFilterDescription] = useState('');
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
 
   const handleFilterChange = (key: keyof AuditLogFilters, value: string) => {
     setFilters({
@@ -70,6 +72,7 @@ export function AuditFilters({ compact = false }: AuditFiltersProps) {
           <div className="flex items-center space-x-2">
             {activeFilterCount > 0 && (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <RefreshCw className="h-4 w-4 mr-1" />
                 Limpar
               </Button>
             )}
@@ -79,8 +82,50 @@ export function AuditFilters({ compact = false }: AuditFiltersProps) {
               size="sm"
               onClick={() => setShowAdvanced(!showAdvanced)}
             >
+              <Settings className="h-4 w-4 mr-1" />
               {showAdvanced ? 'Menos' : 'Mais'} Filtros
             </Button>
+
+            <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-1" />
+                  Exportar
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Exportar Logs de Auditoria</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Formato de Exportação</Label>
+                    <Select value={exportFormat} onValueChange={(value: 'csv' | 'json' | 'pdf') => setExportFormat(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="csv">CSV</SelectItem>
+                        <SelectItem value="json">JSON</SelectItem>
+                        <SelectItem value="pdf">PDF</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setShowExportDialog(false)}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={() => {
+                      // TODO: Implement export functionality
+                      console.log('Exporting in format:', exportFormat);
+                      setShowExportDialog(false);
+                    }}>
+                      Exportar
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
               <DialogTrigger asChild>
@@ -195,7 +240,7 @@ export function AuditFilters({ compact = false }: AuditFiltersProps) {
           <div className="mt-4 pt-4 border-t space-y-4">
             <h4 className="font-medium text-sm">Filtros Avançados</h4>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Período */}
               <div>
                 <Label className="text-sm font-medium">Data Inicial</Label>
@@ -261,6 +306,101 @@ export function AuditFilters({ compact = false }: AuditFiltersProps) {
                     <SelectItem value="false">Falha</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* IP Address */}
+              <div>
+                <Label className="text-sm font-medium">Endereço IP</Label>
+                <Input
+                  placeholder="Ex: 192.168.1.1"
+                  value={filters.ipAddress || ''}
+                  onChange={(e) => handleFilterChange('ipAddress', e.target.value)}
+                />
+              </div>
+
+              {/* Session ID */}
+              <div>
+                <Label className="text-sm font-medium">ID da Sessão</Label>
+                <Input
+                  placeholder="ID da sessão"
+                  value={filters.sessionId || ''}
+                  onChange={(e) => handleFilterChange('sessionId', e.target.value)}
+                />
+              </div>
+
+              {/* Request ID */}
+              <div>
+                <Label className="text-sm font-medium">ID da Requisição</Label>
+                <Input
+                  placeholder="ID da requisição"
+                  value={filters.requestId || ''}
+                  onChange={(e) => handleFilterChange('requestId', e.target.value)}
+                />
+              </div>
+
+              {/* Duration Range */}
+              <div>
+                <Label className="text-sm font-medium">Duração Mínima (ms)</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={filters.minDuration || ''}
+                  onChange={(e) => handleFilterChange('minDuration', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">Duração Máxima (ms)</Label>
+                <Input
+                  type="number"
+                  placeholder="10000"
+                  value={filters.maxDuration || ''}
+                  onChange={(e) => handleFilterChange('maxDuration', e.target.value)}
+                />
+              </div>
+
+              {/* Response Size */}
+              <div>
+                <Label className="text-sm font-medium">Tamanho Mínimo (bytes)</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={filters.minResponseSize || ''}
+                  onChange={(e) => handleFilterChange('minResponseSize', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">Tamanho Máximo (bytes)</Label>
+                <Input
+                  type="number"
+                  placeholder="1000000"
+                  value={filters.maxResponseSize || ''}
+                  onChange={(e) => handleFilterChange('maxResponseSize', e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Filtros por Tags/Metadata */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <h5 className="font-medium text-sm mb-3">Filtros por Tags/Metadata</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Tags (separadas por vírgula)</Label>
+                  <Input
+                    placeholder="Ex: production, critical, api"
+                    value={filters.tags || ''}
+                    onChange={(e) => handleFilterChange('tags', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Metadata (JSON)</Label>
+                  <Input
+                    placeholder='Ex: {"environment": "production"}'
+                    value={filters.metadata || ''}
+                    onChange={(e) => handleFilterChange('metadata', e.target.value)}
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -33,16 +33,13 @@ export class AppointmentsController {
     @Request() req: { user: JwtPayload },
   ) {
     // req.user.sub é o ID do cliente logado
-    return this.appointmentsService.create(
-      createAppointmentDto,
-      req.user.userId,
-    );
+    return this.appointmentsService.create(createAppointmentDto, req.user);
   }
 
   @Get()
   findAll(@Request() req: { user: JwtPayload }) {
     // Lista apenas os agendamentos do cliente logado
-    return this.appointmentsService.findAllByClient(req.user.userId);
+    return this.appointmentsService.findAllByClient(req.user.userId, req.user);
   }
 
   @Get(':id')
@@ -50,7 +47,11 @@ export class AppointmentsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: { user: JwtPayload },
   ) {
-    return this.appointmentsService.findOneByClient(id, req.user.userId);
+    return this.appointmentsService.findOneByClient(
+      id,
+      req.user.userId,
+      req.user,
+    );
   }
 
   @Patch(':id')
@@ -60,20 +61,16 @@ export class AppointmentsController {
     @Body() updateAppointmentDto: UpdateAppointmentDto,
     @Request() req: { user: JwtPayload },
   ) {
-    return this.appointmentsService.update(
-      id,
-      updateAppointmentDto,
-      req.user.userId,
-    );
+    return this.appointmentsService.update(id, updateAppointmentDto, req.user);
   }
 
   @Delete(':id') // Ou talvez um PATCH para mudar status para CANCELLED
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   remove(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: { user: JwtPayload },
   ) {
-    return this.appointmentsService.remove(id, req.user.userId);
+    return this.appointmentsService.remove(id, req.user);
   }
 }

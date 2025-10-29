@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PluginRegistry } from './plugin-registry.service';
 import { PluginLoader } from './plugin-loader.service';
@@ -43,7 +48,7 @@ export class PluginsService {
       // Validar segurança
       const securityCheck = await this.pluginSecurity.validatePermissions(
         plugin,
-        plugin.getRequiredPermissions()
+        plugin.getRequiredPermissions(),
       );
 
       if (!securityCheck.allowed) {
@@ -53,17 +58,19 @@ export class PluginsService {
       // Registrar no sistema
       await this.pluginRegistry.register(plugin);
 
-      this.logger.log(`Plugin ${pluginName} carregado e registrado com sucesso`);
+      this.logger.log(
+        `Plugin ${pluginName} carregado e registrado com sucesso`,
+      );
 
       return {
         success: true,
-        data: { pluginName, version: plugin.version }
+        data: { pluginName, version: plugin.version },
       };
     } catch (error) {
       this.logger.error(`Erro ao carregar plugin ${pluginName}`, error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -91,21 +98,21 @@ export class PluginsService {
           plugin,
           permissions: plugin.getRequiredPermissions(),
           user: undefined,
-          sessionId: undefined
-        }
+          sessionId: undefined,
+        },
       );
 
       this.logger.log(`Plugin ${pluginName} instalado com sucesso`);
 
       return {
         success: true,
-        data: { pluginName, version: plugin.version }
+        data: { pluginName, version: plugin.version },
       };
     } catch (error) {
       this.logger.error(`Erro ao instalar plugin ${pluginName}`, error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -123,13 +130,13 @@ export class PluginsService {
 
       return {
         success: true,
-        data: { pluginName, status: 'active' }
+        data: { pluginName, status: 'active' },
       };
     } catch (error) {
       this.logger.error(`Erro ao ativar plugin ${pluginName}`, error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -147,13 +154,13 @@ export class PluginsService {
 
       return {
         success: true,
-        data: { pluginName, status: 'inactive' }
+        data: { pluginName, status: 'inactive' },
       };
     } catch (error) {
       this.logger.error(`Erro ao desativar plugin ${pluginName}`, error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -175,13 +182,13 @@ export class PluginsService {
 
       return {
         success: true,
-        data: { pluginName, status: 'uninstalled' }
+        data: { pluginName, status: 'uninstalled' },
       };
     } catch (error) {
       this.logger.error(`Erro ao desinstalar plugin ${pluginName}`, error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -193,7 +200,7 @@ export class PluginsService {
     filter?: PluginFilter,
     sort?: PluginSort,
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<PaginatedResponse<any>> {
     return this.pluginRegistry.listPlugins(filter, sort, page, limit);
   }
@@ -223,7 +230,7 @@ export class PluginsService {
    */
   async updatePluginConfig(
     pluginName: string,
-    config: PluginConfig
+    config: PluginConfig,
   ): Promise<OperationResult> {
     try {
       this.logger.log(`Atualizando configuração do plugin: ${pluginName}`);
@@ -236,7 +243,7 @@ export class PluginsService {
       // Validar configuração
       const validation = await this.pluginSecurity.validatePluginConfig(
         instance.plugin,
-        config
+        config,
       );
 
       if (!validation.allowed) {
@@ -246,7 +253,7 @@ export class PluginsService {
       // Atualizar no banco
       await this.prisma.plugin.update({
         where: { name: pluginName },
-        data: { config: config as any, updatedAt: new Date() }
+        data: { config: config as any, updatedAt: new Date() },
       });
 
       // Atualizar instância
@@ -256,13 +263,16 @@ export class PluginsService {
 
       return {
         success: true,
-        data: { pluginName, config }
+        data: { pluginName, config },
       };
     } catch (error) {
-      this.logger.error(`Erro ao atualizar configuração do plugin ${pluginName}`, error);
+      this.logger.error(
+        `Erro ao atualizar configuração do plugin ${pluginName}`,
+        error,
+      );
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -302,7 +312,9 @@ export class PluginsService {
       for (const plugin of plugins) {
         // Verificar se o plugin ainda existe no sistema de arquivos
         if (!this.pluginLoader.isPluginAvailable(plugin.name)) {
-          this.logger.warn(`Plugin ${plugin.name} não encontrado no sistema de arquivos, removendo do registro`);
+          this.logger.warn(
+            `Plugin ${plugin.name} não encontrado no sistema de arquivos, removendo do registro`,
+          );
           await this.pluginRegistry.unregister(plugin.name);
           fixedCount++;
         }
@@ -311,20 +323,20 @@ export class PluginsService {
       // Executar hook de manutenção
       await this.hookService.onSystemEvent('maintenance', {
         fixedCount,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       this.logger.log('Manutenção concluída com sucesso');
 
       return {
         success: true,
-        data: { fixedCount, totalPlugins: plugins.length }
+        data: { fixedCount, totalPlugins: plugins.length },
       };
     } catch (error) {
       this.logger.error('Erro durante manutenção', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

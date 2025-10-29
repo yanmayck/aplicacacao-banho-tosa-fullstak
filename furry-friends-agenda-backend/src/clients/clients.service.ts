@@ -12,8 +12,15 @@ export class ClientsService extends BaseService {
     super(prisma);
   }
 
-  async create(createClientDto: CreateClientDto, user: JwtPayload): Promise<Client> {
-    const data = this.applyCompanyFilterToCreate(createClientDto, user, 'Client');
+  async create(
+    createClientDto: CreateClientDto,
+    user: JwtPayload,
+  ): Promise<Client> {
+    const data = this.applyCompanyFilterToCreate(
+      createClientDto,
+      user,
+      'Client',
+    );
     return this.prisma.client.create({
       data,
     });
@@ -24,7 +31,7 @@ export class ClientsService extends BaseService {
       this.prisma.client,
       {},
       user,
-      'Client'
+      'Client',
     );
   }
 
@@ -36,16 +43,26 @@ export class ClientsService extends BaseService {
 
     // Verificar se o cliente pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && client.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      client.companyId !== companyFilter.companyId
+    ) {
       throw new NotFoundException(`Client with ID "${id}" not found`);
     }
 
     return client;
   }
 
-  async update(id: string, updateClientDto: UpdateClientDto, user: JwtPayload): Promise<Client> {
+  async update(
+    id: string,
+    updateClientDto: UpdateClientDto,
+    user: JwtPayload,
+  ): Promise<Client> {
     await this.validateEntityOwnership(id, user, 'Client', async (id) =>
-      this.prisma.client.findUnique({ where: { id }, select: { companyId: true } })
+      this.prisma.client.findUnique({
+        where: { id },
+        select: { companyId: true },
+      }),
     );
 
     try {
@@ -66,7 +83,10 @@ export class ClientsService extends BaseService {
 
   async remove(id: string, user: JwtPayload): Promise<Client> {
     await this.validateEntityOwnership(id, user, 'Client', async (id) =>
-      this.prisma.client.findUnique({ where: { id }, select: { companyId: true } })
+      this.prisma.client.findUnique({
+        where: { id },
+        select: { companyId: true },
+      }),
     );
 
     try {

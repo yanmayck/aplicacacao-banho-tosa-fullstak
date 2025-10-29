@@ -69,7 +69,7 @@ export class ClientNotificationPreferencesController {
 
 @Controller('groomer/notification-preferences')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN)
 export class GroomerNotificationPreferencesController {
   constructor(
     private readonly preferencesService: NotificationPreferencesService,
@@ -101,7 +101,7 @@ export class GroomerNotificationPreferencesController {
 
 @Controller('admin/notification-preferences')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN)
 export class AdminNotificationPreferencesController {
   constructor(
     private readonly preferencesService: NotificationPreferencesService,

@@ -18,6 +18,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from '@prisma/client';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @UseGuards(JwtAuthGuard)
 @Controller('clients')
@@ -26,37 +28,41 @@ export class ClientsController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  create(@Body() createClientDto: CreateClientDto) {
-    return this.clientsService.create(createClientDto);
+  create(
+    @Body() createClientDto: CreateClientDto,
+    @GetUser() user: JwtPayload,
+  ) {
+    return this.clientsService.create(createClientDto, user);
   }
 
   @Get()
-  findAll() {
-    return this.clientsService.findAll();
+  findAll(@GetUser() user: JwtPayload) {
+    return this.clientsService.findAll(user);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.clientsService.findOne(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string, @GetUser() user: JwtPayload) {
+    return this.clientsService.findOne(id, user);
   }
 
   @Patch(':id')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateClientDto: UpdateClientDto,
+    @GetUser() user: JwtPayload,
   ) {
-    return this.clientsService.update(id, updateClientDto);
+    return this.clientsService.update(id, updateClientDto, user);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.clientsService.remove(id);
+  @Roles(UserRole.SUPER_ADMIN)
+  remove(@Param('id', ParseUUIDPipe) id: string, @GetUser() user: JwtPayload) {
+    return this.clientsService.remove(id, user);
   }
 }

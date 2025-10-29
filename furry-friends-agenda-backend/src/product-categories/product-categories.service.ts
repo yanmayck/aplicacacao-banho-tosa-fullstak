@@ -6,15 +6,27 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
+import { BaseService } from '../common/base.service';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @Injectable()
-export class ProductCategoriesService {
-  constructor(private prisma: PrismaService) {}
+export class ProductCategoriesService extends BaseService {
+  constructor(protected prisma: PrismaService) {
+    super(prisma);
+  }
 
-  async create(createProductCategoryDto: CreateProductCategoryDto) {
+  async create(
+    createProductCategoryDto: CreateProductCategoryDto,
+    user: JwtPayload,
+  ) {
     try {
+      const data = this.applyCompanyFilterToCreate(
+        createProductCategoryDto,
+        user,
+        'ProductCategory',
+      );
       return await this.prisma.productCategory.create({
-        data: createProductCategoryDto,
+        data,
       });
     } catch (error) {
       if (error.code === 'P2002') {
@@ -26,14 +38,19 @@ export class ProductCategoriesService {
     }
   }
 
-  async findAll() {
+  async findAll(user: JwtPayload) {
+    const where = this.applyCompanyFilter(
+      { isActive: true },
+      user,
+      'ProductCategory',
+    );
     return this.prisma.productCategory.findMany({
-      where: { isActive: true },
+      where,
       orderBy: { name: 'asc' },
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user: JwtPayload) {
     const category = await this.prisma.productCategory.findUnique({
       where: { id },
     });
@@ -42,10 +59,26 @@ export class ProductCategoriesService {
       throw new NotFoundException(`Category with ID "${id}" not found`);
     }
 
+    // Verificar se a categoria pertence à empresa do usuário
+    const companyFilter = this.getCompanyFilter(user);
+    if (
+      'companyId' in companyFilter &&
+      category.companyId !== companyFilter.companyId
+    ) {
+      throw new NotFoundException(`Category with ID "${id}" not found`);
+    }
+
     return category;
   }
 
-  async update(id: string, updateProductCategoryDto: UpdateProductCategoryDto) {
+  async update(
+    id: string,
+    updateProductCategoryDto: UpdateProductCategoryDto,
+    user: JwtPayload,
+  ) {
+    // Verificar se a categoria existe e pertence à empresa
+    await this.findOne(id, user);
+
     try {
       return await this.prisma.productCategory.update({
         where: { id },
@@ -64,7 +97,10 @@ export class ProductCategoriesService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, user: JwtPayload) {
+    // Verificar se a categoria existe e pertence à empresa
+    await this.findOne(id, user);
+
     try {
       return await this.prisma.productCategory.delete({
         where: { id },

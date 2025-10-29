@@ -22,7 +22,8 @@ export class RegisterDto {
 
   @IsOptional()
   @IsEnum(UserRole, {
-    message: 'Role inválido. Valores permitidos: SUPER_ADMIN, COMPANY_ADMIN, MANAGER, EMPLOYEE, GROOMER',
+    message:
+      'Role inválido. Valores permitidos: SUPER_ADMIN, COMPANY_ADMIN, MANAGER, EMPLOYEE, GROOMER',
   })
   role?: UserRole;
 

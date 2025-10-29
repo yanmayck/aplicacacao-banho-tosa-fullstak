@@ -15,11 +15,6 @@ import { PluginSecurityService } from './plugin-security.service';
     HookService,
     PluginSecurityService,
   ],
-  exports: [
-    PluginsService,
-    PluginRegistry,
-    HookService,
-    PluginSecurityService,
-  ],
+  exports: [PluginsService, PluginRegistry, HookService, PluginSecurityService],
 })
 export class PluginsModule {}

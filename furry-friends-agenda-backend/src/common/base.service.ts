@@ -10,7 +10,10 @@ export abstract class BaseService {
   /**
    * Obtém o companyId do usuário atual, considerando exceções para SUPER_ADMIN
    */
-  protected getCompanyFilter(user: JwtPayload, entityName?: string): { companyId: string } | {} {
+  protected getCompanyFilter(
+    user: JwtPayload,
+    entityName?: string,
+  ): { companyId: string } | {} {
     // SUPER_ADMIN pode acessar dados de todas as empresas
     if (user.role === UserRole.SUPER_ADMIN) {
       return {};
@@ -26,7 +29,7 @@ export abstract class BaseService {
   protected applyCompanyFilter<T extends Record<string, any>>(
     where: T,
     user: JwtPayload,
-    entityName?: string
+    entityName?: string,
   ): T & { companyId?: string } {
     const companyFilter = this.getCompanyFilter(user, entityName);
 
@@ -46,7 +49,7 @@ export abstract class BaseService {
   protected applyCompanyFilterToCreate<T extends Record<string, any>>(
     data: T,
     user: JwtPayload,
-    entityName?: string
+    entityName?: string,
   ): T & { companyId: string } {
     const companyFilter = this.getCompanyFilter(user, entityName);
 
@@ -59,7 +62,9 @@ export abstract class BaseService {
 
     // Para SUPER_ADMIN, companyId deve ser fornecido explicitamente
     if (!('companyId' in data)) {
-      throw new Error(`companyId é obrigatório para ${entityName || 'esta entidade'} quando criado por SUPER_ADMIN`);
+      throw new Error(
+        `companyId é obrigatório para ${entityName || 'esta entidade'} quando criado por SUPER_ADMIN`,
+      );
     }
 
     return data as T & { companyId: string };
@@ -72,7 +77,7 @@ export abstract class BaseService {
     entityId: string,
     user: JwtPayload,
     entityName: string,
-    findByIdFn: (id: string) => Promise<{ companyId: string } | null>
+    findByIdFn: (id: string) => Promise<{ companyId: string } | null>,
   ): Promise<void> {
     // SUPER_ADMIN pode acessar qualquer entidade
     if (user.role === UserRole.SUPER_ADMIN) {
@@ -102,9 +107,13 @@ export abstract class BaseService {
       include?: Record<string, any>;
     },
     user: JwtPayload,
-    entityName?: string
+    entityName?: string,
   ): Promise<T[]> {
-    const where = this.applyCompanyFilter(options.where || {}, user, entityName);
+    const where = this.applyCompanyFilter(
+      options.where || {},
+      user,
+      entityName,
+    );
 
     return model.findMany({
       ...options,
@@ -120,7 +129,7 @@ export abstract class BaseService {
     where: Record<string, any>,
     user: JwtPayload,
     entityName?: string,
-    include?: Record<string, any>
+    include?: Record<string, any>,
   ): Promise<T | null> {
     const companyFilter = this.getCompanyFilter(user, entityName);
 
@@ -141,9 +150,13 @@ export abstract class BaseService {
     model: any,
     data: Record<string, any>,
     user: JwtPayload,
-    entityName?: string
+    entityName?: string,
   ): Promise<T> {
-    const dataWithCompany = this.applyCompanyFilterToCreate(data, user, entityName);
+    const dataWithCompany = this.applyCompanyFilterToCreate(
+      data,
+      user,
+      entityName,
+    );
 
     return model.create({
       data: dataWithCompany,
@@ -159,14 +172,15 @@ export abstract class BaseService {
     data: Record<string, any>,
     user: JwtPayload,
     entityName?: string,
-    include?: Record<string, any>
+    include?: Record<string, any>,
   ): Promise<T> {
     // Primeiro valida se o usuário tem acesso à entidade
     await this.validateEntityOwnership(
       where.id,
       user,
       entityName || 'Entidade',
-      async (id) => await model.findUnique({ where: { id }, select: { companyId: true } })
+      async (id) =>
+        await model.findUnique({ where: { id }, select: { companyId: true } }),
     );
 
     return model.update({
@@ -183,14 +197,15 @@ export abstract class BaseService {
     model: any,
     where: Record<string, any>,
     user: JwtPayload,
-    entityName?: string
+    entityName?: string,
   ): Promise<void> {
     // Primeiro valida se o usuário tem acesso à entidade
     await this.validateEntityOwnership(
       where.id,
       user,
       entityName || 'Entidade',
-      async (id) => await model.findUnique({ where: { id }, select: { companyId: true } })
+      async (id) =>
+        await model.findUnique({ where: { id }, select: { companyId: true } }),
     );
 
     await model.delete({

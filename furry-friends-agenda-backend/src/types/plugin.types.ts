@@ -111,7 +111,7 @@ export interface PluginHookDefinition {
 // Handler de hook
 export type HookHandler = (
   data: any,
-  context: HookContext
+  context: HookContext,
 ) => Promise<any> | any;
 
 // Contexto do hook

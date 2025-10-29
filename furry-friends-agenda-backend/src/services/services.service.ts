@@ -16,9 +16,16 @@ export class ServicesService extends BaseService {
     super(prisma);
   }
 
-  async create(createServiceDto: CreateServiceDto, user: JwtPayload): Promise<ServicePackage> {
+  async create(
+    createServiceDto: CreateServiceDto,
+    user: JwtPayload,
+  ): Promise<ServicePackage> {
     try {
-      const data = this.applyCompanyFilterToCreate(createServiceDto, user, 'ServicePackage') as any;
+      const data = this.applyCompanyFilterToCreate(
+        createServiceDto,
+        user,
+        'ServicePackage',
+      ) as any;
       return await this.prisma.servicePackage.create({
         data,
       });
@@ -53,7 +60,10 @@ export class ServicesService extends BaseService {
 
     // Verificar se o serviço pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && service.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      service.companyId !== companyFilter.companyId
+    ) {
       throw new NotFoundException(`Service with ID "${id}" not found`);
     }
 

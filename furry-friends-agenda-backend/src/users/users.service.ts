@@ -13,7 +13,10 @@ export class UsersService extends BaseService {
     super(prisma);
   }
 
-  async createUser(data: Prisma.UserCreateInput, user: JwtPayload): Promise<User> {
+  async createUser(
+    data: Prisma.UserCreateInput,
+    user: JwtPayload,
+  ): Promise<User> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -24,10 +27,14 @@ export class UsersService extends BaseService {
 
     const hashedPassword = await bcrypt.hash(data.password, roundsOfHashing);
 
-    const dataWithCompany = this.applyCompanyFilterToCreate({
-      ...data,
-      password: hashedPassword,
-    }, user, 'User') as any;
+    const dataWithCompany = this.applyCompanyFilterToCreate(
+      {
+        ...data,
+        password: hashedPassword,
+      },
+      user,
+      'User',
+    ) as any;
 
     return this.prisma.user.create({
       data: dataWithCompany,
@@ -43,7 +50,10 @@ export class UsersService extends BaseService {
     // SUPER_ADMIN pode ver usuários de todas as empresas
     if (user.role !== 'SUPER_ADMIN') {
       const companyFilter = this.getCompanyFilter(user);
-      if ('companyId' in companyFilter && foundUser.companyId !== companyFilter.companyId) {
+      if (
+        'companyId' in companyFilter &&
+        foundUser.companyId !== companyFilter.companyId
+      ) {
         return null; // Usuário não tem acesso a este usuário
       }
     }
@@ -60,7 +70,10 @@ export class UsersService extends BaseService {
     // Se user for fornecido, aplicar filtro de empresa (exceto SUPER_ADMIN)
     if (user && user.role !== 'SUPER_ADMIN') {
       const companyFilter = this.getCompanyFilter(user);
-      if ('companyId' in companyFilter && foundUser.companyId !== companyFilter.companyId) {
+      if (
+        'companyId' in companyFilter &&
+        foundUser.companyId !== companyFilter.companyId
+      ) {
         return null; // Usuário não tem acesso a este usuário
       }
     }

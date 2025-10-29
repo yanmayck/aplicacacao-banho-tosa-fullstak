@@ -38,7 +38,7 @@ export class AppointmentsService extends BaseService {
     // Verificar se o pet existe e pertence à empresa do usuário
     const pet = await this.prisma.pet.findUnique({
       where: { id: petId },
-      select: { id: true, clientId: true, companyId: true }
+      select: { id: true, clientId: true, companyId: true },
     });
     if (!pet) {
       throw new NotFoundException(`Pet with ID "${petId}" not found.`);
@@ -46,7 +46,10 @@ export class AppointmentsService extends BaseService {
 
     // Aplicar filtro de empresa
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && pet.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      pet.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Pet belongs to another company');
     }
 
@@ -60,7 +63,7 @@ export class AppointmentsService extends BaseService {
     if (groomerId) {
       const groomer = await this.prisma.groomer.findUnique({
         where: { id: groomerId },
-        select: { id: true, companyId: true }
+        select: { id: true, companyId: true },
       });
       if (!groomer) {
         throw new NotFoundException(
@@ -68,7 +71,10 @@ export class AppointmentsService extends BaseService {
         );
       }
       // Verificar se o groomer pertence à mesma empresa
-      if ('companyId' in companyFilter && groomer.companyId !== companyFilter.companyId) {
+      if (
+        'companyId' in companyFilter &&
+        groomer.companyId !== companyFilter.companyId
+      ) {
         throw new ForbiddenException('Groomer belongs to another company');
       }
     }
@@ -82,7 +88,7 @@ export class AppointmentsService extends BaseService {
     for (const serviceId of serviceIds) {
       const service = await this.prisma.servicePackage.findUnique({
         where: { id: serviceId },
-        select: { id: true, price: true, companyId: true }
+        select: { id: true, price: true, companyId: true },
       });
       if (!service) {
         throw new NotFoundException(
@@ -90,7 +96,10 @@ export class AppointmentsService extends BaseService {
         );
       }
       // Verificar se o serviço pertence à mesma empresa
-      if ('companyId' in companyFilter && service.companyId !== companyFilter.companyId) {
+      if (
+        'companyId' in companyFilter &&
+        service.companyId !== companyFilter.companyId
+      ) {
         throw new ForbiddenException('Service belongs to another company');
       }
       servicesToConnect.push({ id: service.id, price: service.price });
@@ -113,7 +122,11 @@ export class AppointmentsService extends BaseService {
       },
     };
 
-    const data = this.applyCompanyFilterToCreate(appointmentData, user, 'Appointment') as any;
+    const data = this.applyCompanyFilterToCreate(
+      appointmentData,
+      user,
+      'Appointment',
+    ) as any;
 
     return this.prisma.appointment.create({
       data,
@@ -130,11 +143,14 @@ export class AppointmentsService extends BaseService {
     });
   }
 
-  async findAllByClient(clientId: string, user: JwtPayload): Promise<AppointmentType[]> {
+  async findAllByClient(
+    clientId: string,
+    user: JwtPayload,
+  ): Promise<AppointmentType[]> {
     // Verificar se o cliente pertence à empresa do usuário
     const client = await this.prisma.client.findUnique({
       where: { id: clientId },
-      select: { id: true, companyId: true }
+      select: { id: true, companyId: true },
     });
 
     if (!client) {
@@ -142,7 +158,10 @@ export class AppointmentsService extends BaseService {
     }
 
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && client.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      client.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Client belongs to another company');
     }
 
@@ -162,7 +181,7 @@ export class AppointmentsService extends BaseService {
         orderBy: { dateTime: 'asc' },
       },
       user,
-      'Appointment'
+      'Appointment',
     );
   }
 
@@ -174,7 +193,7 @@ export class AppointmentsService extends BaseService {
     // Primeiro verificar se o cliente pertence à empresa
     const client = await this.prisma.client.findUnique({
       where: { id: clientId },
-      select: { id: true, companyId: true }
+      select: { id: true, companyId: true },
     });
 
     if (!client) {
@@ -182,11 +201,14 @@ export class AppointmentsService extends BaseService {
     }
 
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && client.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      client.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Client belongs to another company');
     }
 
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = (await this.prisma.appointment.findUnique({
       where: { id },
       include: {
         pet: true,
@@ -197,14 +219,17 @@ export class AppointmentsService extends BaseService {
           },
         },
       },
-    }) as AppointmentType | null;
+    })) as AppointmentType | null;
 
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID "${id}" not found`);
     }
 
     // Verificar se o agendamento pertence à empresa do usuário
-    if ('companyId' in companyFilter && appointment.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      appointment.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Appointment belongs to another company');
     }
 
@@ -242,13 +267,21 @@ export class AppointmentsService extends BaseService {
 
     // Verificar se o agendamento pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && existingAppointment.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      existingAppointment.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Appointment belongs to another company');
     }
 
     // Verificar se o pet pertence ao cliente (se não for SUPER_ADMIN)
-    if (user.role !== 'SUPER_ADMIN' && existingAppointment.pet.clientId !== user.userId) {
-      throw new ForbiddenException('You can only update appointments for your own pets');
+    if (
+      user.role !== 'SUPER_ADMIN' &&
+      existingAppointment.pet.clientId !== user.userId
+    ) {
+      throw new ForbiddenException(
+        'You can only update appointments for your own pets',
+      );
     }
 
     const dataToUpdate: Prisma.AppointmentUpdateInput = {};
@@ -346,13 +379,21 @@ export class AppointmentsService extends BaseService {
 
     // Verificar se o agendamento pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && appointment.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      appointment.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Appointment belongs to another company');
     }
 
     // Verificar se o pet pertence ao cliente (se não for SUPER_ADMIN)
-    if (user.role !== 'SUPER_ADMIN' && appointment.pet.clientId !== user.userId) {
-      throw new ForbiddenException('You can only delete appointments for your own pets');
+    if (
+      user.role !== 'SUPER_ADMIN' &&
+      appointment.pet.clientId !== user.userId
+    ) {
+      throw new ForbiddenException(
+        'You can only delete appointments for your own pets',
+      );
     }
 
     return this.prisma.appointment.delete({
@@ -382,13 +423,21 @@ export class AppointmentsService extends BaseService {
 
     // Verificar se o agendamento pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && appointment.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      appointment.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Appointment belongs to another company');
     }
 
     // Verificar se o pet pertence ao cliente (se não for SUPER_ADMIN)
-    if (user.role !== 'SUPER_ADMIN' && appointment.pet.clientId !== user.userId) {
-      throw new ForbiddenException('You can only update status for appointments of your own pets');
+    if (
+      user.role !== 'SUPER_ADMIN' &&
+      appointment.pet.clientId !== user.userId
+    ) {
+      throw new ForbiddenException(
+        'You can only update status for appointments of your own pets',
+      );
     }
 
     // Atualizar status do agendamento
@@ -410,7 +459,10 @@ export class AppointmentsService extends BaseService {
     // Se o agendamento foi concluído, criar receita automática
     if (status === PrismaAppointmentStatus.COMPLETED) {
       try {
-        await this.financialService.createAutomaticIncomeFromAppointment(id, user);
+        await this.financialService.createAutomaticIncomeFromAppointment(
+          id,
+          user,
+        );
         console.log(`Receita automática criada para agendamento ${id}`);
       } catch (error) {
         console.error(
@@ -424,7 +476,10 @@ export class AppointmentsService extends BaseService {
     return updatedAppointment;
   }
 
-  async getAppointmentFinancialSummary(appointmentId: string, user: JwtPayload): Promise<{
+  async getAppointmentFinancialSummary(
+    appointmentId: string,
+    user: JwtPayload,
+  ): Promise<{
     appointment: AppointmentType;
     estimatedRevenue: number;
     commission: number;
@@ -452,7 +507,10 @@ export class AppointmentsService extends BaseService {
 
     // Verificar se o agendamento pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && appointment.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      appointment.companyId !== companyFilter.companyId
+    ) {
       throw new ForbiddenException('Appointment belongs to another company');
     }
 

@@ -12,8 +12,15 @@ export class GroomersService extends BaseService {
     super(prisma);
   }
 
-  async create(createGroomerDto: CreateGroomerDto, user: JwtPayload): Promise<Groomer> {
-    const data = this.applyCompanyFilterToCreate(createGroomerDto, user, 'Groomer');
+  async create(
+    createGroomerDto: CreateGroomerDto,
+    user: JwtPayload,
+  ): Promise<Groomer> {
+    const data = this.applyCompanyFilterToCreate(
+      createGroomerDto,
+      user,
+      'Groomer',
+    );
     return this.prisma.groomer.create({ data });
   }
 
@@ -22,7 +29,7 @@ export class GroomersService extends BaseService {
       this.prisma.groomer,
       {},
       user,
-      'Groomer'
+      'Groomer',
     );
   }
 
@@ -34,7 +41,10 @@ export class GroomersService extends BaseService {
 
     // Verificar se o groomer pertence à empresa do usuário
     const companyFilter = this.getCompanyFilter(user);
-    if ('companyId' in companyFilter && groomer.companyId !== companyFilter.companyId) {
+    if (
+      'companyId' in companyFilter &&
+      groomer.companyId !== companyFilter.companyId
+    ) {
       throw new NotFoundException(`Groomer with ID "${id}" not found`);
     }
 
@@ -47,7 +57,10 @@ export class GroomersService extends BaseService {
     user: JwtPayload,
   ): Promise<Groomer> {
     await this.validateEntityOwnership(id, user, 'Groomer', async (id) =>
-      this.prisma.groomer.findUnique({ where: { id }, select: { companyId: true } })
+      this.prisma.groomer.findUnique({
+        where: { id },
+        select: { companyId: true },
+      }),
     );
 
     try {
@@ -68,7 +81,10 @@ export class GroomersService extends BaseService {
 
   async remove(id: string, user: JwtPayload): Promise<Groomer> {
     await this.validateEntityOwnership(id, user, 'Groomer', async (id) =>
-      this.prisma.groomer.findUnique({ where: { id }, select: { companyId: true } })
+      this.prisma.groomer.findUnique({
+        where: { id },
+        select: { companyId: true },
+      }),
     );
 
     try {

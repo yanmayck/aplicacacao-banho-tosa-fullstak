@@ -18,6 +18,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from '@prisma/client';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @UseGuards(JwtAuthGuard)
 @Controller('groomers')
@@ -26,18 +28,21 @@ export class GroomersController {
 
   @Post()
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  create(@Body() createGroomerDto: CreateGroomerDto) {
-    return this.groomersService.create(createGroomerDto);
+  create(
+    @Body() createGroomerDto: CreateGroomerDto,
+    @GetUser() user: JwtPayload,
+  ) {
+    return this.groomersService.create(createGroomerDto, user);
   }
 
   @Get()
-  findAll() {
-    return this.groomersService.findAll();
+  findAll(@GetUser() user: JwtPayload) {
+    return this.groomersService.findAll(user);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.groomersService.findOne(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string, @GetUser() user: JwtPayload) {
+    return this.groomersService.findOne(id, user);
   }
 
   @Patch(':id')
@@ -45,14 +50,15 @@ export class GroomersController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateGroomerDto: UpdateGroomerDto,
+    @GetUser() user: JwtPayload,
   ) {
-    return this.groomersService.update(id, updateGroomerDto);
+    return this.groomersService.update(id, updateGroomerDto, user);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.groomersService.remove(id);
+  @Roles(UserRole.SUPER_ADMIN)
+  remove(@Param('id', ParseUUIDPipe) id: string, @GetUser() user: JwtPayload) {
+    return this.groomersService.remove(id, user);
   }
 }

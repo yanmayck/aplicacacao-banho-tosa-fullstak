@@ -43,7 +43,7 @@ export class RolesGuard implements CanActivate {
     // Verifica se o usuário tem pelo menos uma das roles requeridas
     // considerando a hierarquia (roles superiores podem acessar roles inferiores)
     return requiredRoles.some((requiredRole) =>
-      this.hasPermission(user.role, requiredRole)
+      this.hasPermission(user.role, requiredRole),
     );
   }
 }

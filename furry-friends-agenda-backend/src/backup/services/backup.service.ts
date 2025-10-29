@@ -8,6 +8,8 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EncryptionService } from './encryption.service';
 import { CompressionService } from './compression.service';
+import { BaseService } from '../../common/base.service';
+import { JwtPayload } from '../../auth/interfaces/jwt-payload.interface';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as cron from 'node-cron';
@@ -28,7 +30,7 @@ import {
 } from '../interfaces/backup.interface';
 
 @Injectable()
-export class BackupService {
+export class BackupService extends BaseService {
   private readonly logger = new Logger(BackupService.name);
   private readonly backupPath: string;
   private readonly maxBackupSize: number;
@@ -36,11 +38,12 @@ export class BackupService {
   private scheduledJobs: Map<string, cron.ScheduledTask> = new Map();
 
   constructor(
+    protected readonly prisma: PrismaService,
     private readonly configService: ConfigService,
-    private readonly prisma: PrismaService,
     private readonly encryptionService: EncryptionService,
     private readonly compressionService: CompressionService,
   ) {
+    super(prisma);
     this.backupPath =
       this.configService.get<string>('BACKUP_PATH') || './backups';
     this.maxBackupSize =

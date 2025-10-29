@@ -19,31 +19,34 @@ export class PluginSecurityService {
    */
   async validatePermissions(
     plugin: PluginInterface,
-    requestedPermissions: PluginPermission[]
+    requestedPermissions: PluginPermission[],
   ): Promise<SecurityCheckResult> {
     try {
       const requiredPermissions = plugin.getRequiredPermissions();
 
       for (const required of requiredPermissions) {
-        const hasPermission = requestedPermissions.some(requested =>
-          this.matchesPermission(required, requested)
+        const hasPermission = requestedPermissions.some((requested) =>
+          this.matchesPermission(required, requested),
         );
 
         if (!hasPermission) {
           return {
             allowed: false,
             reason: `Permissão negada: ${required.resource}:${required.actions.join(',')}`,
-            requiredPermissions: [required]
+            requiredPermissions: [required],
           };
         }
       }
 
       return { allowed: true };
     } catch (error) {
-      this.logger.error(`Erro ao validar permissões para plugin ${plugin.name}`, error);
+      this.logger.error(
+        `Erro ao validar permissões para plugin ${plugin.name}`,
+        error,
+      );
       return {
         allowed: false,
-        reason: 'Erro interno na validação de permissões'
+        reason: 'Erro interno na validação de permissões',
       };
     }
   }
@@ -54,7 +57,7 @@ export class PluginSecurityService {
   async executeInSandbox<T>(
     plugin: PluginInterface,
     operation: () => Promise<T>,
-    context: SecurityContext
+    context: SecurityContext,
   ): Promise<OperationResult<T>> {
     const startTime = Date.now();
 
@@ -66,22 +69,27 @@ export class PluginSecurityService {
       const result = await operation.call(sandboxContext);
 
       const executionTime = Date.now() - startTime;
-      this.logger.debug(`Plugin ${plugin.name} executou operação em ${executionTime}ms`);
+      this.logger.debug(
+        `Plugin ${plugin.name} executou operação em ${executionTime}ms`,
+      );
 
       return {
         success: true,
-        data: result
+        data: result,
       };
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      this.logger.error(`Plugin ${plugin.name} falhou após ${executionTime}ms`, error);
+      this.logger.error(
+        `Plugin ${plugin.name} falhou após ${executionTime}ms`,
+        error,
+      );
 
       // Logar erro de segurança
       await this.logSecurityError(plugin, error, context);
 
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -93,12 +101,12 @@ export class PluginSecurityService {
     plugin: PluginInterface,
     operation: string,
     resource: string,
-    context: SecurityContext
+    context: SecurityContext,
   ): Promise<boolean> {
     // Verificar permissões do plugin
     const permissions = plugin.getRequiredPermissions();
-    const hasPermission = permissions.some(p =>
-      p.resource === resource && p.actions.includes(operation)
+    const hasPermission = permissions.some(
+      (p) => p.resource === resource && p.actions.includes(operation),
     );
 
     if (!hasPermission) {
@@ -114,7 +122,7 @@ export class PluginSecurityService {
    */
   async validatePluginConfig(
     plugin: PluginInterface,
-    config: any
+    config: any,
   ): Promise<SecurityCheckResult> {
     try {
       const validation = plugin.validateConfig(config);
@@ -122,7 +130,7 @@ export class PluginSecurityService {
       if (!validation.valid) {
         return {
           allowed: false,
-          reason: `Configuração inválida: ${validation.errors?.join(', ')}`
+          reason: `Configuração inválida: ${validation.errors?.join(', ')}`,
         };
       }
 
@@ -136,24 +144,30 @@ export class PluginSecurityService {
     } catch (error) {
       return {
         allowed: false,
-        reason: `Erro na validação: ${error.message}`
+        reason: `Erro na validação: ${error.message}`,
       };
     }
   }
 
   // === MÉTODOS PRIVADOS ===
 
-  private matchesPermission(required: PluginPermission, granted: PluginPermission): boolean {
+  private matchesPermission(
+    required: PluginPermission,
+    granted: PluginPermission,
+  ): boolean {
     // Verificar se o recurso corresponde
     if (required.resource !== granted.resource) {
       return false;
     }
 
     // Verificar se todas as ações necessárias estão concedidas
-    return required.actions.every(action => granted.actions.includes(action));
+    return required.actions.every((action) => granted.actions.includes(action));
   }
 
-  private createSandboxContext(plugin: PluginInterface, context: SecurityContext): any {
+  private createSandboxContext(
+    plugin: PluginInterface,
+    context: SecurityContext,
+  ): any {
     // Criar proxy para interceptar acessos perigosos
     const safePrisma = this.createPrismaProxy(plugin, context);
     const safeHttp = this.createHttpProxy(plugin, context);
@@ -175,7 +189,10 @@ export class PluginSecurityService {
     };
   }
 
-  private createPrismaProxy(plugin: PluginInterface, context: SecurityContext): any {
+  private createPrismaProxy(
+    plugin: PluginInterface,
+    context: SecurityContext,
+  ): any {
     return new Proxy(this.prisma, {
       get: (target, prop) => {
         if (typeof prop === 'string' && this.isDangerousPrismaMethod(prop)) {
@@ -187,34 +204,52 @@ export class PluginSecurityService {
         if (typeof targetMethod === 'function') {
           return (...args: any[]) => {
             // Verificar permissões antes de executar
-            if (!this.checkDatabasePermission(plugin, prop as string, context)) {
-              throw new Error(`Acesso negado ao banco de dados: ${String(prop)}`);
+            if (
+              !this.checkDatabasePermission(plugin, prop as string, context)
+            ) {
+              throw new Error(
+                `Acesso negado ao banco de dados: ${String(prop)}`,
+              );
             }
 
             // Logar operação
-            this.logger.debug(`Plugin ${plugin.name} acessando ${String(prop)}`);
+            this.logger.debug(
+              `Plugin ${plugin.name} acessando ${String(prop)}`,
+            );
 
             return (targetMethod as any)(...args);
           };
         }
 
         return targetMethod;
-      }
+      },
     });
   }
 
-  private createHttpProxy(plugin: PluginInterface, context: SecurityContext): any {
+  private createHttpProxy(
+    plugin: PluginInterface,
+    context: SecurityContext,
+  ): any {
     return {
       get: async (url: string) => {
         if (!this.isAllowedUrl(url)) {
           throw new Error(`URL não permitida: ${url}`);
         }
 
-        if (!await this.checkOperationAllowed(plugin, 'http.get', 'network', context)) {
+        if (
+          !(await this.checkOperationAllowed(
+            plugin,
+            'http.get',
+            'network',
+            context,
+          ))
+        ) {
           throw new Error('Acesso à rede não permitido');
         }
 
-        this.logger.debug(`Plugin ${plugin.name} fazendo requisição HTTP: ${url}`);
+        this.logger.debug(
+          `Plugin ${plugin.name} fazendo requisição HTTP: ${url}`,
+        );
         // Implementar chamada HTTP segura
       },
 
@@ -223,17 +258,29 @@ export class PluginSecurityService {
           throw new Error(`URL não permitida: ${url}`);
         }
 
-        if (!await this.checkOperationAllowed(plugin, 'http.post', 'network', context)) {
+        if (
+          !(await this.checkOperationAllowed(
+            plugin,
+            'http.post',
+            'network',
+            context,
+          ))
+        ) {
           throw new Error('Acesso à rede não permitido');
         }
 
-        this.logger.debug(`Plugin ${plugin.name} fazendo requisição POST: ${url}`);
+        this.logger.debug(
+          `Plugin ${plugin.name} fazendo requisição POST: ${url}`,
+        );
         // Implementar chamada HTTP segura
-      }
+      },
     };
   }
 
-  private createFilesystemProxy(plugin: PluginInterface, context: SecurityContext): any {
+  private createFilesystemProxy(
+    plugin: PluginInterface,
+    context: SecurityContext,
+  ): any {
     const allowedPaths = [`./plugins/${plugin.name}`];
 
     return {
@@ -242,7 +289,14 @@ export class PluginSecurityService {
           throw new Error(`Caminho não permitido: ${path}`);
         }
 
-        if (!await this.checkOperationAllowed(plugin, 'fs.read', 'filesystem', context)) {
+        if (
+          !(await this.checkOperationAllowed(
+            plugin,
+            'fs.read',
+            'filesystem',
+            context,
+          ))
+        ) {
           throw new Error('Acesso ao sistema de arquivos não permitido');
         }
 
@@ -255,13 +309,20 @@ export class PluginSecurityService {
           throw new Error(`Caminho não permitido: ${path}`);
         }
 
-        if (!await this.checkOperationAllowed(plugin, 'fs.write', 'filesystem', context)) {
+        if (
+          !(await this.checkOperationAllowed(
+            plugin,
+            'fs.write',
+            'filesystem',
+            context,
+          ))
+        ) {
           throw new Error('Escrita no sistema de arquivos não permitida');
         }
 
         this.logger.debug(`Plugin ${plugin.name} escrevendo arquivo: ${path}`);
         // Implementar escrita segura
-      }
+      },
     };
   }
 
@@ -278,7 +339,7 @@ export class PluginSecurityService {
       },
       error: (message: string, data?: any) => {
         this.logger.error(`[${plugin.name}] ${message}`, data);
-      }
+      },
     };
   }
 
@@ -288,7 +349,7 @@ export class PluginSecurityService {
       '$executeRawUnsafe',
       '$queryRaw',
       '$queryRawUnsafe',
-      '$runCommandRaw'
+      '$runCommandRaw',
     ];
 
     return dangerousMethods.includes(method);
@@ -297,12 +358,12 @@ export class PluginSecurityService {
   private checkDatabasePermission(
     plugin: PluginInterface,
     operation: string,
-    context: SecurityContext
+    context: SecurityContext,
   ): boolean {
     // Verificar se o plugin tem permissão para operações de banco
     const permissions = plugin.getRequiredPermissions();
-    return permissions.some(p =>
-      p.resource === 'database' && p.actions.includes(operation)
+    return permissions.some(
+      (p) => p.resource === 'database' && p.actions.includes(operation),
     );
   }
 
@@ -316,8 +377,9 @@ export class PluginSecurityService {
 
     try {
       const urlObj = new URL(url);
-      return allowedDomains.some(domain =>
-        urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
+      return allowedDomains.some(
+        (domain) =>
+          urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`),
       );
     } catch {
       return false;
@@ -327,7 +389,7 @@ export class PluginSecurityService {
   private isPathAllowed(path: string, allowedPaths: string[]): boolean {
     const resolvedPath = require('path').resolve(path);
 
-    return allowedPaths.some(allowedPath => {
+    return allowedPaths.some((allowedPath) => {
       const resolvedAllowed = require('path').resolve(allowedPath);
       return resolvedPath.startsWith(resolvedAllowed);
     });
@@ -346,7 +408,7 @@ export class PluginSecurityService {
     if (configStr.includes('<script') || configStr.includes('javascript:')) {
       return {
         allowed: false,
-        reason: 'Configuração contém código potencialmente perigoso'
+        reason: 'Configuração contém código potencialmente perigoso',
       };
     }
 
@@ -356,7 +418,7 @@ export class PluginSecurityService {
   private async logSecurityError(
     plugin: PluginInterface,
     error: any,
-    context: SecurityContext
+    context: SecurityContext,
   ): Promise<void> {
     await this.prisma.pluginLog.create({
       data: {
@@ -366,9 +428,9 @@ export class PluginSecurityService {
         data: {
           error: error.stack,
           context: context as any,
-          plugin: plugin.name
-        }
-      }
+          plugin: plugin.name,
+        },
+      },
     });
   }
 
@@ -376,7 +438,7 @@ export class PluginSecurityService {
     plugin: PluginInterface,
     operation: string,
     resource: string,
-    context: SecurityContext
+    context: SecurityContext,
   ): Promise<void> {
     await this.prisma.pluginLog.create({
       data: {
@@ -387,16 +449,16 @@ export class PluginSecurityService {
           operation,
           resource,
           context: context as any,
-          plugin: plugin.name
-        }
-      }
+          plugin: plugin.name,
+        },
+      },
     });
   }
 
   private async getPluginId(pluginName: string): Promise<string> {
     const plugin = await this.prisma.plugin.findUnique({
       where: { name: pluginName },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!plugin) {
