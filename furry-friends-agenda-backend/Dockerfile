@@ -63,7 +63,7 @@ RUN npm run build
 RUN npm prune --production
 
 # ---- Estágio de Produção ----
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
 # Definir diretório de trabalho
 WORKDIR /usr/src/app

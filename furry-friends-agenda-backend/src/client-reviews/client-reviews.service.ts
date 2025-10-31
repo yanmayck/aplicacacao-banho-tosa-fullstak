@@ -4,6 +4,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BaseService } from '../common/base.service';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 export interface CreateReviewDto {
   rating: number;
@@ -14,18 +16,20 @@ export interface CreateReviewDto {
 }
 
 @Injectable()
-export class ClientReviewsService {
-  constructor(private prisma: PrismaService) {}
+export class ClientReviewsService extends BaseService {
+  constructor(protected prisma: PrismaService) {
+    super(prisma);
+  }
 
-  async createReview(clientId: string, reviewData: CreateReviewDto) {
+  async createReview(clientId: string, reviewData: CreateReviewDto, user: JwtPayload) {
     // Validar rating
     if (reviewData.rating < 1 || reviewData.rating > 5) {
       throw new BadRequestException('Rating deve estar entre 1 e 5');
     }
 
-    // Verificar se o cliente existe
+    // Verificar se o cliente existe e pertence à empresa do usuário
     const client = await this.prisma.client.findUnique({
-      where: { id: clientId },
+      where: this.applyCompanyFilter({ id: clientId }, user, 'Client'),
     });
 
     if (!client) {
@@ -35,10 +39,10 @@ export class ClientReviewsService {
     // Se for avaliação de agendamento, verificar se pertence ao cliente
     if (reviewData.appointmentId) {
       const appointment = await this.prisma.appointment.findFirst({
-        where: {
+        where: this.applyCompanyFilter({
           id: reviewData.appointmentId,
           clientId,
-        },
+        }, user, 'Appointment'),
       });
 
       if (!appointment) {
@@ -49,7 +53,7 @@ export class ClientReviewsService {
 
       // Verificar se já existe avaliação para este agendamento
       const existingReview = await this.prisma.review.findFirst({
-        where: { appointmentId: reviewData.appointmentId },
+        where: this.applyCompanyFilter({ appointmentId: reviewData.appointmentId }, user, 'Review'),
       });
 
       if (existingReview) {
@@ -62,7 +66,7 @@ export class ClientReviewsService {
     // Se for avaliação de tosador, verificar se existe
     if (reviewData.groomerId) {
       const groomer = await this.prisma.groomer.findUnique({
-        where: { id: reviewData.groomerId },
+        where: this.applyCompanyFilter({ id: reviewData.groomerId }, user, 'Groomer'),
       });
 
       if (!groomer) {
@@ -72,7 +76,7 @@ export class ClientReviewsService {
 
     // Criar avaliação
     const review = await this.prisma.review.create({
-      data: {
+      data: this.applyCompanyFilterToCreate({
         rating: reviewData.rating,
         comment: reviewData.comment,
         isAnonymous: reviewData.isAnonymous || false,
@@ -81,7 +85,7 @@ export class ClientReviewsService {
         groomerId: reviewData.groomerId,
         isApproved: false, // Requer aprovação do admin
         isVisible: true,
-      },
+      }, user, 'Review'),
       include: {
         client: {
           select: {
@@ -108,9 +112,9 @@ export class ClientReviewsService {
     return review;
   }
 
-  async getClientReviews(clientId: string) {
+  async getClientReviews(clientId: string, user: JwtPayload) {
     return this.prisma.review.findMany({
-      where: { clientId },
+      where: this.applyCompanyFilter({ clientId }, user, 'Review'),
       include: {
         appointment: {
           select: {
@@ -132,12 +136,12 @@ export class ClientReviewsService {
     });
   }
 
-  async getReviewById(reviewId: string, clientId: string) {
+  async getReviewById(reviewId: string, clientId: string, user: JwtPayload) {
     const review = await this.prisma.review.findFirst({
-      where: {
+      where: this.applyCompanyFilter({
         id: reviewId,
         clientId,
-      },
+      }, user, 'Review'),
       include: {
         appointment: {
           select: {
@@ -169,13 +173,14 @@ export class ClientReviewsService {
     reviewId: string,
     clientId: string,
     updateData: Partial<CreateReviewDto>,
+    user: JwtPayload,
   ) {
     // Verificar se a avaliação pertence ao cliente
     const existingReview = await this.prisma.review.findFirst({
-      where: {
+      where: this.applyCompanyFilter({
         id: reviewId,
         clientId,
-      },
+      }, user, 'Review'),
     });
 
     if (!existingReview) {
@@ -218,13 +223,13 @@ export class ClientReviewsService {
     });
   }
 
-  async deleteReview(reviewId: string, clientId: string) {
+  async deleteReview(reviewId: string, clientId: string, user: JwtPayload) {
     // Verificar se a avaliação pertence ao cliente
     const existingReview = await this.prisma.review.findFirst({
-      where: {
+      where: this.applyCompanyFilter({
         id: reviewId,
         clientId,
-      },
+      }, user, 'Review'),
     });
 
     if (!existingReview) {
@@ -245,7 +250,7 @@ export class ClientReviewsService {
     });
   }
 
-  async getPublicReviews(groomerId?: string) {
+  async getPublicReviews(groomerId?: string, user?: JwtPayload) {
     const whereClause: any = {
       isApproved: true,
       isVisible: true,
@@ -255,8 +260,11 @@ export class ClientReviewsService {
       whereClause.groomerId = groomerId;
     }
 
+    // Aplicar filtro de empresa se usuário estiver logado
+    const whereWithCompany = user ? this.applyCompanyFilter(whereClause, user, 'Review') : whereClause;
+
     return this.prisma.review.findMany({
-      where: whereClause,
+      where: whereWithCompany,
       include: {
         client: {
           select: {
@@ -283,7 +291,7 @@ export class ClientReviewsService {
     });
   }
 
-  async getAverageRating(groomerId?: string) {
+  async getAverageRating(groomerId?: string, user?: JwtPayload) {
     const whereClause: any = {
       isApproved: true,
       isVisible: true,
@@ -293,8 +301,11 @@ export class ClientReviewsService {
       whereClause.groomerId = groomerId;
     }
 
+    // Aplicar filtro de empresa se usuário estiver logado
+    const whereWithCompany = user ? this.applyCompanyFilter(whereClause, user, 'Review') : whereClause;
+
     const result = await this.prisma.review.aggregate({
-      where: whereClause,
+      where: whereWithCompany,
       _avg: {
         rating: true,
       },

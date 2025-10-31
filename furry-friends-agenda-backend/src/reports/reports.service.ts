@@ -149,7 +149,14 @@ export class ReportsService extends BaseService {
       },
       user,
       'Transaction',
-    );
+    ) as (Transaction & {
+      category: { name: string } | null;
+      appointment: {
+        client: Client;
+        groomer: Groomer;
+        appointmentServices: { service: any }[];
+      } | null;
+    })[];
 
     // Calculate totals
     const totalIncome = transactions

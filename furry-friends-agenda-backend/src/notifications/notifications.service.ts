@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationType, Prisma } from '@prisma/client';
+import { BaseService } from '../common/base.service';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 export interface CreateNotificationDto {
   title: string;
@@ -12,45 +14,61 @@ export interface CreateNotificationDto {
 }
 
 @Injectable()
-export class NotificationsService {
-  constructor(private prisma: PrismaService) {}
+export class NotificationsService extends BaseService {
+  constructor(protected prisma: PrismaService) {
+    super(prisma);
+  }
 
-  async createNotification(notificationData: CreateNotificationDto) {
+  async createNotification(notificationData: CreateNotificationDto, user?: JwtPayload) {
+    const data = user ? this.applyCompanyFilterToCreate({
+      title: notificationData.title,
+      message: notificationData.message,
+      type: notificationData.type,
+      clientId: notificationData.clientId,
+      groomerId: notificationData.groomerId,
+      data: notificationData.data as Prisma.InputJsonValue,
+      isRead: false,
+    }, user, 'Notification') : {
+      title: notificationData.title,
+      message: notificationData.message,
+      type: notificationData.type,
+      clientId: notificationData.clientId,
+      groomerId: notificationData.groomerId,
+      data: notificationData.data as Prisma.InputJsonValue,
+      isRead: false,
+    };
+
     return this.prisma.notification.create({
-      data: {
-        title: notificationData.title,
-        message: notificationData.message,
-        type: notificationData.type,
-        clientId: notificationData.clientId,
-        groomerId: notificationData.groomerId,
-        data: notificationData.data as Prisma.InputJsonValue,
-        isRead: false,
-      },
+      data,
     });
   }
 
-  async getClientNotifications(clientId: string, unreadOnly = false) {
+  async getClientNotifications(clientId: string, unreadOnly = false, user?: JwtPayload) {
     const whereClause: Prisma.NotificationWhereInput = { clientId };
 
     if (unreadOnly) {
       whereClause.isRead = false;
     }
 
+    const whereWithCompany = user ? this.applyCompanyFilter(whereClause, user, 'Notification') : whereClause;
+
     return this.prisma.notification.findMany({
-      where: whereClause,
+      where: whereWithCompany,
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async getGroomerNotifications(groomerId: string, unreadOnly = false) {
+  async getGroomerNotifications(groomerId: string, unreadOnly = false, user?: JwtPayload) {
     const whereClause: Prisma.NotificationWhereInput = { groomerId };
 
     if (unreadOnly) {
       whereClause.isRead = false;
     }
 
+    const whereWithCompany = user ? this.applyCompanyFilter(whereClause, user, 'Notification') : whereClause;
+
     return this.prisma.notification.findMany({
-      where: whereClause,
+      where: whereWithCompany,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -59,6 +77,7 @@ export class NotificationsService {
     notificationId: string,
     userType: 'client' | 'groomer',
     userId: string,
+    user?: JwtPayload,
   ) {
     const whereClause: Prisma.NotificationWhereInput = { id: notificationId };
 
@@ -68,8 +87,10 @@ export class NotificationsService {
       whereClause.groomerId = userId;
     }
 
+    const whereWithCompany = user ? this.applyCompanyFilter(whereClause, user, 'Notification') : whereClause;
+
     return this.prisma.notification.updateMany({
-      where: whereClause,
+      where: whereWithCompany,
       data: {
         isRead: true,
         readAt: new Date(),
@@ -77,7 +98,7 @@ export class NotificationsService {
     });
   }
 
-  async markAllAsRead(userType: 'client' | 'groomer', userId: string) {
+  async markAllAsRead(userType: 'client' | 'groomer', userId: string, user?: JwtPayload) {
     const whereClause: Prisma.NotificationWhereInput = { isRead: false };
 
     if (userType === 'client') {
@@ -86,8 +107,10 @@ export class NotificationsService {
       whereClause.groomerId = userId;
     }
 
+    const whereWithCompany = user ? this.applyCompanyFilter(whereClause, user, 'Notification') : whereClause;
+
     return this.prisma.notification.updateMany({
-      where: whereClause,
+      where: whereWithCompany,
       data: {
         isRead: true,
         readAt: new Date(),
@@ -167,7 +190,7 @@ export class NotificationsService {
     );
   }
 
-  async getUnreadCount(userType: 'client' | 'groomer', userId: string) {
+  async getUnreadCount(userType: 'client' | 'groomer', userId: string, user?: JwtPayload) {
     const whereClause: Prisma.NotificationWhereInput = { isRead: false };
 
     if (userType === 'client') {
@@ -176,8 +199,10 @@ export class NotificationsService {
       whereClause.groomerId = userId;
     }
 
+    const whereWithCompany = user ? this.applyCompanyFilter(whereClause, user, 'Notification') : whereClause;
+
     return this.prisma.notification.count({
-      where: whereClause,
+      where: whereWithCompany,
     });
   }
 
@@ -502,6 +527,7 @@ export class NotificationsService {
       limit?: number;
       offset?: number;
     },
+    user?: JwtPayload,
   ) {
     const whereClause: Prisma.NotificationWhereInput = {};
 
@@ -525,18 +551,20 @@ export class NotificationsService {
       }
     }
 
+    const whereWithCompany = user ? this.applyCompanyFilter(whereClause, user, 'Notification') : whereClause;
+
     const limit = filters?.limit || 50;
     const offset = filters?.offset || 0;
 
     return this.prisma.notification.findMany({
-      where: whereClause,
+      where: whereWithCompany,
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset,
     });
   }
 
-  async getNotificationStats(userType: 'client' | 'groomer', userId: string) {
+  async getNotificationStats(userType: 'client' | 'groomer', userId: string, user?: JwtPayload) {
     const whereClause: Prisma.NotificationWhereInput = {};
 
     if (userType === 'client') {
@@ -545,27 +573,29 @@ export class NotificationsService {
       whereClause.groomerId = userId;
     }
 
+    const whereWithCompany = user ? this.applyCompanyFilter(whereClause, user, 'Notification') : whereClause;
+
     const total = await this.prisma.notification.count({
-      where: whereClause,
+      where: whereWithCompany,
     });
 
     const unread = await this.prisma.notification.count({
       where: {
-        ...whereClause,
+        ...whereWithCompany,
         isRead: false,
       },
     });
 
     const byType = await this.prisma.notification.groupBy({
       by: ['type'],
-      where: whereClause,
+      where: whereWithCompany,
       _count: {
         id: true,
       },
     });
 
     const recent = await this.prisma.notification.findMany({
-      where: whereClause,
+      where: whereWithCompany,
       orderBy: { createdAt: 'desc' },
       take: 5,
     });

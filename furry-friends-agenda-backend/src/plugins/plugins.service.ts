@@ -5,6 +5,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BaseService } from '../common/base.service';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { PluginRegistry } from './plugin-registry.service';
 import { PluginLoader } from './plugin-loader.service';
 import { PluginSecurityService } from './plugin-security.service';
@@ -19,16 +21,18 @@ import {
 } from '../types/plugin.types';
 
 @Injectable()
-export class PluginsService {
+export class PluginsService extends BaseService {
   private readonly logger = new Logger(PluginsService.name);
 
   constructor(
-    private prisma: PrismaService,
+    protected prisma: PrismaService,
     private pluginRegistry: PluginRegistry,
     private pluginLoader: PluginLoader,
     private pluginSecurity: PluginSecurityService,
     private hookService: HookService,
-  ) {}
+  ) {
+    super(prisma);
+  }
 
   /**
    * Carrega e registra um plugin
@@ -231,6 +235,7 @@ export class PluginsService {
   async updatePluginConfig(
     pluginName: string,
     config: PluginConfig,
+    user?: JwtPayload,
   ): Promise<OperationResult> {
     try {
       this.logger.log(`Atualizando configuração do plugin: ${pluginName}`);
@@ -250,10 +255,18 @@ export class PluginsService {
         throw new BadRequestException(validation.reason);
       }
 
-      // Atualizar no banco
+      // Atualizar no banco com filtro de empresa
+      const updateData = user ? this.applyCompanyFilterToCreate({
+        config: config as any,
+        updatedAt: new Date(),
+      }, user, 'Plugin') : {
+        config: config as any,
+        updatedAt: new Date(),
+      };
+
       await this.prisma.plugin.update({
-        where: { name: pluginName },
-        data: { config: config as any, updatedAt: new Date() },
+        where: user ? this.applyCompanyFilter({ name: pluginName }, user, 'Plugin') : { name: pluginName },
+        data: updateData,
       });
 
       // Atualizar instância
@@ -301,12 +314,15 @@ export class PluginsService {
   /**
    * Executa manutenção no sistema de plugins
    */
-  async performMaintenance(): Promise<OperationResult> {
+  async performMaintenance(user?: JwtPayload): Promise<OperationResult> {
     try {
       this.logger.log('Executando manutenção do sistema de plugins');
 
       // Verificar integridade dos plugins
-      const plugins = await this.prisma.plugin.findMany();
+      const whereClause = user ? this.applyCompanyFilter({}, user, 'Plugin') : {};
+      const plugins = await this.prisma.plugin.findMany({
+        where: whereClause,
+      });
       let fixedCount = 0;
 
       for (const plugin of plugins) {

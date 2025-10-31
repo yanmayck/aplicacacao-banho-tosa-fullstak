@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Get,
@@ -32,7 +33,7 @@ export class AuditController {
   @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   createLog(@Body() createLogDto: any, @Request() req: { user: JwtPayload }) {
-    return this.auditService.createLog(createLogDto, req.user.userId);
+    return this.auditService.createLog(createLogDto, undefined, undefined, req.user);
   }
 
   @Get('logs')
@@ -129,7 +130,7 @@ export class AuditController {
   @Get('filters/public')
   @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   getPublicFilters() {
-    return this.auditService.getSavedFilters();
+    return this.auditService.getPublicFilters();
   }
 
   @Delete('filters/:id')
@@ -147,13 +148,13 @@ export class AuditController {
   @Roles(UserRole.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   createAlert(@Body() alertData: any, @Request() req: { user: JwtPayload }) {
-    return this.auditService.createAlert(alertData, req.user.userId);
+    return this.auditService.createAlert(alertData, req.user);
   }
 
   @Get('alerts')
   @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)
   getAlerts(@Request() req: { user: JwtPayload }) {
-    return this.auditService.getAlerts(req.user.userId);
+    return this.auditService.getAlerts(req.user);
   }
 
   @Patch('alerts/:id')
@@ -164,7 +165,7 @@ export class AuditController {
     @Body() alertData: any,
     @Request() req: { user: JwtPayload },
   ) {
-    return this.auditService.updateAlert(id, alertData, req.user.userId);
+    return this.auditService.updateAlert(id, alertData, req.user);
   }
 
   @Delete('alerts/:id')
@@ -173,7 +174,7 @@ export class AuditController {
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: { user: JwtPayload },
   ) {
-    return this.auditService.deleteAlert(id, req.user.userId);
+    return this.auditService.deleteAlert(id, req.user);
   }
 
   // ========== MANUTENÇÃO ==========

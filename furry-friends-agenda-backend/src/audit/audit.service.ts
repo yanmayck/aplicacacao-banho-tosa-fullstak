@@ -494,6 +494,17 @@ export class AuditService extends BaseService {
     });
   }
 
+  async getPublicFilters(): Promise<AuditFilter[]> {
+    return this.prisma.auditFilter.findMany({
+      where: {
+        isPublic: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
   async deleteSavedFilter(id: string, user: JwtPayload): Promise<AuditFilter> {
     const filter = await this.prisma.auditFilter.findFirst({
       where: this.applyCompanyFilter(

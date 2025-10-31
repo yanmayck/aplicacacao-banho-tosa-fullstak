@@ -15,10 +15,14 @@ const Login: React.FC = () => {
 
   // Auto-login para desenvolvimento
   useEffect(() => {
-    const enableDevAutoLogin = import.meta.env.VITE_ENABLE_DEV_AUTO_LOGIN === 'true';
-    if (enableDevAutoLogin) {
+    const enableAutoLogin = import.meta.env.VITE_AUTO_LOGIN === 'true';
+    if (enableAutoLogin) {
       setEmail("superadmin@furryfriends.com");
       setPassword("SuperAdmin123!");
+      // Fazer login automático após um pequeno delay
+      setTimeout(() => {
+        login("superadmin@furryfriends.com", "SuperAdmin123!");
+      }, 500);
     }
   }, []);
   
