@@ -7,7 +7,11 @@ import {
   IsBoolean,
   IsNumber,
   IsObject,
+  ValidateNested,
+  IsArray,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { PartialType } from '@nestjs/mapped-types';
 import { AuditActionType, AuditSeverity } from '@prisma/client';
 
 export class CreateAuditLogDto {
@@ -140,4 +144,91 @@ export class AuditLogQueryDto extends AuditLogFiltersDto {
   @IsString()
   @IsOptional()
   groupBy?: string; // Para agrupar resultados
+}
+
+export class CreateAuditConfigDto {
+  @IsBoolean()
+  @IsOptional()
+  enabled?: boolean;
+
+  @IsEnum(AuditSeverity)
+  @IsOptional()
+  logLevel?: AuditSeverity;
+
+  @IsNumber()
+  @IsOptional()
+  retentionDays?: number;
+
+  @IsNumber()
+  @IsOptional()
+  archiveAfterDays?: number;
+
+  @IsObject()
+  @IsOptional()
+  auditModules?: Record<string, boolean>;
+
+  @IsObject()
+  @IsOptional()
+  auditActions?: Record<string, boolean>;
+}
+
+export class CreateAuditFilterDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsObject()
+  filters: any; // TODO: Criar DTO mais específico para filtros
+}
+
+export class CreateAuditAlertDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  description: string;
+
+  @IsObject()
+  @ValidateNested()
+  @Type(() => AuditAlertConditionsDto)
+  conditions: AuditAlertConditionsDto;
+
+  @IsBoolean()
+  isActive: boolean;
+
+  @IsArray()
+  @IsString({ each: true })
+  notificationChannels: string[] = [];
+
+  @IsArray()
+  @IsString({ each: true })
+  notifyUsers: string[] = [];
+}
+
+export class UpdateAuditAlertDto extends PartialType(CreateAuditAlertDto) {}
+
+export class AuditAlertConditionsDto {
+  @IsString()
+  @IsOptional()
+  action?: string;
+
+  @IsString()
+  @IsOptional()
+  module?: string;
+
+  @IsEnum(AuditSeverity)
+  @IsOptional()
+  severity?: AuditSeverity;
+
+  @IsString()
+  @IsOptional()
+  entityType?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  success?: boolean;
 }

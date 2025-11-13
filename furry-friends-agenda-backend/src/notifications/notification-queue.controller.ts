@@ -15,7 +15,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole, NotificationStatus } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { NotificationQueueService } from './notification-queue.service';
 import { CreateNotificationQueueDto } from './dto/create-notification-queue.dto';
 

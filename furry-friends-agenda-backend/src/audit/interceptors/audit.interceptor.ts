@@ -9,13 +9,12 @@ import { Reflector } from '@nestjs/core';
 import { Observable, tap, catchError } from 'rxjs';
 import { Request } from 'express';
 import { AuditService } from '../audit.service';
-import { AuditActionType, AuditSeverity, Client } from '@prisma/client';
+import { AuditActionType, AuditSeverity } from '@prisma/client';
 import { CreateAuditLogDto } from '../dto/audit-log.dto';
 import {
   AuditMetadata,
   AuditParams,
   RequestMetadata,
-  User,
   RequestWithUser,
   SanitizedResponseData,
 } from '../../types/interceptor.types';
@@ -33,7 +32,7 @@ export class AuditInterceptor implements NestInterceptor {
     const url = request.url;
 
     // Obter metadados de auditoria do controlador/método
-    const auditMetadata =
+    const auditMetadata: AuditMetadata =
       this.reflector.get<AuditMetadata>('audit', context.getHandler()) || {};
 
     // Pular auditoria se especificado
@@ -45,12 +44,13 @@ export class AuditInterceptor implements NestInterceptor {
     const action: AuditActionType =
       (auditMetadata.action as AuditActionType) ||
       this.getActionFromMethod(method);
-    const entityType =
-      auditMetadata.entityType || this.getEntityTypeFromUrl(url);
-    const severity = auditMetadata.severity || AuditSeverity.MEDIUM;
+    const entityType: string =
+      (auditMetadata.entityType as string) || this.getEntityTypeFromUrl(url);
+    const severity: AuditSeverity =
+      (auditMetadata.severity as AuditSeverity) || AuditSeverity.MEDIUM;
 
     // Capturar dados antes da execução
-    const oldBody: Record<string, any> = JSON.parse(
+    const oldBody: Record<string, unknown> = JSON.parse(
       JSON.stringify(request.body || {}),
     );
     const startTime = Date.now();
@@ -65,7 +65,7 @@ export class AuditInterceptor implements NestInterceptor {
           severity,
           success: true,
           startTime,
-          responseData: auditMetadata.includeResponse ? data : undefined,
+          responseData: auditMetadata.includeResponse ? (data as SanitizedResponseData) : undefined,
           metadata: {
             method,
             url,
@@ -118,13 +118,13 @@ export class AuditInterceptor implements NestInterceptor {
 
       // Preparar dados para auditoria
       const auditData: CreateAuditLogDto = {
-        action: action as AuditActionType,
+        action: action,
         actionDescription: this.generateActionDescription(
-          action as AuditActionType,
+          action,
           entityType,
           metadata,
         ),
-        severity: severity as AuditSeverity,
+        severity: severity,
         module: this.getModuleFromUrl(request.url),
         entityType,
         entityId,
@@ -249,7 +249,7 @@ export class AuditInterceptor implements NestInterceptor {
 
   private sanitizeResponseData(data: unknown): SanitizedResponseData {
     if (!data || typeof data !== 'object') {
-      return data;
+      return data as SanitizedResponseData;
     }
 
     // Remover dados sensíveis da resposta

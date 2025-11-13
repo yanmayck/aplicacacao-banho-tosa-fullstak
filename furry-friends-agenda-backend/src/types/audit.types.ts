@@ -55,9 +55,8 @@ export interface AuditAlertData {
     success?: boolean;
   };
   isActive: boolean;
-  notificationChannels: string[];
-  notifyUsers: string[];
-  createdBy: string;
+  notificationChannels?: string[];
+  notifyUsers?: string[];
 }
 
 export interface AlertTriggerData {

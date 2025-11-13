@@ -502,6 +502,9 @@ export class AuditService {
     return this.prisma.auditAlert.create({
       data: {
         ...alertData,
+        notificationChannels: (alertData.notificationChannels ||
+          []) as Prisma.JsonArray,
+        notifyUsers: (alertData.notifyUsers || []) as Prisma.JsonArray,
         createdBy: userId,
       },
     });
@@ -550,7 +553,12 @@ export class AuditService {
 
     return this.prisma.auditAlert.update({
       where: { id },
-      data: alertData,
+      data: {
+        ...alertData,
+        notificationChannels: (alertData.notificationChannels ||
+          []) as Prisma.JsonArray,
+        notifyUsers: (alertData.notifyUsers || []) as Prisma.JsonArray,
+      },
     });
   }
 

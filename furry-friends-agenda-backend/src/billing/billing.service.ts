@@ -1,7 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import Stripe from 'stripe';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, StripeSubscriptionStatus } from '@prisma/client';
 
 @Injectable()
 export class BillingService implements OnModuleInit {

@@ -15,7 +15,15 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuditService } from './audit.service';
-import { AuditLogQueryDto, AuditLogFiltersDto } from './dto/audit-log.dto';
+import {
+  AuditLogQueryDto,
+  AuditLogFiltersDto,
+  CreateAuditLogDto,
+  CreateAuditConfigDto,
+  CreateAuditFilterDto,
+  CreateAuditAlertDto,
+  UpdateAuditAlertDto,
+} from './dto/audit-log.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -31,7 +39,10 @@ export class AuditController {
   @Post('logs')
   @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  createLog(@Body() createLogDto: any, @Request() req: { user: JwtPayload }) {
+  createLog(
+    @Body() createLogDto: CreateAuditLogDto,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.auditService.createLog(createLogDto, req.user.userId);
   }
 
@@ -96,7 +107,7 @@ export class AuditController {
   @Patch('config')
   @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  updateAuditConfig(@Body() configData: any) {
+  updateAuditConfig(@Body() configData: CreateAuditConfigDto) {
     return this.auditService.updateAuditConfig(configData);
   }
 
@@ -106,7 +117,7 @@ export class AuditController {
   @Roles(UserRole.ADMIN, UserRole.USER)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   saveFilter(
-    @Body() filterData: { name: string; description?: string; filters: any },
+    @Body() filterData: CreateAuditFilterDto,
     @Request() req: { user: JwtPayload },
   ) {
     return this.auditService.saveFilter(
@@ -143,7 +154,10 @@ export class AuditController {
   @Post('alerts')
   @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  createAlert(@Body() alertData: any, @Request() req: { user: JwtPayload }) {
+  createAlert(
+    @Body() alertData: CreateAuditAlertDto,
+    @Request() req: { user: JwtPayload },
+  ) {
     return this.auditService.createAlert(alertData, req.user.userId);
   }
 
@@ -158,7 +172,7 @@ export class AuditController {
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   updateAlert(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() alertData: any,
+    @Body() alertData: UpdateAuditAlertDto,
     @Request() req: { user: JwtPayload },
   ) {
     return this.auditService.updateAlert(id, alertData, req.user.userId);

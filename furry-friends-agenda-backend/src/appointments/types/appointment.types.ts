@@ -1,12 +1,22 @@
 import {
   Appointment as PrismaAppointment,
-  ServicePackage as PrismaServicePackage,
+  Service as PrismaService,
+  Client as PrismaClient,
+  Pet as PrismaPet,
+  Groomer as PrismaGroomer,
 } from '@prisma/client';
 
 export interface Appointment extends PrismaAppointment {
   appointmentServices?: {
-    service: PrismaServicePackage;
+    service: PrismaService;
   }[];
 }
 
-export type ServicePackage = PrismaServicePackage;
+export interface FullAppointment extends PrismaAppointment {
+  client: PrismaClient;
+  pet: PrismaPet;
+  groomer: PrismaGroomer | null;
+  appointmentServices: {
+    service: PrismaService;
+  }[];
+}
