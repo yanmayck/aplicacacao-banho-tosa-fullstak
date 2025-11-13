@@ -1,0 +1,117 @@
+# render.yaml
+# Configuração de deploy para a plataforma Render.
+
+# Este arquivo define os serviços necessários para a aplicação Furry Friends Agenda
+# no Render, incluindo o backend NestJS, o frontend React/Vite e um banco de dados PostgreSQL.
+
+services:
+  # ========================================
+  # Serviço de Banco de Dados PostgreSQL
+  # ========================================
+  - type: postgres
+    name: furry-friends-db
+    plan: free # Ou 'standard' para produção
+    databaseName: furryfriends_agenda
+    user: petshop
+    # A senha será gerada automaticamente pelo Render ou pode ser definida nas variáveis de ambiente do serviço.
+    # Para consistência com o .env.example, podemos definir uma.
+    # Render irá expor DATABASE_URL automaticamente para os outros serviços.
+
+  # ========================================
+  # Serviço de Backend (NestJS)
+  # ========================================
+  - type: web
+    name: furry-friends-backend
+    env: docker
+    dockerfilePath: ./furry-friends-agenda-backend/Dockerfile
+    buildCommand: "npm install" # As dependências do sistema e do Node.js serão instaladas no Dockerfile
+    startCommand: "npm run start:prod"
+    healthCheckPath: /health # Exemplo de endpoint de health check
+    autoDeploy: true
+    # Variáveis de ambiente para o backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BACKEND_PORT
+        value: 3000 # Render usa a porta 80 para HTTP, mas o app deve escutar na porta definida
+      - key: APP_URL
+        value: https://furry-friends-backend.onrender.com # Substitua pela URL real do seu backend no Render
+      - key: JWT_SECRET
+        generateValue: true # O Render pode gerar um valor seguro para isso
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://furry-friends-frontend.onrender.com,http://localhost:5173 # Adicione a URL do frontend do Render e localhost para desenvolvimento
+      
+      # Variáveis do banco de dados (Render as injeta automaticamente do serviço postgres)
+      # - key: DATABASE_URL
+      #   fromDatabase:
+      #     name: furry-friends-db
+      #     property: connectionString
+
+      # Variáveis Stripe
+      - key: STRIPE_SECRET_KEY
+        generateValue: true
+      - key: STRIPE_WEBHOOK_SECRET
+        generateValue: true
+      - key: STRIPE_BILLING_ENABLED
+        value: "false"
+
+      # Variáveis SendGrid
+      - key: SENDGRID_API_KEY
+        generateValue: true
+      - key: SENDGRID_FROM_EMAIL
+        value: noreply@yourdomain.com
+      - key: SENDGRID_FROM_NAME
+        value: Furry Friends Agenda
+
+      # Variáveis Twilio
+      - key: TWILIO_ACCOUNT_SID
+        generateValue: true
+      - key: TWILIO_AUTH_TOKEN
+        generateValue: true
+      - key: TWILIO_PHONE_NUMBER
+        value: "+1234567890" # Substitua pelo seu número Twilio
+
+      # Outras variáveis opcionais
+      - key: DEBUG
+        value: "false"
+      - key: LOG_LEVEL
+        value: info
+      - key: RATE_LIMIT_TTL
+        value: 60
+      - key: RATE_LIMIT_MAX
+        value: 100
+      - key: SESSION_TIMEOUT
+        value: 480
+      - key: MAX_FILE_SIZE
+        value: 10485760
+      - key: ALLOWED_FILE_TYPES
+        value: "image/jpeg,image/png,image/gif,application/pdf"
+      - key: BACKUP_ENABLED
+        value: "true"
+      - key: BACKUP_SCHEDULE
+        value: "0 2 * * *"
+      - key: BACKUP_RETENTION_DAYS
+        value: 30
+
+  # ========================================
+  # Serviço de Frontend (React/Vite)
+  # ========================================
+  - type: web
+    name: furry-friends-frontend
+    env: docker
+    dockerfilePath: ./furry-friends-agenda-app/Dockerfile
+    buildCommand: "npm install" # As dependências e o build serão feitos no Dockerfile
+    startCommand: "serve -s dist" # Assumindo que o build gera arquivos estáticos na pasta 'dist'
+    autoDeploy: true
+    # Variáveis de ambiente para o frontend
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://furry-friends-backend.onrender.com # Aponta para o backend deployado no Render
+      - key: VITE_APP_URL
+        value: https://furry-friends-frontend.onrender.com # Substitua pela URL real do seu frontend no Render
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000 # Render usa a porta 80 para HTTP, mas o app deve escutar na porta definida

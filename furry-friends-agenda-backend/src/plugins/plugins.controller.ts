@@ -11,7 +11,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PluginsService } from './plugins.service';
-import { PluginConfig, PluginFilter, PluginSort } from '../types/plugin.types';
+import {
+  PluginConfig,
+  PluginFilter,
+  PluginSort,
+  PluginDetails,
+} from '../types/plugin.types';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('plugins')
@@ -35,9 +40,9 @@ export class PluginsController {
 
     if (sortQuery) {
       try {
-        sort = JSON.parse(sortQuery);
+        sort = JSON.parse(sortQuery) as PluginSort;
       } catch (error) {
-        this.logger.warn('Invalid sort parameter', error);
+        this.logger.warn('Invalid sort parameter', (error as Error).message);
       }
     }
 
@@ -48,17 +53,15 @@ export class PluginsController {
    * Lista plugins disponíveis para instalação
    */
   @Get('available')
-  async getAvailablePlugins() {
-    return {
-      plugins: this.pluginsService.getAvailablePlugins(),
-    };
+  getAvailablePlugins(): string[] {
+    return this.pluginsService.getAvailablePlugins();
   }
 
   /**
    * Obtém detalhes de um plugin específico
    */
   @Get(':name')
-  async getPluginDetails(@Param('name') pluginName: string) {
+  getPluginDetails(@Param('name') pluginName: string): PluginDetails {
     return this.pluginsService.getPluginDetails(pluginName);
   }
 
@@ -117,7 +120,7 @@ export class PluginsController {
    * Obtém estatísticas do sistema de plugins
    */
   @Get('system/stats')
-  async getSystemStats() {
+  getSystemStats() {
     return this.pluginsService.getSystemStats();
   }
 

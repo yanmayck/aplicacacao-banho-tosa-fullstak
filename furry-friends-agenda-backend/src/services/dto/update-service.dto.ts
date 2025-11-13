@@ -4,6 +4,7 @@ import {
   IsNumber,
   Min,
   IsInt, // Para durationMin
+  IsBoolean, // Importar IsBoolean
 } from 'class-validator';
 
 export class UpdateServiceDto {
@@ -25,4 +26,16 @@ export class UpdateServiceDto {
   @IsInt() // Alterado para IsInt
   @Min(1)
   durationMin?: number; // Renomeado de durationMinutes
+
+  @IsOptional()
+  @IsBoolean()
+  isOnlineEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  stripePriceId?: string;
+
+  @IsOptional()
+  @IsString()
+  stripeProductId?: string;
 }

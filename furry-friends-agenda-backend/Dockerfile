@@ -12,7 +12,6 @@ RUN apt-get update -y && apt-get install -y openssl libssl-dev
 COPY package*.json ./
 
 # Instalar todas as dependências (incluindo devDependencies)
-# Isso garante que ferramentas como o NestJS CLI em modo watch funcionem
 RUN npm install
 
 # Copiar o restante do código-fonte (será sobreposto pelo volume no docker-compose, mas é bom ter para consistência)

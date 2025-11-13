@@ -11,7 +11,6 @@ import { ServicesModule } from './services/services.module'; // Caminho e nome a
 import { AppointmentsModule } from './appointments/appointments.module';
 import { ClientsModule } from './clients/clients.module';
 import { GroomersModule } from './groomers/groomers.module';
-import { PackagesModule } from './packages/packages.module';
 import { FinancialModule } from './financial/financial.module';
 import { PublicClientModule } from './public-client/public-client.module';
 import { PublicServicesController } from './public-services/public-services.controller';
@@ -35,6 +34,8 @@ import { ProductCategoriesModule } from './product-categories/product-categories
 import { StockMovementsModule } from './stock-movements/stock-movements.module';
 import { BackupModule } from './backup/backup.module';
 import { AuditModule } from './audit/audit.module';
+import { BillingModule } from './billing/billing.module';
+import { ServicePackagesModule } from './service-packages/service-packages.module'; // Importar ServicePackagesModule
 
 @Module({
   imports: [
@@ -48,7 +49,6 @@ import { AuditModule } from './audit/audit.module';
     AppointmentsModule,
     ClientsModule,
     GroomersModule,
-    PackagesModule,
     FinancialModule,
     PublicClientModule,
     ReportsModule,
@@ -57,6 +57,8 @@ import { AuditModule } from './audit/audit.module';
     StockMovementsModule,
     BackupModule,
     AuditModule,
+    BillingModule,
+    ServicePackagesModule, // Adicionar ServicePackagesModule
   ],
   controllers: [
     AppController,

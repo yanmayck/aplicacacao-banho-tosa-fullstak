@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { Observable, tap, catchError } from 'rxjs';
 import { Request } from 'express';
 import { AuditService } from '../audit.service';
-import { AuditActionType, AuditSeverity } from '@prisma/client';
+import { AuditActionType, AuditSeverity, Client } from '@prisma/client';
 import { CreateAuditLogDto } from '../dto/audit-log.dto';
 import {
   AuditMetadata,
@@ -50,13 +50,15 @@ export class AuditInterceptor implements NestInterceptor {
     const severity = auditMetadata.severity || AuditSeverity.MEDIUM;
 
     // Capturar dados antes da execução
-    const oldBody = JSON.parse(JSON.stringify(request.body || {}));
+    const oldBody: Record<string, any> = JSON.parse(
+      JSON.stringify(request.body || {}),
+    );
     const startTime = Date.now();
 
     return next.handle().pipe(
-      tap((data) => {
+      tap((data: unknown) => {
         // Executar auditoria após sucesso
-        this.performAudit({
+        void this.performAudit({
           request,
           action,
           entityType,
@@ -71,9 +73,9 @@ export class AuditInterceptor implements NestInterceptor {
           },
         });
       }),
-      catchError((error) => {
+      catchError((error: Error) => {
         // Executar auditoria mesmo em caso de erro
-        this.performAudit({
+        void this.performAudit({
           request,
           action,
           entityType,
@@ -108,7 +110,7 @@ export class AuditInterceptor implements NestInterceptor {
       } = params;
 
       // Extrair informações do usuário
-      const user = request.user as User | undefined;
+      const user = (request as RequestWithUser).user;
       const client = (request as RequestWithUser).client;
 
       // Extrair ID da entidade da URL (se aplicável)
@@ -254,12 +256,17 @@ export class AuditInterceptor implements NestInterceptor {
     const sensitiveFields = ['password', 'token', 'secret', 'key'];
 
     if (Array.isArray(data)) {
-      return data.map((item) => this.sanitizeResponseData(item)) as SanitizedResponseData;
+      return data.map((item) =>
+        this.sanitizeResponseData(item),
+      ) as SanitizedResponseData;
     }
 
-    const sanitized = { ...data } as Record<string, unknown>;
+    const sanitized: Record<string, unknown> = { ...data } as Record<
+      string,
+      unknown
+    >;
     for (const field of sensitiveFields) {
-      if (sanitized[field]) {
+      if (Object.prototype.hasOwnProperty.call(sanitized, field)) {
         sanitized[field] = '[REDACTED]';
       }
     }

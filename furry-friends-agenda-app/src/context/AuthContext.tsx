@@ -25,7 +25,7 @@ interface LoginResponse {
   user: BackendUser;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const mappedUser: User = {
           id: data.user.id,
           email: data.user.email,
-          name: data.user.name,
+          name: data.user.name ?? '',
           role: data.user.role,
         };
 
@@ -149,7 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Helper function to check if user is admin
   const isAdmin = (): boolean => {
-    const result = user?.role === "admin" || user?.role === "ADMIN";
+    const result = user?.role === "admin";
     console.log(`FRONTEND: Verificando se é admin. Papel do usuário: ${user?.role}, Resultado: ${result}`); // Log para depuração
     return result;
   };
@@ -170,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

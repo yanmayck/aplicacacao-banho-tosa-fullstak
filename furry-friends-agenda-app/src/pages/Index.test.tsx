@@ -1,14 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
-import Index from './Index';
-import { AuthContext } from '@/context/AuthContext';
+import Dashboard from '@/components/Dashboard';
+import { AuthContext, AuthContextType } from '@/context/AuthContext';
 import { StoreProvider } from '@/context/StoreContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock child components and contexts
 vi.mock('@/components/Layout', () => ({
-  Layout: ({ children, activePage }) => (
+  Layout: ({ children, activePage }: { children: React.ReactNode; activePage: string }) => (
     <div data-testid="layout">
       <div data-testid="active-page">{activePage}</div>
       {children}
@@ -20,8 +20,8 @@ vi.mock('@/components/Dashboard', () => ({
   default: () => <div data-testid="dashboard">Dashboard Content</div>,
 }));
 
-const mockAuth = {
-  user: { email: 'admin@test.com', role: 'admin' },
+const mockAuth: AuthContextType = {
+  user: { id: '1', name: 'Admin User', email: 'admin@test.com', role: 'admin' },
   isAdmin: () => true,
   isAuthenticated: true,
   login: vi.fn(),
@@ -38,7 +38,7 @@ describe('Index Page', () => {
         <MemoryRouter initialEntries={['/']}>
             <AuthContext.Provider value={mockAuth}>
               <StoreProvider>
-                  <Index />
+                  <Dashboard />
               </StoreProvider>
             </AuthContext.Provider>
         </MemoryRouter>

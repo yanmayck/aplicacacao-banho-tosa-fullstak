@@ -12,8 +12,14 @@ import {
   Res,
 } from '@nestjs/common';
 import { BackupService } from '../services/backup.service';
-import { CreateBackupDto, RestoreBackupDto } from '../dto/create-backup.dto';
+import {
+  CreateBackupDto,
+  RestoreBackupDto,
+  BackupStatus,
+} from '../dto/create-backup.dto'; // Importar BackupStatus
+import { BackupMetadata } from '../interfaces/backup.interface'; // Importar BackupMetadata
 import { Response } from 'express';
+import * as fs from 'fs';
 
 @Controller('backup')
 export class BackupController {
@@ -49,7 +55,7 @@ export class BackupController {
           tablesBackedUp: result.tablesBackedUp,
         },
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -58,7 +64,7 @@ export class BackupController {
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: 'Erro interno do servidor',
-          details: error.message,
+          details: error instanceof Error ? error.message : 'Erro desconhecido',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -74,7 +80,10 @@ export class BackupController {
     @Query('offset', ParseIntPipe) offset?: number,
   ) {
     try {
-      const backups = await this.backupService.getBackups(limit, offset);
+      const backups: BackupMetadata[] = this.backupService.getBackups(
+        limit,
+        offset,
+      );
 
       return {
         success: true,
@@ -85,12 +94,12 @@ export class BackupController {
           offset: offset || 0,
         },
       };
-    } catch (error) {
+    } catch (error: unknown) {
       throw new HttpException(
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: 'Erro ao buscar backups',
-          details: error.message,
+          details: error instanceof Error ? error.message : 'Erro desconhecido',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -101,7 +110,7 @@ export class BackupController {
    * Obtém progresso de um backup específico
    */
   @Get(':backupId/progress')
-  async getBackupProgress(@Param('backupId') backupId: string) {
+  getBackupProgress(@Param('backupId') backupId: string) {
     try {
       const progress = this.backupService.getBackupProgress(backupId);
 
@@ -119,7 +128,7 @@ export class BackupController {
         success: true,
         data: progress,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -128,7 +137,7 @@ export class BackupController {
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: 'Erro ao buscar progresso do backup',
-          details: error.message,
+          details: error instanceof Error ? error.message : 'Erro desconhecido',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -164,7 +173,7 @@ export class BackupController {
           warnings: result.warnings,
         },
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -173,7 +182,7 @@ export class BackupController {
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: 'Erro interno durante restauração',
-          details: error.message,
+          details: error instanceof Error ? error.message : 'Erro desconhecido',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -192,7 +201,7 @@ export class BackupController {
         success: true,
         data: result,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -201,7 +210,7 @@ export class BackupController {
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: 'Erro ao verificar integridade do backup',
-          details: error.message,
+          details: error instanceof Error ? error.message : 'Erro desconhecido',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -214,7 +223,7 @@ export class BackupController {
   @Delete(':backupId')
   async cancelBackup(@Param('backupId') backupId: string) {
     try {
-      const cancelled = await this.backupService.cancelBackup(backupId);
+      const cancelled: boolean = this.backupService.cancelBackup(backupId);
 
       if (!cancelled) {
         throw new HttpException(
@@ -230,7 +239,7 @@ export class BackupController {
         success: true,
         message: 'Backup cancelado com sucesso',
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -239,7 +248,7 @@ export class BackupController {
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: 'Erro ao cancelar backup',
-          details: error.message,
+          details: error instanceof Error ? error.message : 'Erro desconhecido',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -256,8 +265,10 @@ export class BackupController {
   ) {
     try {
       // Busca metadados do backup
-      const backups = await this.backupService.getBackups(1000, 0);
-      const backup = backups.find((b) => b.id === backupId);
+      const backups: BackupMetadata[] = this.backupService.getBackups(1000, 0);
+      const backup: BackupMetadata | undefined = backups.find(
+        (b) => b.id === backupId,
+      );
 
       if (!backup) {
         throw new HttpException(
@@ -270,7 +281,6 @@ export class BackupController {
       }
 
       // Verifica se arquivo existe
-      const fs = require('fs');
       if (!fs.existsSync(backup.filePath)) {
         throw new HttpException(
           {
@@ -292,7 +302,7 @@ export class BackupController {
       // Stream do arquivo
       const fileStream = fs.createReadStream(backup.filePath);
       fileStream.pipe(res);
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -301,7 +311,7 @@ export class BackupController {
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: 'Erro ao fazer download do backup',
-          details: error.message,
+          details: error instanceof Error ? error.message : 'Erro desconhecido',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -314,23 +324,32 @@ export class BackupController {
   @Get('stats/summary')
   async getBackupStats() {
     try {
-      const backups = await this.backupService.getBackups(1000, 0);
+      const backups: BackupMetadata[] = this.backupService.getBackups(1000, 0);
 
       const stats = {
         totalBackups: backups.length,
-        totalSize: backups.reduce((sum, b) => sum + b.fileSize, 0),
-        completedBackups: backups.filter((b) => b.status === 'completed')
-          .length,
-        failedBackups: backups.filter((b) => b.status === 'failed').length,
+        totalSize: backups.reduce(
+          (sum: number, b: BackupMetadata) => sum + b.fileSize,
+          0,
+        ),
+        completedBackups: backups.filter(
+          (b: BackupMetadata) => b.status === BackupStatus.COMPLETED,
+        ).length,
+        failedBackups: backups.filter(
+          (b: BackupMetadata) => b.status === BackupStatus.FAILED,
+        ).length,
         averageSize:
           backups.length > 0
-            ? backups.reduce((sum, b) => sum + b.fileSize, 0) / backups.length
+            ? backups.reduce(
+                (sum: number, b: BackupMetadata) => sum + b.fileSize,
+                0,
+              ) / backups.length
             : 0,
         oldestBackup:
           backups.length > 0 ? backups[backups.length - 1]?.createdAt : null,
         newestBackup: backups.length > 0 ? backups[0]?.createdAt : null,
         backupsByType: backups.reduce(
-          (acc, b) => {
+          (acc: Record<string, number>, b: BackupMetadata) => {
             acc[b.type] = (acc[b.type] || 0) + 1;
             return acc;
           },
@@ -342,12 +361,12 @@ export class BackupController {
         success: true,
         data: stats,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       throw new HttpException(
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: 'Erro ao obter estatísticas de backup',
-          details: error.message,
+          details: error instanceof Error ? error.message : 'Erro desconhecido',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );

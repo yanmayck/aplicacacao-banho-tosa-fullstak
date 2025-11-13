@@ -9,10 +9,11 @@ interface GroomerContextType {
   groomers: Groomer[];
   isLoading: boolean;
   error: Error | null;
-  addGroomer: (groomer: Omit<Groomer, "id">) => Promise<void>;
-  updateGroomer: (groomer: Groomer) => Promise<void>;
+  addGroomer: (groomer: Omit<Groomer, "id">) => Promise<Groomer>;
+  updateGroomer: (groomer: Groomer) => Promise<Groomer>;
   deleteGroomer: (id: string) => Promise<void>;
   getGroomerById: (id: string) => Groomer | undefined;
+  getGroomerWorkload: (groomerId: string, onlyCompletedAppointments?: boolean) => number;
 }
 
 const GroomerContext = createContext<GroomerContextType | undefined>(undefined);
@@ -68,6 +69,12 @@ export const GroomerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const getGroomerById = (id: string) => groomers.find((groomer) => groomer.id === id);
 
+  // This is a placeholder. The actual logic is in StoreContext.
+  const getGroomerWorkload = (groomerId: string, onlyCompletedAppointments?: boolean) => {
+    console.log('getGroomerWorkload called in GroomerContext', groomerId, onlyCompletedAppointments);
+    return 0;
+  };
+
   return (
     <GroomerContext.Provider
       value={{
@@ -78,6 +85,7 @@ export const GroomerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateGroomer: async (groomer) => await updateMutation.mutateAsync(groomer),
         deleteGroomer: async (id) => await deleteMutation.mutateAsync(id),
         getGroomerById,
+        getGroomerWorkload,
       }}
     >
       {children}

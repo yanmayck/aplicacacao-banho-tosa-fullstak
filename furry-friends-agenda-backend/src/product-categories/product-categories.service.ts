@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ProductCategoriesService {
@@ -17,7 +18,10 @@ export class ProductCategoriesService {
         data: createProductCategoryDto,
       });
     } catch (error) {
-      if (error.code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException(
           `Category with name "${createProductCategoryDto.name}" already exists`,
         );
@@ -52,10 +56,16 @@ export class ProductCategoriesService {
         data: updateProductCategoryDto,
       });
     } catch (error) {
-      if (error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
         throw new NotFoundException(`Category with ID "${id}" not found`);
       }
-      if (error.code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException(
           `Category with name "${updateProductCategoryDto.name}" already exists`,
         );
@@ -70,7 +80,10 @@ export class ProductCategoriesService {
         where: { id },
       });
     } catch (error) {
-      if (error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
         throw new NotFoundException(`Category with ID "${id}" not found`);
       }
       throw error;

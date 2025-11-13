@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { ReportsService } from './reports.service';
-import { ReportFiltersDto } from './dto/report-filters.dto';
+import { ReportFiltersDto, ReportType } from './dto/report-filters.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -21,7 +21,7 @@ export class ReportsController {
   async generateFinancialReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'financial' as any,
+      type: ReportType.FINANCIAL,
     });
   }
 
@@ -29,7 +29,7 @@ export class ReportsController {
   async generateGroomerPerformanceReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'groomer_performance' as any,
+      type: ReportType.GROOMER_PERFORMANCE,
     });
   }
 
@@ -37,7 +37,7 @@ export class ReportsController {
   async generateClientAnalysisReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'client_analysis' as any,
+      type: ReportType.CLIENT_ANALYSIS,
     });
   }
 
@@ -45,7 +45,7 @@ export class ReportsController {
   async generateServiceRankingReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'service_ranking' as any,
+      type: ReportType.SERVICE_RANKING,
     });
   }
 
@@ -53,7 +53,7 @@ export class ReportsController {
   async generateOccupancyMetricsReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'occupancy_metrics' as any,
+      type: ReportType.OCCUPANCY_METRICS,
     });
   }
 
@@ -61,7 +61,7 @@ export class ReportsController {
   async generateAppointmentAnalysisReport(@Body() filters: ReportFiltersDto) {
     return this.reportsService.generateReport({
       ...filters,
-      type: 'appointment_analysis' as any,
+      type: ReportType.APPOINTMENT_ANALYSIS,
     });
   }
 }

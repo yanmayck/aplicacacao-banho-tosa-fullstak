@@ -21,7 +21,14 @@ import {
   ChartDataPointDto,
 } from './dto/report-response.dto';
 import { DateFilter, TypeFilter } from '../types/report.types';
-import { Transaction, Client, Appointment, Groomer } from '@prisma/client';
+import {
+  Transaction,
+  Client,
+  Appointment,
+  Groomer,
+  Prisma,
+  Review,
+} from '@prisma/client';
 
 @Injectable()
 export class ReportsService {
@@ -108,7 +115,7 @@ export class ReportsService {
     }
 
     // Build transaction type filter
-    const typeFilter: TypeFilter = {};
+    const typeFilter: Prisma.TransactionWhereInput = {};
     if (transactionType && transactionType !== 'both') {
       typeFilter.type = transactionType.toUpperCase() as 'INCOME' | 'EXPENSE';
     }
@@ -116,8 +123,8 @@ export class ReportsService {
     // Get all transactions with filters
     const transactions = await this.prisma.transaction.findMany({
       where: {
-        ...(dateFilter as any),
-        ...(typeFilter as any),
+        ...(dateFilter as Prisma.TransactionWhereInput),
+        ...typeFilter,
         isCashRegisterClosed: false,
       },
       include: {
@@ -230,13 +237,13 @@ export class ReportsService {
         },
         transactions: {
           where: {
-            ...(dateFilter as any),
+            ...(dateFilter.dateTime ? { date: dateFilter.dateTime } : {}),
             type: 'INCOME',
           },
         },
         commissions: {
           where: {
-            ...(dateFilter as any),
+            ...(dateFilter.dateTime ? { createdAt: dateFilter.dateTime } : {}),
             isPaid: true,
           },
         },
@@ -248,9 +255,10 @@ export class ReportsService {
       const completedAppointments = appointments.filter(
         (a) => a.status === 'COMPLETED',
       );
-      const totalRevenue = appointments
-        .filter((a) => a.status === 'COMPLETED')
-        .reduce((sum, a) => sum + a.totalPrice, 0);
+      const totalRevenue = completedAppointments.reduce(
+        (sum, a) => sum + a.totalPrice,
+        0,
+      );
 
       const totalCommissions = (groomer.commissions || []).reduce(
         (sum, c) => sum + c.commissionAmount,
@@ -437,11 +445,15 @@ export class ReportsService {
       if (endDate) dateFilter.dateTime.lte = new Date(endDate);
     }
 
+    const where: Prisma.AppointmentServiceWhereInput = {
+      appointment: dateFilter as Prisma.AppointmentWhereInput,
+    };
+
     // Get services with appointment data
-    const services = await this.prisma.servicePackage.findMany({
+    const services = await (this.prisma.servicePackage as any).findMany({
       include: {
         appointmentServices: {
-          where: dateFilter as any,
+          where: { appointment: dateFilter as Prisma.AppointmentWhereInput },
           include: {
             appointment: {
               include: {
@@ -454,25 +466,29 @@ export class ReportsService {
     });
 
     return services
-      .map((service) => {
-        const appointmentServices = service.appointmentServices;
+      .map((service: any) => {
+        const appointmentServices = service.appointmentServices || [];
         const totalBookings = appointmentServices.length;
 
         const totalRevenue = appointmentServices.reduce(
-          (sum, as) => sum + as.priceAtTime,
+          (sum: number, as: { priceAtTime: number }) => sum + as.priceAtTime,
           0,
         );
 
         // Calculate average rating from related appointments
         const ratings = appointmentServices
-          .map((as) => as.appointment.reviews)
+          .map((as: any) => as.appointment.reviews)
           .flat()
-          .filter((review) => review && review.rating)
-          .map((review) => review.rating);
+          .filter(
+            (review: any): review is Review & { rating: number } =>
+              review && review.rating !== null,
+          )
+          .map((review: any) => review.rating);
 
         const averageRating =
           ratings.length > 0
-            ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+            ? ratings.reduce((sum: number, rating: number) => sum + rating, 0) /
+              ratings.length
             : 0;
 
         // Calculate popularity score (bookings * average rating)
@@ -500,7 +516,7 @@ export class ReportsService {
           growthRate,
         };
       })
-      .sort((a, b) => b.popularityScore - a.popularityScore);
+      .sort((a: any, b: any) => b.popularityScore - a.popularityScore);
   }
 
   private async generateOccupancyMetricsReport(
@@ -761,15 +777,22 @@ export class ReportsService {
       if (client.appointments.length > 0) {
         const firstAppointment = client.appointments.reduce(
           (earliest, current) => {
-            return new Date(current.dateTime) < new Date(earliest.dateTime)
-              ? current
-              : earliest;
+            const earliestDate = earliest.dateTime
+              ? new Date(earliest.dateTime).getTime()
+              : Infinity;
+            const currentDate = current.dateTime
+              ? new Date(current.dateTime).getTime()
+              : Infinity;
+            return currentDate < earliestDate ? current : earliest;
           },
-        );
+          client.appointments[0],
+        ); // Provide an initial value for reduce
 
-        const date = new Date(firstAppointment.dateTime);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + 1);
+        if (firstAppointment && firstAppointment.dateTime) {
+          const date = new Date(firstAppointment.dateTime);
+          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + 1);
+        }
       }
     });
 
@@ -801,7 +824,7 @@ export class ReportsService {
   }
 
   private calculateTrend(
-    appointmentServices: (any & { appointment: Appointment })[],
+    appointmentServices: { appointment: Appointment }[],
   ): 'up' | 'down' | 'stable' {
     if (appointmentServices.length < 4) return 'stable';
 
@@ -812,7 +835,10 @@ export class ReportsService {
     const firstHalfAvg = firstHalf.length;
     const secondHalfAvg = secondHalf.length;
 
-    const change = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
+    const change =
+      firstHalfAvg > 0
+        ? ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100
+        : 0;
 
     if (change > 10) return 'up';
     if (change < -10) return 'down';
@@ -820,22 +846,30 @@ export class ReportsService {
   }
 
   private calculateGrowthRate(
-    appointmentServices: (any & { appointment: Appointment })[],
+    appointmentServices: { appointment: Appointment }[],
   ): number {
     if (appointmentServices.length < 2) return 0;
 
-    const sorted = appointmentServices.sort(
-      (a, b) =>
-        new Date(a.appointment.dateTime).getTime() -
-        new Date(b.appointment.dateTime).getTime(),
-    );
+    const sorted = appointmentServices.sort((a, b) => {
+      const dateA = a.appointment?.dateTime
+        ? new Date(a.appointment.dateTime).getTime()
+        : 0;
+      const dateB = b.appointment?.dateTime
+        ? new Date(b.appointment.dateTime).getTime()
+        : 0;
+      return dateA - dateB;
+    });
 
     const first = sorted[0];
     const last = sorted[sorted.length - 1];
 
     const timeDiff =
-      new Date(last.appointment.dateTime).getTime() -
-      new Date(first.appointment.dateTime).getTime();
+      (last.appointment?.dateTime
+        ? new Date(last.appointment.dateTime).getTime()
+        : 0) -
+      (first.appointment?.dateTime
+        ? new Date(first.appointment.dateTime).getTime()
+        : 0);
     const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
 
     if (daysDiff === 0) return 0;

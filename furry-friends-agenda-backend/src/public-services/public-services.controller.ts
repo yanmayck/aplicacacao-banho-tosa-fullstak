@@ -21,12 +21,8 @@ export class PublicServicesController {
   }
 
   @Get('time-slots')
-  findAvailableTimeSlots(
-    @Query('date') date: string,
-  ) {
+  findAvailableTimeSlots(@Query('date') date: string) {
     const appointmentDate = new Date(date);
-    return this.publicServicesService.findAvailableTimeSlots(
-      appointmentDate,
-    );
+    return this.publicServicesService.findAvailableTimeSlots(appointmentDate);
   }
 }

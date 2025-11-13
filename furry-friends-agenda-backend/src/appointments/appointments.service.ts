@@ -12,10 +12,7 @@ import {
   AppointmentStatus as PrismaAppointmentStatus,
 } from '@prisma/client';
 import { FinancialService } from '../financial/financial.service';
-import {
-  Appointment as AppointmentType,
-  ServicePackage as ServicePackageType,
-} from './types/appointment.types';
+import { Appointment as AppointmentType } from './types/appointment.types';
 
 @Injectable()
 export class AppointmentsService {
@@ -57,9 +54,9 @@ export class AppointmentsService {
     }
 
     let calculatedTotalPrice = 0;
-    const servicesToConnect: ServicePackageType[] = [];
+    const servicesToConnect: any[] = [];
     for (const serviceId of serviceIds) {
-      const service = await this.prisma.servicePackage.findUnique({
+      const service = await this.prisma.service.findUnique({
         where: { id: serviceId },
       });
       if (!service) {
@@ -68,7 +65,7 @@ export class AppointmentsService {
         );
       }
       servicesToConnect.push(service);
-      calculatedTotalPrice += service.price;
+      calculatedTotalPrice += Number(service.price);
     }
 
     return this.prisma.appointment.create({
@@ -97,7 +94,7 @@ export class AppointmentsService {
           },
         },
       },
-    });
+    }) as any;
   }
 
   async findAllByClient(clientId: string): Promise<AppointmentType[]> {
@@ -113,7 +110,7 @@ export class AppointmentsService {
         },
       },
       orderBy: { dateTime: 'asc' },
-    });
+    }) as any;
   }
 
   async findOneByClient(
@@ -142,7 +139,7 @@ export class AppointmentsService {
         'You are not allowed to access this appointment',
       );
     }
-    return appointment;
+    return appointment as any;
   }
 
   async update(
@@ -177,9 +174,9 @@ export class AppointmentsService {
 
     if (updateAppointmentDto.serviceIds) {
       let newTotalPrice = 0;
-      const newServicesToConnect: ServicePackageType[] = [];
+      const newServicesToConnect: any[] = [];
       for (const serviceId of updateAppointmentDto.serviceIds) {
-        const service = await this.prisma.servicePackage.findUnique({
+        const service = await this.prisma.service.findUnique({
           where: { id: serviceId },
         });
         if (!service)
@@ -187,7 +184,7 @@ export class AppointmentsService {
             `Service with ID "${serviceId}" not found.`,
           );
         newServicesToConnect.push(service);
-        newTotalPrice += service.price;
+        newTotalPrice += Number(service.price);
       }
       dataToUpdate.totalPrice = newTotalPrice;
       await this.prisma.appointmentService.deleteMany({
@@ -228,14 +225,14 @@ export class AppointmentsService {
           },
         },
       },
-    });
+    }) as any;
   }
 
   async remove(id: string, clientId: string): Promise<AppointmentType> {
     await this.findOneByClient(id, clientId);
     return this.prisma.appointment.delete({
       where: { id },
-    });
+    }) as any;
   }
 
   // ========== INTEGRAÇÃO FINANCEIRA ==========
@@ -277,7 +274,7 @@ export class AppointmentsService {
       }
     }
 
-    return updatedAppointment;
+    return updatedAppointment as any;
   }
 
   async getAppointmentFinancialSummary(appointmentId: string): Promise<{
@@ -312,7 +309,7 @@ export class AppointmentsService {
     const netRevenue = estimatedRevenue - commission;
 
     return {
-      appointment,
+      appointment: appointment as any,
       estimatedRevenue,
       commission,
       netRevenue,

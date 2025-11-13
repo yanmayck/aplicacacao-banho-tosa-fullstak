@@ -6,7 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStockMovementDto } from './dto/create-stock-movement.dto';
 import { UpdateStockMovementDto } from './dto/update-stock-movement.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, StockMovementType } from '@prisma/client';
 
 @Injectable()
 export class StockMovementsService {
@@ -66,9 +66,9 @@ export class StockMovementsService {
     });
   }
 
-  async findByType(type: string) {
+  async findByType(type: StockMovementType) {
     return this.prisma.stockMovement.findMany({
-      where: { type: type as any },
+      where: { type },
       include: {
         product: true,
       },
@@ -88,7 +88,7 @@ export class StockMovementsService {
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
-        (error as any).code === 'P2025'
+        error.code === 'P2025'
       ) {
         throw new NotFoundException(`Stock movement with ID "${id}" not found`);
       }
@@ -104,7 +104,7 @@ export class StockMovementsService {
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
-        (error as any).code === 'P2025'
+        error.code === 'P2025'
       ) {
         throw new NotFoundException(`Stock movement with ID "${id}" not found`);
       }

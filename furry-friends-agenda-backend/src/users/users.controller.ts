@@ -27,7 +27,7 @@ export class UsersController {
     if (!user) {
       return null; // Ou lançar NotFoundException, dependendo da preferência
     }
-    const { password: _password, ...userWithoutPassword } = user;
+    const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
@@ -43,7 +43,7 @@ export class UsersController {
       updateUserDto,
     );
     if (updatedUser) {
-      const { password: _password, ...userWithoutPassword } = updatedUser;
+      const { password, ...userWithoutPassword } = updatedUser;
       return userWithoutPassword;
     }
     return null;

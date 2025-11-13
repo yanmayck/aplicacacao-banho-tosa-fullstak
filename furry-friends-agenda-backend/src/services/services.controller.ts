@@ -3,13 +3,13 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseGuards,
   ValidationPipe,
   UsePipes,
   ParseUUIDPipe,
+  Put, // Adicionar Put para o update
 } from '@nestjs/common';
 import { ServicesService } from './services.service';
 import { CreateServiceDto } from './dto/create-service.dto';
@@ -41,7 +41,7 @@ export class ServicesController {
     return this.servicesService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id') // Alterado de Patch para Put para atualização completa
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
@@ -57,5 +57,26 @@ export class ServicesController {
   @Roles(UserRole.ADMIN)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.servicesService.remove(id);
+  }
+
+  // Novos endpoints para banhos avulsos
+  @Post(':id/purchase-online')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.USER) // ou outra role apropriada
+  async purchaseServiceOnline(
+    @Param('id', ParseUUIDPipe) serviceId: string,
+    @Body('clientId') clientId: string,
+  ) {
+    return this.servicesService.purchaseOnline(clientId, serviceId);
+  }
+
+  @Post(':id/register-offline')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN) // Apenas administradores podem registrar pagamentos offline
+  async registerOfflinePayment(
+    @Param('id', ParseUUIDPipe) serviceId: string,
+    @Body('clientId') clientId: string,
+  ) {
+    return this.servicesService.registerOfflinePayment(clientId, serviceId);
   }
 }

@@ -43,15 +43,32 @@ enum UserRole {
   ADMIN
 }
 
+// Novo Enum para status de assinatura do Stripe
+enum StripeSubscriptionStatus {
+  active
+  canceled
+  incomplete
+  incomplete_expired
+  past_due
+  paused
+  trialing
+  unpaid
+}
+
 // Novo Modelo Client (como no frontend)
 model Client {
-  id           String        @id @default(cuid())
-  name         String
-  phone        String?
-  email        String?       @unique // Pode ser diferente do User.email ou o mesmo se logado
-  address      String?
-  pets         Pet[]
-  appointments Appointment[]
+  id                     String                 @id @default(cuid())
+  name                   String
+  phone                  String?
+  email                  String?                @unique // Pode ser diferente do User.email ou o mesmo se logado
+  address                String?
+  pets                   Pet[]
+  appointments           Appointment[]
+  stripeCustomerId       String?                @unique
+  stripeSubscriptionId   String?                @unique
+  stripeSubscriptionStatus StripeSubscriptionStatus?
+  balance                Decimal                @default(0) @db.Decimal(10, 2) // Gerenciar créditos/débitos de pacotes
+  serviceUsages          ServiceUsage[] // Usos de serviços associados a este cliente
 
   // ========== RELAÇÕES NOVAS ==========
   // Avaliações feitas pelo cliente
@@ -143,30 +160,74 @@ model Groomer {
   updatedAt DateTime @updatedAt
 }
 
-model Package {
-  id                String   @id @default(cuid())
-  name              String
-  description       String?
-  includesBaths     Int
-  includesGrooming  Boolean
-  includesHydration Boolean
-  basePrice         Float
-  pickupPrice       Float
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-}
 
 // Renomeado de ServiceType para Service e ajustado (como no frontend)
-model ServicePackage {
+model Service {
   id                  String               @id @default(cuid())
   name                String               @unique
   description         String?
   price               Float
   durationMin         Int
+  isOnlineEnabled     Boolean              @default(false)
+  stripePriceId       String?
+  stripeProductId     String?
   appointmentServices AppointmentService[]
-  serviceProducts     ServiceProduct[]
+  serviceProducts     ServiceProduct[] @relation("ServiceToServiceProduct")
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+}
+
+// Novo Modelo ServicePackage para pacotes de serviços
+model ServicePackage {
+  id               String       @id @default(cuid())
+  name             String       @unique
+  description      String?
+  basePrice        Decimal      @db.Decimal(10, 2)
+  onlinePrice      Decimal?     @db.Decimal(10, 2)
+  pickupPrice      Decimal?     @db.Decimal(10, 2)
+  durationInMonths Int?
+  totalServices    Int
+  includesBaths    Boolean      @default(false)
+  includesGrooming Boolean      @default(false)
+  includesHydration Boolean     @default(false)
+  isOnlineEnabled  Boolean      @default(false)
+  stripePriceId    String?
+  stripeProductId  String?
+
+  // Relacionamentos
+  serviceId  String? // Opcional, para vincular a um serviço específico se necessário
+  usages     ServiceUsage[]
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+// Enum para o status de uso do serviço
+enum ServiceUsageStatus {
+  USED
+  SCHEDULED
+  PENDING
+  CANCELLED
+}
+
+// Novo Modelo ServiceUsage para registrar o uso de serviços dentro de um pacote
+model ServiceUsage {
+  id             String           @id @default(cuid())
+  usageDate      DateTime
+  serviceId      String? // ID do serviço específico (se aplicável)
+  status         ServiceUsageStatus @default(PENDING)
+
+  clientId       String
+  client         Client           @relation(fields: [clientId], references: [id])
+
+  servicePackageId String
+  servicePackage   ServicePackage @relation(fields: [servicePackageId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([servicePackageId])
+  @@index([status])
 }
 
 model Appointment {
@@ -219,7 +280,7 @@ model AppointmentService {
   appointmentId String
   appointment   Appointment    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   serviceId     String
-  service       ServicePackage @relation(fields: [serviceId], references: [id])
+  service       Service @relation(fields: [serviceId], references: [id])
   priceAtTime   Float // Preço do serviço no momento do agendamento
   quantity      Int            @default(1)
   createdAt     DateTime       @default(now())
@@ -763,7 +824,7 @@ model Product {
 model ServiceProduct {
   id        String         @id @default(cuid())
   serviceId String
-  service   ServicePackage @relation(fields: [serviceId], references: [id])
+  service   Service @relation("ServiceToServiceProduct", fields: [serviceId], references: [id])
   productId String
   product   Product        @relation(fields: [productId], references: [id])
 

@@ -48,6 +48,9 @@ COPY package*.json ./
 # and to ensure devDependencies are available for the dev server.
 RUN npm install
 
+# Copiar todo o código da aplicação
+COPY . .
+
 # Copy the rest of the app's source code
 # This will be overwritten by volume mounts in docker-compose for local dev
 COPY . .

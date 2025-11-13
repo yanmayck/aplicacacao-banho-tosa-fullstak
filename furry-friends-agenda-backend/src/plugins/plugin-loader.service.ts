@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PluginInterface, PluginConfig } from '../types/plugin.types';
 import * as fs from 'fs';
@@ -10,7 +15,8 @@ export class PluginLoader {
   private readonly pluginPath: string;
 
   constructor(private prisma: PrismaService) {
-    this.pluginPath = process.env.PLUGIN_PATH || path.join(process.cwd(), 'plugins');
+    this.pluginPath =
+      process.env.PLUGIN_PATH || path.join(process.cwd(), 'plugins');
   }
 
   /**
@@ -23,13 +29,17 @@ export class PluginLoader {
 
     // Verificar se o diretório existe
     if (!fs.existsSync(pluginDir)) {
-      throw new NotFoundException(`Diretório do plugin não encontrado: ${pluginDir}`);
+      throw new NotFoundException(
+        `Diretório do plugin não encontrado: ${pluginDir}`,
+      );
     }
 
     // Verificar package.json
     const packageJsonPath = path.join(pluginDir, 'package.json');
     if (!fs.existsSync(packageJsonPath)) {
-      throw new BadRequestException(`Plugin ${pluginName} não possui package.json`);
+      throw new BadRequestException(
+        `Plugin ${pluginName} não possui package.json`,
+      );
     }
 
     // Ler metadados do plugin
@@ -53,7 +63,7 @@ export class PluginLoader {
     this.logger.log(`Instalando plugin: ${plugin.name}`);
 
     const existingPlugin = await this.prisma.plugin.findUnique({
-      where: { name: plugin.name }
+      where: { name: plugin.name },
     });
 
     if (existingPlugin) {
@@ -90,7 +100,7 @@ export class PluginLoader {
     this.logger.log(`Desinstalando plugin: ${pluginName}`);
 
     const plugin = await this.prisma.plugin.findUnique({
-      where: { name: pluginName }
+      where: { name: pluginName },
     });
 
     if (!plugin) {
@@ -98,12 +108,14 @@ export class PluginLoader {
     }
 
     if (plugin.isActive) {
-      throw new BadRequestException(`Plugin ${pluginName} está ativo. Desative antes de desinstalar.`);
+      throw new BadRequestException(
+        `Plugin ${pluginName} está ativo. Desative antes de desinstalar.`,
+      );
     }
 
     // Remover do banco
     await this.prisma.plugin.delete({
-      where: { name: pluginName }
+      where: { name: pluginName },
     });
 
     this.logger.log(`Plugin ${pluginName} desinstalado com sucesso`);
@@ -120,10 +132,14 @@ export class PluginLoader {
 
       const entries = fs.readdirSync(this.pluginPath, { withFileTypes: true });
       return entries
-        .filter(entry => entry.isDirectory())
-        .map(entry => entry.name)
-        .filter(name => {
-          const packageJsonPath = path.join(this.pluginPath, name, 'package.json');
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .filter((name) => {
+          const packageJsonPath = path.join(
+            this.pluginPath,
+            name,
+            'package.json',
+          );
           return fs.existsSync(packageJsonPath);
         });
     } catch (error) {
@@ -149,7 +165,9 @@ export class PluginLoader {
       const content = fs.readFileSync(packageJsonPath, 'utf-8');
       return JSON.parse(content);
     } catch (error) {
-      throw new BadRequestException(`Erro ao ler package.json: ${error.message}`);
+      throw new BadRequestException(
+        `Erro ao ler package.json: ${error.message}`,
+      );
     }
   }
 
@@ -158,7 +176,9 @@ export class PluginLoader {
     const fullPath = path.join(pluginDir, entryPoint);
 
     if (!fs.existsSync(fullPath)) {
-      throw new BadRequestException(`Ponto de entrada não encontrado: ${entryPoint}`);
+      throw new BadRequestException(
+        `Ponto de entrada não encontrado: ${entryPoint}`,
+      );
     }
 
     return fullPath;
@@ -176,16 +196,23 @@ export class PluginLoader {
 
       return pluginModule;
     } catch (error) {
-      throw new BadRequestException(`Erro ao carregar módulo do plugin: ${error.message}`);
+      throw new BadRequestException(
+        `Erro ao carregar módulo do plugin: ${error.message}`,
+      );
     }
   }
 
-  private validateAndInstantiatePlugin(pluginModule: any, pluginName: string): PluginInterface {
+  private validateAndInstantiatePlugin(
+    pluginModule: any,
+    pluginName: string,
+  ): PluginInterface {
     try {
       const PluginClass = pluginModule.default;
 
       if (typeof PluginClass !== 'function') {
-        throw new BadRequestException('Plugin deve exportar uma classe construtora');
+        throw new BadRequestException(
+          'Plugin deve exportar uma classe construtora',
+        );
       }
 
       const plugin = new PluginClass();
@@ -195,7 +222,9 @@ export class PluginLoader {
 
       return plugin;
     } catch (error) {
-      throw new BadRequestException(`Erro ao instanciar plugin ${pluginName}: ${error.message}`);
+      throw new BadRequestException(
+        `Erro ao instanciar plugin ${pluginName}: ${error.message}`,
+      );
     }
   }
 
@@ -209,7 +238,7 @@ export class PluginLoader {
       'onInstall',
       'onUninstall',
       'onEnable',
-      'onDisable'
+      'onDisable',
     ];
 
     const requiredProperties = ['name', 'version', 'author'];
@@ -217,14 +246,18 @@ export class PluginLoader {
     // Verificar propriedades
     for (const prop of requiredProperties) {
       if (!plugin[prop]) {
-        throw new BadRequestException(`Plugin deve definir propriedade: ${prop}`);
+        throw new BadRequestException(
+          `Plugin deve definir propriedade: ${prop}`,
+        );
       }
     }
 
     // Verificar métodos
     for (const method of requiredMethods) {
       if (typeof plugin[method] !== 'function') {
-        throw new BadRequestException(`Plugin deve implementar método: ${method}`);
+        throw new BadRequestException(
+          `Plugin deve implementar método: ${method}`,
+        );
       }
     }
   }
@@ -234,20 +267,22 @@ export class PluginLoader {
 
     for (const dependency of plugin.dependencies) {
       const installedPlugin = await this.prisma.plugin.findUnique({
-        where: { name: dependency.name }
+        where: { name: dependency.name },
       });
 
       if (!installedPlugin) {
         if (dependency.required) {
           throw new BadRequestException(
-            `Dependência obrigatória não encontrada: ${dependency.name}`
+            `Dependência obrigatória não encontrada: ${dependency.name}`,
           );
         } else {
-          this.logger.warn(`Dependência opcional não encontrada: ${dependency.name}`);
+          this.logger.warn(
+            `Dependência opcional não encontrada: ${dependency.name}`,
+          );
         }
       } else if (installedPlugin.version < dependency.version) {
         throw new BadRequestException(
-          `Versão da dependência ${dependency.name} incompatível. Requer: ${dependency.version}, Instalada: ${installedPlugin.version}`
+          `Versão da dependência ${dependency.name} incompatível. Requer: ${dependency.version}, Instalada: ${installedPlugin.version}`,
         );
       }
     }

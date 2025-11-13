@@ -1,6 +1,8 @@
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { UserRole } from '@prisma/client';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
@@ -19,7 +21,11 @@ describe('JwtAuthGuard', () => {
 
   describe('handleRequest', () => {
     it('should return the user if there is no error and user is found', () => {
-      const user = { id: 'a-uuid', username: 'test' };
+      const user: JwtPayload = {
+        userId: 'a-uuid',
+        username: 'test',
+        role: UserRole.USER,
+      };
       const mockContext = {} as ExecutionContext;
       const result = guard.handleRequest(null, user, null, mockContext);
       expect(result).toEqual(user);

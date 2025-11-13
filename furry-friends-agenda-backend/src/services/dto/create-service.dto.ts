@@ -5,6 +5,7 @@ import {
   IsNumber,
   Min,
   IsInt, // Para durationMin, pois minutos geralmente são inteiros
+  IsBoolean, // Importar IsBoolean
 } from 'class-validator';
 
 export class CreateServiceDto {
@@ -26,4 +27,15 @@ export class CreateServiceDto {
   @Min(1)
   @IsNotEmpty() // Tornando obrigatório conforme schema.prisma
   durationMin: number; // Renomeado de durationMinutes e era opcional
+
+  @IsBoolean()
+  isOnlineEnabled: boolean;
+
+  @IsOptional()
+  @IsString()
+  stripePriceId?: string;
+
+  @IsOptional()
+  @IsString()
+  stripeProductId?: string;
 }

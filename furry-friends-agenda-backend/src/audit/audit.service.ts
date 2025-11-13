@@ -415,9 +415,11 @@ export class AuditService {
   // ========== GESTÃO DE CONFIGURAÇÕES ==========
 
   async getAuditConfig(): Promise<AuditConfig | null> {
-    return (
-      this.prisma.auditConfig.findFirst() || this.createDefaultAuditConfig()
-    );
+    const config = await this.prisma.auditConfig.findFirst();
+    if (config) {
+      return config;
+    }
+    return this.createDefaultAuditConfig();
   }
 
   async updateAuditConfig(configData: AuditConfigData): Promise<AuditConfig> {
@@ -426,7 +428,7 @@ export class AuditService {
     if (existingConfig) {
       return this.prisma.auditConfig.update({
         where: { id: existingConfig.id },
-        data: configData as any,
+        data: configData,
       });
     } else {
       return this.prisma.auditConfig.create({
@@ -434,7 +436,7 @@ export class AuditService {
           ...configData,
           enabled: true,
           logLevel: AuditSeverity.MEDIUM,
-        } as any,
+        },
       });
     }
   }
@@ -451,7 +453,7 @@ export class AuditService {
       data: {
         name,
         description,
-        filters,
+        filters: filters as Prisma.InputJsonValue,
         userId,
       },
     });
@@ -499,7 +501,7 @@ export class AuditService {
   ): Promise<AuditAlert> {
     return this.prisma.auditAlert.create({
       data: {
-        ...(alertData as any),
+        ...alertData,
         createdBy: userId,
       },
     });
@@ -511,7 +513,7 @@ export class AuditService {
     if (userId) {
       where.OR = [
         { createdBy: userId },
-        { notifyUsers: { has: userId } as any },
+        { notifyUsers: { path: [''], array_contains: [userId] } },
       ];
     }
 
@@ -548,7 +550,7 @@ export class AuditService {
 
     return this.prisma.auditAlert.update({
       where: { id },
-      data: alertData as any,
+      data: alertData,
     });
   }
 

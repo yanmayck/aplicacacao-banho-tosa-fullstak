@@ -1,9 +1,13 @@
 // ========== TIPOS E INTERFACES PARA SISTEMA DE PLUGINS ==========
 
-import { LogLevel } from '@prisma/client';
-
-// === ENUMS ===
-export { LogLevel };
+// === HOOKS DO SISTEMA ===
+export enum LogLevel {
+  INFO = 'INFO',
+  WARN = 'WARN',
+  ERROR = 'ERROR',
+  DEBUG = 'DEBUG',
+  VERBOSE = 'VERBOSE',
+}
 
 // === HOOKS DO SISTEMA ===
 export enum SystemHooks {
@@ -111,7 +115,7 @@ export interface PluginHookDefinition {
 // Handler de hook
 export type HookHandler = (
   data: any,
-  context: HookContext
+  context: HookContext,
 ) => Promise<any> | any;
 
 // Contexto do hook
@@ -281,6 +285,16 @@ export interface PluginStatus {
   hasErrors: boolean;
   lastError?: string;
   stats: any[]; // PluginStats[];
+}
+
+export interface PluginDetails {
+  name: string;
+  version: string;
+  description?: string;
+  author: string;
+  isActive: boolean;
+  loadedAt: Date;
+  hooksCount: number;
 }
 
 // Configuração de upload

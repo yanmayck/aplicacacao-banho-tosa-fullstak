@@ -9,8 +9,8 @@ interface AppointmentContextType {
   appointments: Appointment[];
   isLoading: boolean;
   error: Error | null;
-  addAppointment: (appointment: Omit<Appointment, "id">) => Promise<void>;
-  updateAppointment: (appointment: Appointment) => Promise<void>;
+  addAppointment: (appointment: Omit<Appointment, "id">) => Promise<Appointment>;
+  updateAppointment: (appointment: Appointment) => Promise<Appointment>;
   deleteAppointment: (id: string) => Promise<void>;
   autoAssignGroomer: (appointmentId: string) => void; // This will be a mutation
   updateAppointmentPoints: (appointmentId: string, points: number) => void; // This will be a mutation
@@ -26,7 +26,11 @@ export const useAppointments = () => {
   return context;
 };
 
-export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AppointmentProviderProps {
+  children: React.ReactNode;
+}
+
+export const AppointmentProvider: React.FC<AppointmentProviderProps> = ({ children }) => {
   const queryClient = useQueryClient();
 
   const { data: appointments = [], isLoading, error } = useQuery<Appointment[], Error>({

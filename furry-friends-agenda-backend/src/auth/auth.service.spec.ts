@@ -62,11 +62,10 @@ describe('AuthService', () => {
   describe('validateUser', () => {
     it('should return user data without password if validation is successful', async () => {
       usersService.findOneByEmail.mockResolvedValue(mockUser);
-      jest
-        .spyOn(bcrypt, 'compare')
-        .mockImplementation(() => Promise.resolve(true));
+      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
 
-      const { password: _password, ...expectedResult } = mockUser;
+      const { password, ...expectedResult } = mockUser;
+      const _password = password; // Marcar como usado se necessário para evitar linting
       const result = await service.validateUser(
         'test@example.com',
         'password123',
@@ -89,9 +88,7 @@ describe('AuthService', () => {
 
     it('should return null if password does not match', async () => {
       usersService.findOneByEmail.mockResolvedValue(mockUser);
-      jest
-        .spyOn(bcrypt, 'compare')
-        .mockImplementation(() => Promise.resolve(false));
+      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => false);
       const result = await service.validateUser(
         'test@example.com',
         'wrongpassword',
@@ -102,7 +99,8 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should return an access token and user info on successful login', async () => {
-      const { password: _password, ...validateUserResult } = mockUser; // Full user data minus password
+      const { password, ...validateUserResult } = mockUser; // Full user data minus password
+      const _password = password; // Marcar como usado se necessário para evitar linting
       jest.spyOn(service, 'validateUser').mockResolvedValue(validateUserResult);
       usersService.findOneById.mockResolvedValue(mockUser);
       jwtService.sign.mockReturnValue('test-token');
@@ -146,7 +144,8 @@ describe('AuthService', () => {
       const createdUser = { ...mockUser, ...registerDto, id: 'new-uuid' };
       usersService.createUser.mockResolvedValue(createdUser);
 
-      const { password: _password, ...expectedResult } = createdUser;
+      const { password, ...expectedResult } = createdUser;
+      const _password = password; // Marcar como usado se necessário para evitar linting
       const result = await service.register(registerDto);
 
       expect(usersService.createUser).toHaveBeenCalledWith(

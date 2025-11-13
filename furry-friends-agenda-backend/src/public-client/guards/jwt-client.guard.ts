@@ -2,6 +2,17 @@ import { Injectable, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: JwtPayloadClient;
+}
+
+interface JwtPayloadClient {
+  userId: string;
+  username: string;
+  type: 'client';
+}
 
 @Injectable()
 export class JwtClientGuard extends AuthGuard('jwt') {
@@ -12,16 +23,16 @@ export class JwtClientGuard extends AuthGuard('jwt') {
     super();
   }
 
-  canActivate(context: ExecutionContext) {
-    const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers.authorization;
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
+    const authHeader: string | undefined = request.headers.authorization;
 
     if (!authHeader) {
       return false;
     }
 
     try {
-      const token = authHeader.replace('Bearer ', '');
+      const token: string = authHeader.replace('Bearer ', '');
       const decoded = this.jwtService.verify(token);
 
       // Verificar se é um token de cliente
@@ -31,7 +42,7 @@ export class JwtClientGuard extends AuthGuard('jwt') {
 
       request.user = decoded;
       return true;
-    } catch (error) {
+    } catch (_error: unknown) {
       return false;
     }
   }

@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext } from "react";
 import { Client, Pet, Groomer, Appointment, Commission, Package, GroomerPoint } from "./models/types";
 import { ClientProvider, useClients } from "./clients/ClientContext";
 import { PetProvider, usePets } from "./pets/PetContext";
@@ -58,6 +58,7 @@ const StoreContext = createContext<StoreContextType | null>(null);
 
 export { StoreContext };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useStore = () => {
   const context = useContext(StoreContext);
   if (!context) {
@@ -86,14 +87,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 // Intermediate component to access CommissionProvider and GroomerPoints context
 const StoreProviderWithCommissions: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { addCommission } = useCommissions();
-  const { addGroomerPoints } = useGroomerPoints();
-  
   return (
-    <AppointmentProvider 
-      addCommission={addCommission}
-      addGroomerPoints={addGroomerPoints}
-    >
+    <AppointmentProvider>
       <StoreProviderInner>{children}</StoreProviderInner>
     </AppointmentProvider>
   );
@@ -102,7 +97,7 @@ const StoreProviderWithCommissions: React.FC<{ children: React.ReactNode }> = ({
 const StoreProviderInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { clients, addClient, updateClient, deleteClient, getClientById } = useClients();
   const { pets, addPet, updatePet, deletePet, getPetById, getPetsByClientId } = usePets();
-  const { groomers, addGroomer, updateGroomer, deleteGroomer, getGroomerById, getGroomerWorkload } = useGroomers();
+  const { groomers, addGroomer, updateGroomer, deleteGroomer, getGroomerById } = useGroomers();
   const { appointments, addAppointment, updateAppointment, deleteAppointment, autoAssignGroomer, updateAppointmentPoints } = useAppointments();
   const { commissions, addCommission, getCommissionsByGroomerId, getTotalCommissionsByGroomerId } = useCommissions();
   const { packages, addPackage, updatePackage, deletePackage, getPackageById } = usePackages();

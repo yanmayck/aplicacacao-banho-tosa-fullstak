@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   PluginInterface,
@@ -50,7 +55,9 @@ export class PluginRegistry {
 
     // Verificar limite de plugins
     if (this.plugins.size >= this.config.maxPlugins) {
-      throw new ConflictException(`Limite máximo de plugins atingido: ${this.config.maxPlugins}`);
+      throw new ConflictException(
+        `Limite máximo de plugins atingido: ${this.config.maxPlugins}`,
+      );
     }
 
     // Criar instância
@@ -174,7 +181,7 @@ export class PluginRegistry {
   async executeHook(
     hookName: SystemHooks,
     data: any,
-    context: Partial<HookContext> = {}
+    context: Partial<HookContext> = {},
   ): Promise<any[]> {
     const registeredHooks = this.hooks.get(hookName) || [];
     const results: any[] = [];
@@ -183,10 +190,14 @@ export class PluginRegistry {
       return results;
     }
 
-    this.logger.debug(`Executando ${registeredHooks.length} hooks para: ${hookName}`);
+    this.logger.debug(
+      `Executando ${registeredHooks.length} hooks para: ${hookName}`,
+    );
 
     // Ordenar por prioridade (menor número = maior prioridade)
-    const sortedHooks = registeredHooks.sort((a, b) => (a.priority || 0) - (b.priority || 0));
+    const sortedHooks = registeredHooks.sort(
+      (a, b) => (a.priority || 0) - (b.priority || 0),
+    );
 
     for (const hook of sortedHooks) {
       const instance = this.plugins.get(hook.plugin.name);
@@ -216,13 +227,20 @@ export class PluginRegistry {
 
         // Verificar se deve cancelar execução
         if (context.cancellable && result === false) {
-          this.logger.debug(`Hook ${hook.plugin.name}:${hookName} cancelou execução`);
+          this.logger.debug(
+            `Hook ${hook.plugin.name}:${hookName} cancelou execução`,
+          );
           break;
         }
 
-        this.logger.debug(`Hook ${hook.plugin.name}:${hookName} executado em ${executionTime}ms`);
+        this.logger.debug(
+          `Hook ${hook.plugin.name}:${hookName} executado em ${executionTime}ms`,
+        );
       } catch (error) {
-        this.logger.error(`Erro no hook ${hook.plugin.name}:${hookName}`, error);
+        this.logger.error(
+          `Erro no hook ${hook.plugin.name}:${hookName}`,
+          error,
+        );
         await this.handleHookError(hook, error);
       }
     }
@@ -237,14 +255,16 @@ export class PluginRegistry {
     filter?: PluginFilter,
     sort?: PluginSort,
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<PaginatedResponse<Plugin>> {
     const where: any = {};
 
     if (filter) {
       if (filter.isActive !== undefined) where.isActive = filter.isActive;
-      if (filter.isInstalled !== undefined) where.isInstalled = filter.isInstalled;
-      if (filter.author) where.author = { contains: filter.author, mode: 'insensitive' };
+      if (filter.isInstalled !== undefined)
+        where.isInstalled = filter.isInstalled;
+      if (filter.author)
+        where.author = { contains: filter.author, mode: 'insensitive' };
       if (filter.search) {
         where.OR = [
           { name: { contains: filter.search, mode: 'insensitive' } },
@@ -305,17 +325,22 @@ export class PluginRegistry {
    */
   getStats() {
     const total = this.plugins.size;
-    const active = Array.from(this.plugins.values()).filter(p => p.isActive).length;
+    const active = Array.from(this.plugins.values()).filter(
+      (p) => p.isActive,
+    ).length;
     const inactive = total - active;
 
     return {
       total,
       active,
       inactive,
-      hooks: Array.from(this.hooks.entries()).reduce((acc, [hookName, hooks]) => {
-        acc[hookName] = hooks.length;
-        return acc;
-      }, {} as Record<string, number>),
+      hooks: Array.from(this.hooks.entries()).reduce(
+        (acc, [hookName, hooks]) => {
+          acc[hookName] = hooks.length;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
     };
   }
 
@@ -339,7 +364,9 @@ export class PluginRegistry {
     for (const hook of instance.hooks) {
       const hookList = this.hooks.get(hook.name);
       if (hookList) {
-        const index = hookList.findIndex(h => h.plugin.name === instance.plugin.name);
+        const index = hookList.findIndex(
+          (h) => h.plugin.name === instance.plugin.name,
+        );
         if (index !== -1) {
           hookList.splice(index, 1);
         }
@@ -370,7 +397,10 @@ export class PluginRegistry {
     });
   }
 
-  private async updateDatabaseStatus(pluginName: string, isActive: boolean): Promise<void> {
+  private async updateDatabaseStatus(
+    pluginName: string,
+    isActive: boolean,
+  ): Promise<void> {
     await this.prisma.plugin.update({
       where: { name: pluginName },
       data: {
@@ -387,7 +417,10 @@ export class PluginRegistry {
     });
   }
 
-  private async recordHookExecution(hook: PluginHookWithPlugin, executionTime: number): Promise<void> {
+  private async recordHookExecution(
+    hook: PluginHookWithPlugin,
+    executionTime: number,
+  ): Promise<void> {
     // Atualizar estatísticas no banco
     await this.prisma.pluginHook.updateMany({
       where: {
@@ -405,7 +438,10 @@ export class PluginRegistry {
     });
   }
 
-  private async handleHookError(hook: PluginHookWithPlugin, error: any): Promise<void> {
+  private async handleHookError(
+    hook: PluginHookWithPlugin,
+    error: any,
+  ): Promise<void> {
     // Logar erro
     await this.prisma.pluginLog.create({
       data: {
@@ -429,7 +465,9 @@ export class PluginRegistry {
     });
 
     if (!plugin) {
-      throw new NotFoundException(`Plugin ${pluginName} não encontrado no banco`);
+      throw new NotFoundException(
+        `Plugin ${pluginName} não encontrado no banco`,
+      );
     }
 
     return plugin.id;
