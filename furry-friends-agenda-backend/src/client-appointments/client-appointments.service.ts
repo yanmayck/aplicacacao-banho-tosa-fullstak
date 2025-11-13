@@ -50,7 +50,7 @@ export class ClientAppointmentsService {
           throw new NotFoundException(`Serviço ${serviceId} não encontrado`);
         }
 
-        totalPrice += service.price;
+        totalPrice += service.basePrice.toNumber();
       }
     }
 
@@ -90,7 +90,7 @@ export class ClientAppointmentsService {
           data: {
             appointmentId: appointment.id,
             serviceId: serviceId,
-            priceAtTime: service.price,
+            priceAtTime: service.basePrice.toNumber(),
             quantity: 1,
           },
         });

@@ -8,7 +8,7 @@ export class PublicServicesService {
   async findAll() {
     return this.prisma.servicePackage.findMany({
       where: {},
-      orderBy: { price: 'asc' },
+      orderBy: { basePrice: 'asc' },
     });
   }
 

@@ -44,22 +44,15 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3333
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
 
   // Check localStorage on mount to restore session
   useEffect(() => {
     const storedToken = localStorage.getItem("petshop-token");
     const storedUser = localStorage.getItem("petshop-user");
     if (storedToken && storedUser) {
-      setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
   }, []);
-
-  // Helper function to determine primary role from roles array
-  const getPrimaryRole = (role: UserRole): UserRole => {
-    return role; // Directly return the role as it's already UserRole
-  };
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
@@ -118,7 +111,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         console.log('FRONTEND: Dados do usuário recebidos no login:', mappedUser); // Log para depuração
 
-        setToken(data.access_token);
         setUser(mappedUser);
         localStorage.setItem("petshop-token", data.access_token);
         localStorage.setItem("petshop-user", JSON.stringify(mappedUser));
@@ -136,7 +128,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout function
   const logout = () => {
     setUser(null);
-    setToken(null);
     localStorage.removeItem("petshop-token");
     localStorage.removeItem("petshop-user");
     // Potentially call a backend /auth/logout endpoint here if available

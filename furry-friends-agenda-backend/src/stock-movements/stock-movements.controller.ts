@@ -17,7 +17,7 @@ import { UpdateStockMovementDto } from './dto/update-stock-movement.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { UserRole } from '@prisma/client';
+import { StockMovementType, UserRole } from '@prisma/client';
 
 @Controller('stock-movements')
 export class StockMovementsController {
@@ -48,7 +48,7 @@ export class StockMovementsController {
 
   @Get('type/:type')
   findByType(@Param('type') type: string) {
-    return this.stockMovementsService.findByType(type);
+    return this.stockMovementsService.findByType(type as StockMovementType);
   }
 
   @Patch(':id')

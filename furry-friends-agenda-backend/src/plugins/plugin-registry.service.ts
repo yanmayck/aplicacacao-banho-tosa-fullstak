@@ -17,6 +17,7 @@ import {
   PluginSort,
   PaginatedResponse,
   PluginPagination,
+  LogLevel,
 } from '../types/plugin.types';
 
 // Extensão do tipo para incluir plugin
@@ -37,7 +38,7 @@ export class PluginRegistry {
       pluginPath: process.env.PLUGIN_PATH || './plugins',
       maxPlugins: parseInt(process.env.MAX_PLUGINS || '50'),
       enableSandbox: process.env.ENABLE_PLUGIN_SANDBOX === 'true',
-      logLevel: 'INFO',
+      logLevel: LogLevel.INFO,
     };
   }
 
