@@ -27,7 +27,7 @@ import {
 
 @Injectable()
 export class AuditService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   // ========== GESTÃO DE LOGS DE AUDITORIA ==========
 
@@ -537,7 +537,7 @@ export class AuditService {
 
   async updateAlert(
     id: string,
-    alertData: AuditAlertData,
+    alertData: Partial<AuditAlertData>,
     userId: string,
   ): Promise<AuditAlert> {
     const alert = await this.prisma.auditAlert.findFirst({

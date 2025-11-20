@@ -24,7 +24,7 @@ export class AuditInterceptor implements NestInterceptor {
   constructor(
     private reflector: Reflector,
     @Inject(AuditService) private auditService: AuditService,
-  ) {}
+  ) { }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<Request>();
@@ -42,12 +42,12 @@ export class AuditInterceptor implements NestInterceptor {
 
     // Determinar ação baseada no método HTTP
     const action: AuditActionType =
-      (auditMetadata.action as AuditActionType) ||
+      (auditMetadata.action as unknown as AuditActionType) ||
       this.getActionFromMethod(method);
     const entityType: string =
-      (auditMetadata.entityType as string) || this.getEntityTypeFromUrl(url);
+      (auditMetadata.entityType as unknown as string) || this.getEntityTypeFromUrl(url);
     const severity: AuditSeverity =
-      (auditMetadata.severity as AuditSeverity) || AuditSeverity.MEDIUM;
+      (auditMetadata.severity as unknown as AuditSeverity) || AuditSeverity.MEDIUM;
 
     // Capturar dados antes da execução
     const oldBody: Record<string, unknown> = JSON.parse(

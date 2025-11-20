@@ -8,12 +8,13 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
+  NotificationFilters,
   NotificationType,
   NotificationChannel,
   NotificationStatus,
-} from '@prisma/client';
+} from '@furry-friends/types';
 
-export class NotificationFiltersDto {
+export class NotificationFiltersDto implements NotificationFilters {
   @IsEnum(NotificationType)
   @IsOptional()
   type?: NotificationType;

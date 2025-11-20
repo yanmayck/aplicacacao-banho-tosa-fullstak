@@ -9,7 +9,7 @@ import { CreateNotificationTemplateDto } from './dto/create-notification-templat
 
 @Injectable()
 export class NotificationTemplatesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(createTemplateDto: CreateNotificationTemplateDto) {
     // Verificar se já existe um template com o mesmo nome
@@ -26,8 +26,8 @@ export class NotificationTemplatesService {
         name: createTemplateDto.name,
         title: createTemplateDto.title,
         content: createTemplateDto.content,
-        type: createTemplateDto.type,
-        channel: createTemplateDto.channel || NotificationChannel.IN_APP,
+        type: createTemplateDto.type as any,
+        channel: (createTemplateDto.channel || NotificationChannel.IN_APP) as any,
         isActive: createTemplateDto.isActive ?? true,
         variables: createTemplateDto.variables || [],
         // metadata: createTemplateDto.metadata || {},
@@ -93,9 +93,9 @@ export class NotificationTemplatesService {
         ...(updateTemplateDto.content && {
           content: updateTemplateDto.content,
         }),
-        ...(updateTemplateDto.type && { type: updateTemplateDto.type }),
+        ...(updateTemplateDto.type && { type: updateTemplateDto.type as any }),
         ...(updateTemplateDto.channel && {
-          channel: updateTemplateDto.channel,
+          channel: updateTemplateDto.channel as any,
         }),
         ...(updateTemplateDto.isActive !== undefined && {
           isActive: updateTemplateDto.isActive,
@@ -104,9 +104,9 @@ export class NotificationTemplatesService {
           variables: updateTemplateDto.variables,
         }),
         ...(updateTemplateDto.metadata &&
-          {
-            // metadata: updateTemplateDto.metadata,
-          }),
+        {
+          // metadata: updateTemplateDto.metadata,
+        }),
       },
     });
   }

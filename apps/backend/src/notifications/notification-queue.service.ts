@@ -2,13 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNotificationQueueDto } from './dto/create-notification-queue.dto';
-import { NotificationChannel, NotificationStatus } from '@prisma/client';
+import { NotificationChannel, NotificationStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class NotificationQueueService {
   private readonly logger = new Logger(NotificationQueueService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(createQueueDto: CreateNotificationQueueDto) {
     const scheduledFor = createQueueDto.scheduledFor
@@ -17,18 +17,18 @@ export class NotificationQueueService {
 
     return this.prisma.notificationQueue.create({
       data: {
-        type: createQueueDto.type,
+        type: createQueueDto.type as any,
         channel: createQueueDto.channel,
         recipient: createQueueDto.recipient,
         recipientType: createQueueDto.recipientType,
         title: createQueueDto.title || '',
         content: createQueueDto.content,
         templateId: createQueueDto.templateId,
-        data: createQueueDto.data,
+        data: createQueueDto.data as Prisma.InputJsonValue,
         clientId: createQueueDto.clientId,
         groomerId: createQueueDto.groomerId,
         appointmentId: createQueueDto.appointmentId,
-        status: createQueueDto.status || NotificationStatus.PENDING,
+        status: (createQueueDto.status || NotificationStatus.PENDING) as any,
         scheduledFor,
         // metadata: createQueueDto.metadata,
       },
@@ -353,8 +353,8 @@ export class NotificationQueueService {
     }
 
     return this.create({
-      type: template.type,
-      channel: options?.channel || template.channel,
+      type: template.type as any,
+      channel: (options?.channel || template.channel) as any,
       recipient,
       recipientType,
       title,

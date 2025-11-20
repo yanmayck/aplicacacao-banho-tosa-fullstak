@@ -6,9 +6,13 @@ import {
   IsArray,
   IsObject,
 } from 'class-validator';
-import { NotificationType, NotificationChannel } from '@prisma/client';
+import {
+  CreateNotificationTemplateRequest,
+  NotificationType,
+  NotificationChannel,
+} from '@furry-friends/types';
 
-export class CreateNotificationTemplateDto {
+export class CreateNotificationTemplateDto implements CreateNotificationTemplateRequest {
   @IsString()
   name: string;
 
@@ -36,5 +40,5 @@ export class CreateNotificationTemplateDto {
 
   @IsObject()
   @IsOptional()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }

@@ -1,0 +1,36 @@
+
+> furry-friends-agenda-backend@0.0.1 build
+> nest build
+
+src/audit/interceptors/audit.interceptor.ts:121:9 - error TS2322: Type 'string' is not assignable to type 'AuditActionType'.
+
+121         action: action,
+            ~~~~~~
+
+  src/audit/dto/audit-log.dto.ts:19:3
+    19   action: AuditActionType;
+         ~~~~~~
+    The expected type comes from property 'action' which is declared here on type 'CreateAuditLogDto'
+src/audit/interceptors/audit.interceptor.ts:123:11 - error TS2345: Argument of type 'string' is not assignable to parameter of type 'AuditActionType'.
+
+123           action,
+              ~~~~~~
+src/audit/interceptors/audit.interceptor.ts:127:9 - error TS2322: Type 'string' is not assignable to type 'AuditSeverity | undefined'.
+
+127         severity: severity,
+            ~~~~~~~~
+
+  src/audit/dto/audit-log.dto.ts:26:3
+    26   severity?: AuditSeverity;
+         ~~~~~~~~
+    The expected type comes from property 'severity' which is declared here on type 'CreateAuditLogDto'
+
+Found 3 error(s).
+
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\backend
+npm error workspace furry-friends-agenda-backend@0.0.1
+npm error location C:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\backend
+npm error command failed
+npm error command C:\Windows\system32\cmd.exe /d /s /c nest build
