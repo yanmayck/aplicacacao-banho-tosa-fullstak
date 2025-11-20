@@ -65,7 +65,7 @@ export class AuditInterceptor implements NestInterceptor {
           severity,
           success: true,
           startTime,
-          responseData: auditMetadata.includeResponse ? (data as SanitizedResponseData) : undefined,
+          responseData: auditMetadata.includeResponse ? data : undefined,
           metadata: {
             method,
             url,
@@ -249,7 +249,7 @@ export class AuditInterceptor implements NestInterceptor {
 
   private sanitizeResponseData(data: unknown): SanitizedResponseData {
     if (!data || typeof data !== 'object') {
-      return data as SanitizedResponseData;
+      return data;
     }
 
     // Remover dados sensíveis da resposta

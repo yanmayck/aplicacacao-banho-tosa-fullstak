@@ -110,7 +110,7 @@ const StoreProviderInner: React.FC<{ children: React.ReactNode }> = ({ children 
         appointment => appointment.groomerId === groomerId && appointment.status === "completed"
       ).length;
     }
-    
+
     return appointments.filter(
       appointment => appointment.groomerId === groomerId && appointment.status !== "canceled"
     ).length;

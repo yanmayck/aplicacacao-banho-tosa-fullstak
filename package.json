@@ -1,0 +1,14 @@
+{
+    "name": "furry-friends-monorepo",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "build": "npm run build --workspaces",
+        "test": "npm run test --workspaces",
+        "lint": "npm run lint --workspaces",
+        "dev": "npm run dev --workspaces"
+    }
+}

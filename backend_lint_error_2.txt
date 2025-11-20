@@ -1,0 +1,22 @@
+
+> furry-friends-agenda-backend@0.0.1 lint
+> eslint "{src,apps,libs,test}/**/*.ts" --fix
+
+
+Oops! Something went wrong! :(
+
+ESLint: 9.39.1
+
+SyntaxError: Unexpected identifier 'eslint'
+    at compileSourceTextModule (node:internal/modules/esm/utils:344:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:105:18)
+    at #translate (node:internal/modules/esm/loader:534:12)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:581:27)
+    at async ModuleJob._link (node:internal/modules/esm/module_job:116:19)
+npm error Lifecycle script `lint` failed with error:
+npm error code 2
+npm error path C:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\backend
+npm error workspace furry-friends-agenda-backend@0.0.1
+npm error location C:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\backend
+npm error command failed
+npm error command C:\Windows\system32\cmd.exe /d /s /c eslint "{src,apps,libs,test}/**/*.ts" --fix

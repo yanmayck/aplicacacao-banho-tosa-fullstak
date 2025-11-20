@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { 
-  SIDEBAR_COOKIE_NAME, 
-  SIDEBAR_COOKIE_MAX_AGE, 
-  SIDEBAR_KEYBOARD_SHORTCUT 
+import {
+  SIDEBAR_COOKIE_NAME,
+  SIDEBAR_COOKIE_MAX_AGE,
+  SIDEBAR_KEYBOARD_SHORTCUT
 } from "@/lib/sidebar-utils";
 
 type SidebarContextType = {
@@ -32,12 +32,13 @@ interface SidebarProviderProps extends React.ComponentProps<"div"> {
   onOpenChange?: (open: boolean) => void;
 }
 
-export const SidebarProvider: React.FC<SidebarProviderProps> = ({
+export function SidebarProvider({
   defaultOpen = true,
   open: openProp,
   onOpenChange: setOpenProp,
   children,
-}) => {
+  ...props
+}: SidebarProviderProps) {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
@@ -93,8 +94,10 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({
   );
 
   return (
-    <SidebarContext.Provider value={contextValue}>
-      {children}
+    <SidebarContext.Provider value= { contextValue } >
+    <div { ...props } >
+    { children }
+    </div>
     </SidebarContext.Provider>
   );
-};
+}

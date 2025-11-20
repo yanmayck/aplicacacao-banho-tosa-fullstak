@@ -7,12 +7,13 @@ import {
   IsDateString,
 } from 'class-validator';
 import {
+  CreateNotificationQueueRequest,
   NotificationType,
   NotificationChannel,
   NotificationStatus,
-} from '@prisma/client';
+} from '@furry-friends/types';
 
-export class CreateNotificationQueueDto {
+export class CreateNotificationQueueDto implements CreateNotificationQueueRequest {
   @IsEnum(NotificationType)
   type: NotificationType;
 
@@ -38,7 +39,7 @@ export class CreateNotificationQueueDto {
 
   @IsObject()
   @IsOptional()
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 
   @IsUUID()
   @IsOptional()
@@ -62,5 +63,5 @@ export class CreateNotificationQueueDto {
 
   @IsObject()
   @IsOptional()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }

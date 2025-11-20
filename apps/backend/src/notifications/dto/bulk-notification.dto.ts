@@ -8,9 +8,13 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { NotificationType } from '@prisma/client';
+import {
+  BulkNotificationRequest,
+  NotificationType,
+  NotificationTarget,
+} from '@furry-friends/types';
 
-class NotificationTargetDto {
+class NotificationTargetDto implements NotificationTarget {
   @IsUUID()
   @IsOptional()
   clientId?: string;
@@ -28,7 +32,7 @@ class NotificationTargetDto {
   recipientType?: 'email' | 'phone' | 'user_id';
 }
 
-export class BulkNotificationDto {
+export class BulkNotificationDto implements BulkNotificationRequest {
   @IsString()
   title: string;
 
@@ -45,7 +49,7 @@ export class BulkNotificationDto {
 
   @IsObject()
   @IsOptional()
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 
   @IsArray()
   @IsString({ each: true })
