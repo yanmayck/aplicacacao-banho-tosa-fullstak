@@ -11,6 +11,10 @@ lerna-debug.log*
 node_modules/
 **/node_modules/
 
+# Testing
+coverage/
+**/coverage/
+
 # Build artifacts
 
 dist/
@@ -19,8 +23,8 @@ dist-ssr/
 **/dist-ssr/
 build/
 **/build/
-furry-friends-agenda-app/dist/
-furry-friends-agenda-backend/dist/
+apps/*/dist/
+packages/*/dist/
 
 # Environment variables
 .env
