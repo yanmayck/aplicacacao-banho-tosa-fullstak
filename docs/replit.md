@@ -1,169 +1,169 @@
-# Furry Friends Agenda - Pet Grooming Appointment Management System
+# Furry Friends Agenda - Sistema de Gestão de Agendamentos para Pet Shop
 
-## Overview
-This is a full-stack pet grooming appointment management system that helps manage clients, pets, groomers, appointments, and packages. The application was originally designed to run with Docker Compose and has been adapted to run on Replit.
+## Visão Geral
+Este é um sistema full-stack de gestão de agendamentos para pet shops, que ajuda a gerenciar clientes, pets, tosadores, agendamentos e pacotes. A aplicação foi originalmente projetada para rodar com Docker Compose e foi adaptada para rodar no Replit.
 
-## Project Structure
+## Estrutura do Projeto
 
 ### Backend (`furry-friends-agenda-backend/`)
-- **Framework**: NestJS (Node.js framework)
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: JWT-based authentication
-- **Port**: 3333 (localhost only)
+- **Framework**: NestJS (Framework Node.js)
+- **Banco de Dados**: PostgreSQL com Prisma ORM
+- **Autenticação**: Autenticação baseada em JWT
+- **Porta**: 3333 (apenas localhost)
 
 ### Frontend (`furry-friends-agenda-app/`)
-- **Framework**: React with Vite
-- **UI**: Tailwind CSS with shadcn/ui components
-- **State Management**: React Context API
-- **Port**: 5000 (exposed to public)
+- **Framework**: React com Vite
+- **UI**: Tailwind CSS com componentes shadcn/ui
+- **Gerenciamento de Estado**: React Context API
+- **Porta**: 5000 (exposta publicamente)
 
-## Architecture
+## Arquitetura
 
-### Database Schema
-The application uses Prisma ORM with the following main models:
-- **User**: System users with role-based access (USER/ADMIN)
-- **Client**: Pet owners/customers
-- **Pet**: Pets belonging to clients
-- **Groomer**: Professional groomers
-- **Appointment**: Grooming appointments
-- **ServicePackage**: Available grooming services
-- **Package**: Service packages with pricing
+### Schema do Banco de Dados
+A aplicação usa Prisma ORM com os seguintes modelos principais:
+- **User**: Usuários do sistema com acesso baseado em funções (USER/ADMIN)
+- **Client**: Proprietários de pets/clientes
+- **Pet**: Pets pertencentes aos clientes
+- **Groomer**: Tosadores profissionais
+- **Appointment**: Agendamentos de tosa/banho
+- **ServicePackage**: Serviços de tosa disponíveis
+- **Package**: Pacotes de serviços com preços
 
-### Key Features
-- User authentication and authorization
-- Client and pet management
-- Groomer management with specialties and commissions
-- Appointment scheduling and tracking
-- Service packages and pricing
-- Grooming board with drag-and-drop functionality
-- Reports and analytics
+### Funcionalidades Principais
+- Autenticação e autorização de usuários
+- Gestão de clientes e pets
+- Gestão de tosadores com especialidades e comissões
+- Agendamento e rastreamento de horários
+- Pacotes de serviços e preços
+- Quadro de agendamentos com funcionalidade de arrastar e soltar (drag-and-drop)
+- Relatórios e análises
 
-## Development Setup
+## Configuração de Desenvolvimento
 
-### Environment Variables
-Required secrets (already configured in Replit Secrets):
-- `JWT_SECRET`: Secret key for JWT token signing
-- `JWT_EXPIRES_IN`: Token expiration time (e.g., "1d")
-- `DATABASE_URL`: PostgreSQL connection string
+### Variáveis de Ambiente
+Segredos necessários (já configurados nos Segredos do Replit):
+- `JWT_SECRET`: Chave secreta para assinatura de tokens JWT
+- `JWT_EXPIRES_IN`: Tempo de expiração do token (ex: "1d")
+- `DATABASE_URL`: String de conexão do PostgreSQL
 
-### Database Setup
-⚠️ **Important**: You need to set up a PostgreSQL database for this application to work properly.
+### Configuração do Banco de Dados
+⚠️ **Importante**: Você precisa configurar um banco de dados PostgreSQL para que esta aplicação funcione corretamente.
 
-1. From the Replit sidebar, go to **Tools → Database**
-2. Provision a PostgreSQL database
-3. Copy the connection URL
-4. Update the `DATABASE_URL` secret with the new connection string
-5. Run migrations:
+1. Na barra lateral do Replit, vá para **Tools → Database**
+2. Provisione um banco de dados PostgreSQL
+3. Copie a URL de conexão
+4. Atualize o segredo `DATABASE_URL` com a nova string de conexão
+5. Execute as migrações:
    ```bash
    cd furry-friends-agenda-backend
    npx prisma migrate deploy
    ```
 
-### Running the Application
-The application uses a combined startup script (`start.sh`) that:
-1. Starts the backend on port 3333
-2. Starts the frontend on port 5000
+### Executando a Aplicação
+A aplicação usa um script de inicialização combinado (`start.sh`) que:
+1. Inicia o backend na porta 3333
+2. Inicia o frontend na porta 5000
 
-The workflow is already configured and will start automatically.
+O fluxo de trabalho já está configurado e iniciará automaticamente.
 
-## Port Configuration
-- **Frontend**: Port 5000 (webview) - This is the main application interface
-- **Backend**: Port 3333 (localhost only) - API server
+## Configuração de Portas
+- **Frontend**: Porta 5000 (webview) - Esta é a interface principal da aplicação
+- **Backend**: Porta 3333 (apenas localhost) - Servidor API
 
-The frontend communicates with the backend via `http://localhost:3333`.
+O frontend se comunica com o backend via `http://localhost:3333`.
 
-## Recent Changes (Replit Setup - Oct 13, 2025)
+## Mudanças Recentes (Configuração Replit - 13 de Out, 2025)
 
-### Configuration Updates
+### Atualizações de Configuração
 1. **Backend (`furry-friends-agenda-backend/src/main.ts`)**
-   - Updated CORS to include Replit domain
-   - Changed port to 3333 (from 3000)
-   - Changed host to 'localhost' (backend only accessible internally)
-   - Added support for REPLIT_DEV_DOMAIN environment variable
+   - CORS atualizado para incluir o domínio do Replit
+   - Porta alterada para 3333 (de 3000)
+   - Host alterado para 'localhost' (backend acessível apenas internamente)
+   - Adicionado suporte para variável de ambiente REPLIT_DEV_DOMAIN
 
 2. **Frontend (`furry-friends-agenda-app/vite.config.ts`)**
-   - Changed port from 8080 to 5000
-   - Changed host to "0.0.0.0" for Replit compatibility
-   - Added strictPort: true to ensure port 5000 is used
+   - Porta alterada de 8080 para 5000
+   - Host alterado para "0.0.0.0" para compatibilidade com Replit
+   - Adicionado strictPort: true para garantir o uso da porta 5000
 
-3. **Frontend Environment (`furry-friends-agenda-app/.env`)**
-   - Set VITE_API_BASE_URL to http://localhost:3333
+3. **Ambiente Frontend (`furry-friends-agenda-app/.env`)**
+   - VITE_API_BASE_URL definido para http://localhost:3333
 
-### Workflow Setup
-- Single workflow named "Server" that runs both backend and frontend
-- Frontend exposed on port 5000 for webview
-- Backend runs internally on port 3333
+### Configuração do Workflow
+- Workflow único chamado "Server" que roda tanto backend quanto frontend
+- Frontend exposto na porta 5000 para webview
+- Backend roda internamente na porta 3333
 
-## API Endpoints
+## Endpoints da API
 
-### Authentication
-- POST `/auth/register` - Register new user
-- POST `/auth/login` - Login user
+### Autenticação
+- POST `/auth/register` - Registrar novo usuário
+- POST `/auth/login` - Login de usuário
 
-### Clients
-- GET `/clients` - List all clients
-- GET `/clients/:id` - Get client by ID
-- POST `/clients` - Create new client
-- PATCH `/clients/:id` - Update client
-- DELETE `/clients/:id` - Delete client
+### Clientes
+- GET `/clients` - Listar todos os clientes
+- GET `/clients/:id` - Obter cliente por ID
+- POST `/clients` - Criar novo cliente
+- PATCH `/clients/:id` - Atualizar cliente
+- DELETE `/clients/:id` - Deletar cliente
 
 ### Pets
-- GET `/pets` - List all pets
-- GET `/pets/:id` - Get pet by ID
-- POST `/pets` - Create new pet
-- PATCH `/pets/:id` - Update pet
-- DELETE `/pets/:id` - Delete pet
+- GET `/pets` - Listar todos os pets
+- GET `/pets/:id` - Obter pet por ID
+- POST `/pets` - Criar novo pet
+- PATCH `/pets/:id` - Atualizar pet
+- DELETE `/pets/:id` - Deletar pet
 
-### Groomers
-- GET `/groomers` - List all groomers
-- GET `/groomers/:id` - Get groomer by ID
-- POST `/groomers` - Create new groomer
-- PATCH `/groomers/:id` - Update groomer
-- DELETE `/groomers/:id` - Delete groomer
+### Tosadores (Groomers)
+- GET `/groomers` - Listar todos os tosadores
+- GET `/groomers/:id` - Obter tosador por ID
+- POST `/groomers` - Criar novo tosador
+- PATCH `/groomers/:id` - Atualizar tosador
+- DELETE `/groomers/:id` - Deletar tosador
 
-### Appointments
-- GET `/appointments` - List all appointments
-- GET `/appointments/:id` - Get appointment by ID
-- POST `/appointments` - Create new appointment
-- PATCH `/appointments/:id` - Update appointment
-- DELETE `/appointments/:id` - Delete appointment
+### Agendamentos (Appointments)
+- GET `/appointments` - Listar todos os agendamentos
+- GET `/appointments/:id` - Obter agendamento por ID
+- POST `/appointments` - Criar novo agendamento
+- PATCH `/appointments/:id` - Atualizar agendamento
+- DELETE `/appointments/:id` - Deletar agendamento
 
-### Packages
-- GET `/packages` - List all packages
-- GET `/packages/:id` - Get package by ID
-- POST `/packages` - Create new package
-- PATCH `/packages/:id` - Update package
-- DELETE `/packages/:id` - Delete package
+### Pacotes (Packages)
+- GET `/packages` - Listar todos os pacotes
+- GET `/packages/:id` - Obter pacote por ID
+- POST `/packages` - Criar novo pacote
+- PATCH `/packages/:id` - Atualizar pacote
+- DELETE `/packages/:id` - Deletar pacote
 
-### Services
-- GET `/services` - List all services
-- GET `/services/:id` - Get service by ID
-- POST `/services` - Create new service
-- PATCH `/services/:id` - Update service
-- DELETE `/services/:id` - Delete service
+### Serviços
+- GET `/services` - Listar todos os serviços
+- GET `/services/:id` - Obter serviço por ID
+- POST `/services` - Criar novo serviço
+- PATCH `/services/:id` - Atualizar serviço
+- DELETE `/services/:id` - Deletar serviço
 
-## User Preferences
-- Language: Portuguese (BR) - Application UI is in Portuguese
-- Authentication: JWT-based with role-based access control (USER/ADMIN)
+## Preferências do Usuário
+- Idioma: Português (BR) - A UI da aplicação está em Português
+- Autenticação: Baseada em JWT com controle de acesso por função (USER/ADMIN)
 
 ## Deployment
-The deployment configuration will be set up after the database is properly provisioned and tested.
+A configuração de deployment será definida após o banco de dados ser devidamente provisionado e testado.
 
-## Testing
-The project includes test files for various components. Run tests with:
+## Testes
+O projeto inclui arquivos de teste para vários componentes. Execute os testes com:
 ```bash
-# Backend tests
+# Testes do Backend
 cd furry-friends-agenda-backend
 npm test
 
-# Frontend tests
+# Testes do Frontend
 cd furry-friends-agenda-app
 npm test
 ```
 
-## Notes
-- The application was originally designed for Docker Compose deployment
-- Currently adapted for Replit environment
-- Database needs to be provisioned through Replit UI before full functionality is available
-- Frontend uses localStorage for token management
-- Backend uses bcrypt for password hashing
+## Notas
+- A aplicação foi originalmente projetada para deployment com Docker Compose
+- Atualmente adaptada para o ambiente Replit
+- O banco de dados precisa ser provisionado através da UI do Replit antes da funcionalidade completa estar disponível
+- O frontend usa localStorage para gerenciamento de tokens
+- O backend usa bcrypt para hash de senhas

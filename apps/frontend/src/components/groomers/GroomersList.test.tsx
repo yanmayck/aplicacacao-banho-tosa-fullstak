@@ -38,12 +38,12 @@ describe('GroomersList Component', () => {
     mockDeleteGroomer = vi.fn();
 
     authValue = {
-        user: { id: '1', email: 'test@test.com', name: 'Test User', role: isAdmin ? 'admin' as const : 'user' as const },
-        logout: vi.fn(),
-        isAdmin: () => isAdmin,
-        isAuthenticated: true,
-        login: vi.fn(),
-        register: vi.fn(),
+      user: { id: '1', email: 'test@test.com', name: 'Test User', role: isAdmin ? 'admin' as const : 'user' as const },
+      logout: vi.fn(),
+      isAdmin: () => isAdmin,
+      isAuthenticated: true,
+      login: vi.fn(),
+      register: vi.fn(),
     };
 
     vi.mocked(useGroomers).mockReturnValue({
@@ -59,43 +59,43 @@ describe('GroomersList Component', () => {
     vi.mocked(useAuth).mockReturnValue(authValue);
 
     vi.mocked(useStore).mockReturnValue({
-        getGroomerWorkload: vi.fn().mockReturnValue(5),
-        getGroomerMonthlyPoints: vi.fn().mockReturnValue(10),
-        clients: [],
-        pets: [],
-        groomers: [],
-        appointments: [],
-        commissions: [],
-        packages: [],
-        groomerPoints: [],
-        addClient: vi.fn(),
-        updateClient: vi.fn(),
-        deleteClient: vi.fn(),
-        addPet: vi.fn(),
-        updatePet: vi.fn(),
-        deletePet: vi.fn(),
-        addGroomer: vi.fn(),
-        updateGroomer: vi.fn(),
-        deleteGroomer: vi.fn(),
-        addAppointment: vi.fn(),
-        updateAppointment: vi.fn(),
-        deleteAppointment: vi.fn(),
-        addCommission: vi.fn(),
-        addPackage: vi.fn(),
-        updatePackage: vi.fn(),
-        deletePackage: vi.fn(),
-        getClientById: vi.fn(),
-        getPetById: vi.fn(),
-        getGroomerById: vi.fn(),
-        getAppointmentById: vi.fn(),
-        getPackageById: vi.fn(),
-        getCommissionsByGroomerId: vi.fn(),
-        getTotalCommissionsByGroomerId: vi.fn(),
-        getGroomerPointsByMonth: vi.fn(),
-        updateAppointmentPoints: vi.fn(),
-        autoAssignGroomer: vi.fn(),
-        isLoading: false,
-        error: null,
+      getGroomerWorkload: vi.fn().mockReturnValue(5),
+      getGroomerMonthlyPoints: vi.fn().mockReturnValue(10),
+      clients: [],
+      pets: [],
+      groomers: [],
+      appointments: [],
+      commissions: [],
+      packages: [],
+      groomerPoints: [],
+      addClient: vi.fn(),
+      updateClient: vi.fn(),
+      deleteClient: vi.fn(),
+      addPet: vi.fn(),
+      updatePet: vi.fn(),
+      deletePet: vi.fn(),
+      addGroomer: vi.fn(),
+      updateGroomer: vi.fn(),
+      deleteGroomer: vi.fn(),
+      addAppointment: vi.fn(),
+      updateAppointment: vi.fn(),
+      deleteAppointment: vi.fn(),
+      addCommission: vi.fn(),
+      addPackage: vi.fn(),
+      updatePackage: vi.fn(),
+      deletePackage: vi.fn(),
+      getClientById: vi.fn(),
+      getPetById: vi.fn(),
+      getGroomerById: vi.fn(),
+      getAppointmentById: vi.fn(),
+      getPackageById: vi.fn(),
+      getCommissionsByGroomerId: vi.fn(),
+      getTotalCommissionsByGroomerId: vi.fn(),
+      getGroomerPointsByMonth: vi.fn(),
+      updateAppointmentPoints: vi.fn(),
+      autoAssignGroomer: vi.fn(),
+      isLoading: false,
+      error: null,
     } as StoreContextType);
   };
 
@@ -103,9 +103,9 @@ describe('GroomersList Component', () => {
     return render(
       <QueryClientProvider client={queryClient}>
         <AuthContext.Provider value={authValue}>
-            <MemoryRouter>
+          <MemoryRouter>
             <GroomersList />
-            </MemoryRouter>
+          </MemoryRouter>
         </AuthContext.Provider>
       </QueryClientProvider>
     );
@@ -126,12 +126,14 @@ describe('GroomersList Component', () => {
     });
 
     it('should open the status form when "Alterar Status" is clicked', () => {
-        renderComponent();
-        const changeStatusButtons = screen.getAllByRole('button', { name: /alterar status/i });
-        expect(changeStatusButtons.length).toBeGreaterThan(0);
-        fireEvent.click(changeStatusButtons[0]!);
-        expect(screen.getByTestId('groomer-form')).toBeInTheDocument();
-        expect(screen.getByRole('heading', { name: /status form/i })).toBeInTheDocument();
+      renderComponent();
+      const changeStatusButtons = screen.getAllByRole('button', { name: /alterar status/i });
+      expect(changeStatusButtons.length).toBeGreaterThan(0);
+      if (changeStatusButtons[0]) {
+        fireEvent.click(changeStatusButtons[0]);
+      }
+      expect(screen.getByTestId('groomer-form')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /status form/i })).toBeInTheDocument();
     });
   });
 
@@ -141,7 +143,7 @@ describe('GroomersList Component', () => {
     it('should render admin-specific buttons', () => {
       renderComponent();
       expect(screen.getByRole('button', { name: /novo tosador/i })).toBeInTheDocument();
-      
+
       const editButtons = screen.getAllByLabelText(/Editar/i);
       const deleteButtons = screen.getAllByLabelText(/Excluir/i);
 
@@ -150,19 +152,19 @@ describe('GroomersList Component', () => {
     });
 
     it('should open the main form when "Novo Tosador" is clicked', () => {
-        renderComponent();
-        fireEvent.click(screen.getByRole('button', { name: /novo tosador/i }));
-        expect(screen.getByTestId('groomer-form')).toBeInTheDocument();
-        expect(screen.getByRole('heading', { name: /groomer form/i })).toBeInTheDocument();
+      renderComponent();
+      fireEvent.click(screen.getByRole('button', { name: /novo tosador/i }));
+      expect(screen.getByTestId('groomer-form')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /groomer form/i })).toBeInTheDocument();
     });
 
     it('should call deleteGroomer when delete button is clicked and confirmed', () => {
-        window.confirm = vi.fn(() => true);
-        renderComponent();
-        const deleteButton = screen.getByLabelText(/Excluir Alice/i);
-        fireEvent.click(deleteButton);
-        expect(window.confirm).toHaveBeenCalledWith('Tem certeza que deseja excluir este tosador?');
-        expect(mockDeleteGroomer).toHaveBeenCalledWith('g1');
+      window.confirm = vi.fn(() => true);
+      renderComponent();
+      const deleteButton = screen.getByLabelText(/Excluir Alice/i);
+      fireEvent.click(deleteButton);
+      expect(window.confirm).toHaveBeenCalledWith('Tem certeza que deseja excluir este tosador?');
+      expect(mockDeleteGroomer).toHaveBeenCalledWith('g1');
     });
   });
 });

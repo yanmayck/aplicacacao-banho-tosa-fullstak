@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,7 +70,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       const transactionData = {
         ...formData,
         amount: parseFloat(formData.amount),
-        isCashRegisterClosed: false, 
+        isCashRegisterClosed: false,
       };
 
       if (transaction) {
@@ -84,7 +84,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           description: "Transação atualizada com sucesso!"
         });
       } else {
-        await addTransaction({ ...transactionData, date: formData.date! });
+        await addTransaction({ ...transactionData, date: formData.date || new Date().toISOString() });
         toast({
           title: "Sucesso",
           description: "Transação criada com sucesso!"

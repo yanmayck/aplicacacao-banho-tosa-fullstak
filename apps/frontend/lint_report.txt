@@ -1,0 +1,211 @@
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\Dashboard.test.tsx[24m[0m
+[0m  [2m6:10[22m  [33mwarning[39m  'User' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\Dashboard.tsx[24m[0m
+[0m  [2m7:62[22m  [33mwarning[39m  'BarChart' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\Layout.test.tsx[24m[0m
+[0m  [2m74:21[22m  [31merror[39m  Forbidden non-null assertion  [2m@typescript-eslint/no-non-null-assertion[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\appointments\form\AppointmentClientField.tsx[24m[0m
+[0m  [2m7:122[22m  [33mwarning[39m  'isAdmin' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\appointments\utils\appointmentUtils.ts[24m[0m
+[0m  [2m2:29[22m  [33mwarning[39m  'ServiceType' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\audit\AuditDashboard.tsx[24m[0m
+[0m  [2m6:10[22m  [33mwarning[39m  'AuditActionType' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\audit\AuditFilters.tsx[24m[0m
+[0m  [2m9:10[22m  [33mwarning[39m  'Calendar' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\audit\AuditLogList.tsx[24m[0m
+[0m  [2m7:10[22m  [33mwarning[39m  'AuditLog' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\backup\BackupDashboard.tsx[24m[0m
+[0m    [2m4:10[22m  [33mwarning[39m  'Badge' is defined but never used          [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m    [2m9:3[22m   [33mwarning[39m  'Download' is defined but never used       [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m12:3[22m   [33mwarning[39m  'Settings' is defined but never used       [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m17:3[22m   [33mwarning[39m  'Database' is defined but never used       [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m18:3[22m   [33mwarning[39m  'FileText' is defined but never used       [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m19:3[22m   [33mwarning[39m  'Archive' is defined but never used        [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m20:3[22m   [33mwarning[39m  'TrendingUp' is defined but never used     [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m28:3[22m   [33mwarning[39m  'BackupType' is defined but never used     [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m117:8[22m   [33mwarning[39m  'finalProgress' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\backup\BackupList.tsx[24m[0m
+[0m  [2m35:3[22m  [33mwarning[39m  'RefreshCw' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\backup\CreateBackupDialog.tsx[24m[0m
+[0m  [2m11:10[22m  [33mwarning[39m  'Input' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\backup\RestoreBackupDialog.tsx[24m[0m
+[0m  [2m23:3[22m  [33mwarning[39m  'FileText' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\clients\ClientForm.test.tsx[24m[0m
+[0m  [2m17:72[22m  [33mwarning[39m  'client' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\clients\ClientsList.test.tsx[24m[0m
+[0m  [2m2:37[22m  [33mwarning[39m  'act' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\financial\CashRegister.tsx[24m[0m
+[0m  [2m46:14[22m  [33mwarning[39m  'error' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m66:14[22m  [33mwarning[39m  'error' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\financial\TransactionForm.tsx[24m[0m
+[0m  [2m87:58[22m  [31merror[39m    Forbidden non-null assertion       [2m@typescript-eslint/no-non-null-assertion[22m[0m
+[0m  [2m95:14[22m  [33mwarning[39m  'error' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\financial\TransactionList.tsx[24m[0m
+[0m   [2m8:34[22m  [33mwarning[39m  'useTransactionsByType' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m9:10[22m  [33mwarning[39m  'Transaction' is defined but never used            [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m10:18[22m  [33mwarning[39m  'Filter' is defined but never used                 [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m50:14[22m  [33mwarning[39m  'error' is defined but never used                  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\groomers\GroomersList.test.tsx[24m[0m
+[0m  [2m132:25[22m  [31merror[39m  Forbidden non-null assertion  [2m@typescript-eslint/no-non-null-assertion[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\inventory\StockAlerts.tsx[24m[0m
+[0m   [2m7:38[22m  [33mwarning[39m  'Package' is defined but never used                    [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m27:9[22m   [33mwarning[39m  'criticalProducts' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m63:9[22m   [33mwarning[39m  'getAlertMessage' is assigned a value but never used   [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\inventory\StockControl.tsx[24m[0m
+[0m    [2m8:25[22m  [33mwarning[39m  'TrendingUp' is defined but never used        [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m    [2m8:37[22m  [33mwarning[39m  'TrendingDown' is defined but never used      [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m    [2m9:10[22m  [33mwarning[39m  'Alert' is defined but never used             [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m    [2m9:17[22m  [33mwarning[39m  'AlertDescription' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m126:23[22m  [33mwarning[39m  'Icon' is assigned a value but never used     [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\notifications\NotificationCenter.tsx[24m[0m
+[0m  [2m7:10[22m  [33mwarning[39m  'Separator' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\notifications\NotificationPreferences.tsx[24m[0m
+[0m  [2m9:10[22m  [33mwarning[39m  'Badge' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\pets\PetsList.test.tsx[24m[0m
+[0m  [2m132:21[22m  [31merror[39m  Forbidden non-null assertion  [2m@typescript-eslint/no-non-null-assertion[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\reports\AppointmentAnalysisView.tsx[24m[0m
+[0m  [2m3:10[22m  [33mwarning[39m  'Badge' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\reports\ClientAnalysisView.tsx[24m[0m
+[0m  [2m3:10[22m  [33mwarning[39m  'Badge' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\reports\GroomerPerformanceView.tsx[24m[0m
+[0m  [2m4:23[22m  [33mwarning[39m  'TrendingUp' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\reports\OccupancyMetricsView.tsx[24m[0m
+[0m  [2m2:29[22m  [33mwarning[39m  'CardDescription' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m3:10[22m  [33mwarning[39m  'Badge' is defined but never used            [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\reports\Reports.tsx[24m[0m
+[0m  [2m41:9[22m  [33mwarning[39m  'filteredCommissions' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\reports\ReportsDashboard.tsx[24m[0m
+[0m  [2m17:10[22m  [33mwarning[39m  'ApiErrorType' is defined but never used     [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m17:24[22m  [33mwarning[39m  'getErrorMessage' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\reports\ServiceRankingView.tsx[24m[0m
+[0m  [2m2:29[22m  [33mwarning[39m  'CardDescription' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\ui\button.tsx[24m[0m
+[0m  [2m2:10[22m  [33mwarning[39m  'buttonVariants' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\ui\calendar.tsx[24m[0m
+[0m  [2m55:25[22m  [33mwarning[39m  '_props' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m56:26[22m  [33mwarning[39m  '_props' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\ui\chart.tsx[24m[0m
+[0m  [2m70:7[22m  [33mwarning[39m  '_' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\ui\sidebar.tsx[24m[0m
+[0m   [2m3:10[22m  [33mwarning[39m  'VariantProps' is defined but never used        [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m3:24[22m  [33mwarning[39m  'cva' is defined but never used                 [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m15:3[22m   [33mwarning[39m  'TooltipProvider' is defined but never used     [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m20:3[22m   [33mwarning[39m  'SIDEBAR_WIDTH' is defined but never used       [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m22:3[22m   [33mwarning[39m  'SIDEBAR_WIDTH_ICON' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m26:10[22m  [33mwarning[39m  'SidebarContext' is defined but never used      [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m26:38[22m  [33mwarning[39m  'SidebarProvider' is defined but never used     [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\components\ui\sonner.tsx[24m[0m
+[0m  [2m3:10[22m  [33mwarning[39m  'toast' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\AuthContext.tsx[24m[0m
+[0m  [2m95:18[22m  [33mwarning[39m  'e' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\appointments\AppointmentContext.tsx[24m[0m
+[0m  [2m21:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\audit\AuditContext.tsx[24m[0m
+[0m  [2m339:17[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\clients\ClientContext.tsx[24m[0m
+[0m  [2m20:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\commissions\CommissionContext.tsx[24m[0m
+[0m  [2m17:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\financial\FinancialContext.tsx[24m[0m
+[0m  [2m70:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\groomers\GroomerContext.tsx[24m[0m
+[0m  [2m21:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\inventory\InventoryContext.tsx[24m[0m
+[0m  [2m374:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\packages\PackageContext.tsx[24m[0m
+[0m  [2m20:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\pets\PetContext.tsx[24m[0m
+[0m  [2m21:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\points\GroomerPointsContext.tsx[24m[0m
+[0m  [2m16:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\context\reports\ReportsContext.tsx[24m[0m
+[0m  [2m455:17[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\hooks\use-sidebar.tsx[24m[0m
+[0m  [2m19:14[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Move your React context(s) to a separate file                      [2mreact-refresh/only-export-components[22m[0m
+[0m  [2m21:17[22m  [33mwarning[39m  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  [2mreact-refresh/only-export-components[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\hooks\use-toast.ts[24m[0m
+[0m  [2m18:7[22m  [33mwarning[39m  'actionTypes' is assigned a value but only used as a type  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\hooks\useFinancial.ts[24m[0m
+[0m  [2m100:29[22m  [31merror[39m  Forbidden non-null assertion  [2m@typescript-eslint/no-non-null-assertion[22m[0m
+[0m  [2m106:62[22m  [31merror[39m  Forbidden non-null assertion  [2m@typescript-eslint/no-non-null-assertion[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\main.tsx[24m[0m
+[0m  [2m6:1[22m   [33mwarning[39m  This rule can't verify that `export *` only exports components  [2mreact-refresh/only-export-components[22m[0m
+[0m  [2m8:12[22m  [31merror[39m    Forbidden non-null assertion                                    [2m@typescript-eslint/no-non-null-assertion[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\pages\ClientDashboard.tsx[24m[0m
+[0m  [2m10:3[22m  [33mwarning[39m  'AlertCircle' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\pages\ClientProfile.tsx[24m[0m
+[0m  [2m33:7[22m  [33mwarning[39m  'clientApi' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\pages\Inventory.tsx[24m[0m
+[0m  [2m28:30[22m  [33mwarning[39m  'product' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\pages\Landing.tsx[24m[0m
+[0m  [2m4:16[22m  [33mwarning[39m  'CardContent' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\pages\NotificationHistory.tsx[24m[0m
+[0m  [2m2:20[22m  [33mwarning[39m  'Filter' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m4:10[22m  [33mwarning[39m  'Button' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\pages\Register.test.tsx[24m[0m
+[0m  [2m6:24[22m  [33mwarning[39m  'useNavigate' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yan\Desktop\aprender_js\petshop\aplicacacao-banho-tosa-fullstak\apps\frontend\src\services\backupService.ts[24m[0m
+[0m   [2m5:3[22m   [33mwarning[39m  'BackupMetadata' is defined but never used    [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m7:3[22m   [33mwarning[39m  'BackupStats' is defined but never used       [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m16:14[22m  [31merror[39m    Unexpected class with only static properties  [2m@typescript-eslint/no-extraneous-class[22m[0m
+[0m[0m
+[0m[31m[1m✖ 92 problems (8 errors, 84 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m

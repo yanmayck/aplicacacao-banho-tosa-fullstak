@@ -30,9 +30,9 @@ const renderWithProviders = (isAdmin = false) => {
 };
 
 describe('Layout Component', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('renders all standard menu items', () => {
     renderWithProviders();
@@ -71,7 +71,9 @@ describe('Layout Component', () => {
     expect(logoutButton).toBeInTheDocument();
     expect(logoutButton).toBeDefined();
 
-    fireEvent.click(logoutButton!);
+    if (logoutButton) {
+      fireEvent.click(logoutButton);
+    }
     expect(mockLogout).toHaveBeenCalledTimes(1);
   });
 

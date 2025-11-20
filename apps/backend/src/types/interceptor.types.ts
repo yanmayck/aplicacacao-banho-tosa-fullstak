@@ -1,19 +1,20 @@
 // Interfaces específicas para interceptors
 import { Request } from 'express';
+import { AuditActionType, AuditSeverity } from '@prisma/client';
 
 export interface AuditMetadata {
-  action?: string;
+  action?: AuditActionType;
   entityType?: string;
   includeResponse?: boolean;
-  severity?: string;
+  severity?: AuditSeverity;
   skipAudit?: boolean;
 }
 
 export interface AuditParams {
   request: Request;
-  action: string;
+  action: AuditActionType;
   entityType?: string;
-  severity: string;
+  severity: AuditSeverity;
   success: boolean;
   startTime: number;
   responseData?: unknown;

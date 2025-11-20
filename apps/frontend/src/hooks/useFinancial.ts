@@ -84,39 +84,12 @@ export const useCategoryMetrics = () => {
     return Object.entries(categoryMetrics).map(([category, metrics]) => ({
       category,
       ...metrics,
-      average: metrics.count > 0 ? metrics.total / metrics.count : 0,
-    }));
-  }, [transactions]);
-};
-
-// Hook para métricas por tosador (para receitas)
-export const useGroomerMetrics = () => {
-  const { transactions } = useFinancial();
-
-  return useMemo(() => {
-    const groomerMetrics = transactions
-      .filter(t => t.type === 'INCOME' && t.groomer)
-      .reduce((acc, transaction) => {
-        const groomerName = transaction.groomer!.name;
-        if (!acc[groomerName]) {
-          acc[groomerName] = { total: 0, count: 0, commission: 0 };
-        }
-        acc[groomerName].total += transaction.amount;
-        acc[groomerName].count += 1;
-        acc[groomerName].commission += transaction.amount * (transaction.groomer!.commissionPercentage / 100);
-        return acc;
-      }, {} as Record<string, { total: number; count: number; commission: number }>);
-
-    return Object.entries(groomerMetrics).map(([groomer, metrics]) => ({
-      groomer,
-      ...metrics,
-      averageTicket: metrics.count > 0 ? metrics.total / metrics.count : 0,
     }));
   }, [transactions]);
 };
 
 // Hook para transações recentes
-export const useRecentTransactions = (limit = 10) => {
+export const useRecentTransactions = (limit: number = 5) => {
   const { transactions } = useFinancial();
 
   return useMemo(() => {

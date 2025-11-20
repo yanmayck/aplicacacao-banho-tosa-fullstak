@@ -1,58 +1,58 @@
-## Project Overview
+## Visão Geral do Projeto
 
-This is a full-stack application for managing a pet grooming shop, named "Furry Friends Agenda". It consists of a React-based frontend and a NestJS-based backend. The entire application is containerized using Docker for consistent development and deployment environments.
+Esta é uma aplicação full-stack para gerenciamento de um pet shop de banho e tosa, chamada "Furry Friends Agenda". Consiste em um frontend baseado em React e um backend baseado em NestJS. Toda a aplicação é containerizada usando Docker para ambientes de desenvolvimento e deployment consistentes.
 
 **Frontend (`furry-friends-agenda-app`):**
 
-*   **Framework:** React with Vite
-*   **Language:** TypeScript
-*   **UI:** `shadcn/ui` and TailwindCSS
-*   **Key Libraries:** React Router for navigation, TanStack Query for data fetching, and `react-hook-form` for form management.
+*   **Framework:** React com Vite
+*   **Linguagem:** TypeScript
+*   **UI:** `shadcn/ui` e TailwindCSS
+*   **Bibliotecas Chave:** React Router para navegação, TanStack Query para busca de dados e `react-hook-form` para gerenciamento de formulários.
 
 **Backend (`furry-friends-agenda-backend`):**
 
 *   **Framework:** NestJS
-*   **Language:** TypeScript
-*   **Database:** PostgreSQL with Prisma as the ORM.
-*   **Authentication:** JWT-based authentication using Passport.
+*   **Linguagem:** TypeScript
+*   **Banco de Dados:** PostgreSQL com Prisma como ORM.
+*   **Autenticação:** Autenticação baseada em JWT usando Passport.
 
-## Building and Running
+## Construindo e Rodando
 
-The project is designed to be run using Docker Compose.
+O projeto foi projetado para ser executado usando Docker Compose.
 
-**1. Environment Variables:**
+**1. Variáveis de Ambiente:**
 
-Before running the application, you need to create a `.env` file in the root of the project. You can copy the example file:
+Antes de rodar a aplicação, você precisa criar um arquivo `.env` na raiz do projeto. Você pode copiar o arquivo de exemplo:
 
 ```bash
 cp .env.example .env
 ```
 
-Then, edit the `.env` file to set the required variables, especially `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, and `JWT_SECRET`.
+Então, edite o arquivo `.env` para definir as variáveis necessárias, especialmente `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` e `JWT_SECRET`.
 
-**2. Running the Application:**
+**2. Rodando a Aplicação:**
 
-To start all services (frontend, backend, and database), run:
+Para iniciar todos os serviços (frontend, backend e banco de dados), execute:
 
 ```bash
 docker-compose up -d
 ```
 
-*   The frontend will be available at `http://localhost:8080` (development) or `http://localhost:5000` (Replit).
-*   The backend will be available at `http://localhost:3333`.
-*   Prisma Studio (for database management) will be available at `http://localhost:5555`.
+*   O frontend estará disponível em `http://localhost:8080` (desenvolvimento) ou `http://localhost:5000` (Replit).
+*   O backend estará disponível em `http://localhost:3333`.
+*   O Prisma Studio (para gerenciamento do banco de dados) estará disponível em `http://localhost:5555`.
 
-**3. Running Tests:**
+**3. Rodando Testes:**
 
 *   **Backend:**
 
-    *   To run unit and integration tests:
+    *   Para rodar testes unitários e de integração:
 
         ```bash
         docker-compose exec furry_friends_backend npm run test
         ```
 
-    *   To run end-to-end tests:
+    *   Para rodar testes end-to-end:
 
         ```bash
         docker-compose exec furry_friends_backend npm run test:e2e
@@ -60,25 +60,25 @@ docker-compose up -d
 
 *   **Frontend:**
 
-    *   The frontend currently does not have a test runner configured. The `TESTING_GUIDE.md` file outlines a plan to set up Vitest and React Testing Library. Once configured, the command will be:
+    *   O frontend atualmente não possui um executor de testes configurado. O arquivo `TESTING_GUIDE.md` descreve um plano para configurar Vitest e React Testing Library. Uma vez configurado, o comando será:
 
         ```bash
         docker-compose exec furry_friends_frontend npm run test
         ```
 
-## Development Conventions
+## Convenções de Desenvolvimento
 
-*   **Containerized Development:** All development should be done within the Docker containers to ensure consistency.
-*   **Database Migrations:** Database schema changes are managed by Prisma. To create a new migration, run:
+*   **Desenvolvimento Containerizado:** Todo o desenvolvimento deve ser feito dentro dos containers Docker para garantir consistência.
+*   **Migrações de Banco de Dados:** Alterações no schema do banco de dados são gerenciadas pelo Prisma. Para criar uma nova migração, execute:
 
     ```bash
-    docker-compose exec furry_friends_backend npx prisma migrate dev --name <migration_name>
+    docker-compose exec furry_friends_backend npx prisma migrate dev --name <nome_da_migracao>
     ```
 
-*   **Code Style:** The backend uses Prettier and ESLint for code formatting and linting. You can format the code by running:
+*   **Estilo de Código:** O backend usa Prettier e ESLint para formatação e linting de código. Você pode formatar o código executando:
 
     ```bash
     docker-compose exec furry_friends_backend npm run format
     ```
 
-*   **API:** The backend provides a RESTful API. The frontend communicates with the backend through this API. The base URL for the API is configured in the frontend's environment variables.
+*   **API:** O backend fornece uma API RESTful. O frontend se comunica com o backend através desta API. A URL base para a API é configurada nas variáveis de ambiente do frontend.

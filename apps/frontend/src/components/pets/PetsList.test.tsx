@@ -50,12 +50,12 @@ const mockClients = [
 ];
 
 const mockAuth = {
-    user: { id: '1', email: 'test@test.com', name: 'Test User', role: 'user' as const },
-    logout: vi.fn(),
-    isAdmin: () => false,
-    isAuthenticated: true,
-    login: vi.fn(),
-    register: vi.fn(),
+  user: { id: '1', email: 'test@test.com', name: 'Test User', role: 'user' as const },
+  logout: vi.fn(),
+  isAdmin: () => false,
+  isAuthenticated: true,
+  login: vi.fn(),
+  register: vi.fn(),
 };
 
 describe('PetsList Component', () => {
@@ -93,9 +93,9 @@ describe('PetsList Component', () => {
     return render(
       <QueryClientProvider client={queryClient}>
         <AuthContext.Provider value={mockAuth}>
-            <MemoryRouter>
-                <PetsList />
-            </MemoryRouter>
+          <MemoryRouter>
+            <PetsList />
+          </MemoryRouter>
         </AuthContext.Provider>
       </QueryClientProvider>
     );
@@ -129,7 +129,9 @@ describe('PetsList Component', () => {
     renderComponent();
     const deleteButtons = screen.getAllByRole('button').filter(btn => btn.innerHTML.includes('lucide-trash-2'));
     expect(deleteButtons).toHaveLength(2); // Should have 2 delete buttons for 2 pets
-    fireEvent.click(deleteButtons[0]!);
+    if (deleteButtons[0]) {
+      fireEvent.click(deleteButtons[0]);
+    }
     expect(window.confirm).toHaveBeenCalledWith('Tem certeza que deseja excluir este pet?');
     expect(mockDeletePet).toHaveBeenCalledWith('1');
   });

@@ -2,9 +2,7 @@ import { api } from '../lib/api';
 import {
   CreateBackupRequest,
   RestoreBackupRequest,
-  BackupMetadata,
   BackupProgress,
-  BackupStats,
   BackupListResponse,
   BackupResponse,
   BackupProgressResponse,
@@ -13,26 +11,26 @@ import {
 } from '../types/backup';
 import { ApiErrorType, getErrorMessage } from '../types/api';
 
-export class BackupService {
-  private static readonly BASE_URL = '/backup';
+const BASE_URL = '/backup';
 
+export const BackupService = {
   /**
    * Cria um novo backup
    */
-  static async createBackup(request: CreateBackupRequest): Promise<BackupResponse> {
+  async createBackup(request: CreateBackupRequest): Promise<BackupResponse> {
     try {
-      const response = await api.post<BackupResponse>(`${this.BASE_URL}`, request);
+      const response = await api.post<BackupResponse>(`${BASE_URL}`, request);
       return response.data;
     } catch (error: unknown) {
       console.error('Erro ao criar backup:', error);
       throw new Error(getErrorMessage(error as ApiErrorType) || 'Erro ao criar backup');
     }
-  }
+  },
 
   /**
    * Lista todos os backups com filtros opcionais
    */
-  static async getBackups(
+  async getBackups(
     limit: number = 50,
     offset: number = 0,
     filters?: BackupFilters
@@ -51,72 +49,72 @@ export class BackupService {
         if (filters.search) params.append('search', filters.search);
       }
 
-      const response = await api.get<BackupListResponse>(`${this.BASE_URL}?${params}`);
+      const response = await api.get<BackupListResponse>(`${BASE_URL}?${params}`);
       return response.data;
     } catch (error: unknown) {
       console.error('Erro ao buscar backups:', error);
       throw new Error(getErrorMessage(error as ApiErrorType) || 'Erro ao buscar backups');
     }
-  }
+  },
 
   /**
    * Obtém o progresso de um backup específico
    */
-  static async getBackupProgress(backupId: string): Promise<BackupProgressResponse> {
+  async getBackupProgress(backupId: string): Promise<BackupProgressResponse> {
     try {
-      const response = await api.get<BackupProgressResponse>(`${this.BASE_URL}/${backupId}/progress`);
+      const response = await api.get<BackupProgressResponse>(`${BASE_URL}/${backupId}/progress`);
       return response.data;
     } catch (error: unknown) {
       console.error('Erro ao buscar progresso do backup:', error);
       throw new Error(getErrorMessage(error as ApiErrorType) || 'Erro ao buscar progresso do backup');
     }
-  }
+  },
 
   /**
    * Restaura dados de um backup
    */
-  static async restoreBackup(request: RestoreBackupRequest): Promise<BackupResponse> {
+  async restoreBackup(request: RestoreBackupRequest): Promise<BackupResponse> {
     try {
-      const response = await api.post<BackupResponse>(`${this.BASE_URL}/restore`, request);
+      const response = await api.post<BackupResponse>(`${BASE_URL}/restore`, request);
       return response.data;
     } catch (error: unknown) {
       console.error('Erro ao restaurar backup:', error);
       throw new Error(getErrorMessage(error as ApiErrorType) || 'Erro ao restaurar backup');
     }
-  }
+  },
 
   /**
    * Verifica a integridade de um backup
    */
-  static async verifyBackupIntegrity(backupId: string): Promise<BackupResponse> {
+  async verifyBackupIntegrity(backupId: string): Promise<BackupResponse> {
     try {
-      const response = await api.get<BackupResponse>(`${this.BASE_URL}/${backupId}/verify`);
+      const response = await api.get<BackupResponse>(`${BASE_URL}/${backupId}/verify`);
       return response.data;
     } catch (error: unknown) {
       console.error('Erro ao verificar integridade do backup:', error);
       throw new Error(getErrorMessage(error as ApiErrorType) || 'Erro ao verificar integridade do backup');
     }
-  }
+  },
 
   /**
    * Cancela um backup em andamento
    */
-  static async cancelBackup(backupId: string): Promise<BackupResponse> {
+  async cancelBackup(backupId: string): Promise<BackupResponse> {
     try {
-      const response = await api.delete<BackupResponse>(`${this.BASE_URL}/${backupId}`);
+      const response = await api.delete<BackupResponse>(`${BASE_URL}/${backupId}`);
       return response.data;
     } catch (error: unknown) {
       console.error('Erro ao cancelar backup:', error);
       throw new Error(getErrorMessage(error as ApiErrorType) || 'Erro ao cancelar backup');
     }
-  }
+  },
 
   /**
    * Faz download de um arquivo de backup
    */
-  static async downloadBackup(backupId: string): Promise<Blob> {
+  async downloadBackup(backupId: string): Promise<Blob> {
     try {
-      const response = await api.get(`${this.BASE_URL}/${backupId}/download`, {
+      const response = await api.get(`${BASE_URL}/${backupId}/download`, {
         responseType: 'blob',
       });
       return response.data;
@@ -124,25 +122,25 @@ export class BackupService {
       console.error('Erro ao fazer download do backup:', error);
       throw new Error(getErrorMessage(error as ApiErrorType) || 'Erro ao fazer download do backup');
     }
-  }
+  },
 
   /**
    * Obtém estatísticas de backups
    */
-  static async getBackupStats(): Promise<BackupStatsResponse> {
+  async getBackupStats(): Promise<BackupStatsResponse> {
     try {
-      const response = await api.get<BackupStatsResponse>(`${this.BASE_URL}/stats/summary`);
+      const response = await api.get<BackupStatsResponse>(`${BASE_URL}/stats/summary`);
       return response.data;
     } catch (error: unknown) {
       console.error('Erro ao obter estatísticas de backup:', error);
       throw new Error(getErrorMessage(error as ApiErrorType) || 'Erro ao obter estatísticas de backup');
     }
-  }
+  },
 
   /**
    * Polling para obter progresso de backup
    */
-  static async pollBackupProgress(
+  async pollBackupProgress(
     backupId: string,
     onProgress: (progress: BackupProgress) => void,
     onComplete: (finalProgress: BackupProgress) => void,
@@ -158,7 +156,11 @@ export class BackupService {
           onProgress(progress);
 
           // Verifica se o backup foi concluído ou falhou
-          if (progress.status === 'completed' || progress.status === 'failed' || progress.status === 'cancelled') {
+          if (
+            progress.status === 'completed' ||
+            progress.status === 'failed' ||
+            progress.status === 'cancelled'
+          ) {
             onComplete(progress);
             return;
           }
@@ -175,12 +177,12 @@ export class BackupService {
 
     // Retorna função para parar o polling
     return () => clearInterval(intervalId);
-  }
+  },
 
   /**
    * Formatação de tamanho de arquivo
    */
-  static formatFileSize(bytes: number): string {
+  formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
 
     const k = 1024;
@@ -188,12 +190,12 @@ export class BackupService {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
+  },
 
   /**
    * Formatação de duração
    */
-  static formatDuration(milliseconds: number): string {
+  formatDuration(milliseconds: number): string {
     const seconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -205,12 +207,12 @@ export class BackupService {
     } else {
       return `${seconds}s`;
     }
-  }
+  },
 
   /**
    * Formatação de data
    */
-  static formatDate(dateString: string): string {
+  formatDate(dateString: string): string {
     return new Date(dateString).toLocaleString('pt-BR', {
       year: 'numeric',
       month: '2-digit',
@@ -219,12 +221,12 @@ export class BackupService {
       minute: '2-digit',
       second: '2-digit',
     });
-  }
+  },
 
   /**
    * Obtém cor baseada no status do backup
    */
-  static getStatusColor(status: string): string {
+  getStatusColor(status: string): string {
     switch (status) {
       case 'completed':
         return 'text-green-600 bg-green-100';
@@ -239,12 +241,12 @@ export class BackupService {
       default:
         return 'text-gray-600 bg-gray-100';
     }
-  }
+  },
 
   /**
    * Obtém texto do status em português
    */
-  static getStatusText(status: string): string {
+  getStatusText(status: string): string {
     switch (status) {
       case 'completed':
         return 'Concluído';
@@ -259,12 +261,12 @@ export class BackupService {
       default:
         return 'Desconhecido';
     }
-  }
+  },
 
   /**
    * Obtém ícone baseado no tipo de backup
    */
-  static getBackupTypeIcon(type: string): string {
+  getBackupTypeIcon(type: string): string {
     switch (type) {
       case 'full':
         return '🗄️';
@@ -279,12 +281,12 @@ export class BackupService {
       default:
         return '📦';
     }
-  }
+  },
 
   /**
    * Validação de dados de backup
    */
-  static validateBackupRequest(request: CreateBackupRequest): string[] {
+  validateBackupRequest(request: CreateBackupRequest): string[] {
     const errors: string[] = [];
 
     if (!request.type) {
@@ -300,5 +302,5 @@ export class BackupService {
     }
 
     return errors;
-  }
-}
+  },
+};
