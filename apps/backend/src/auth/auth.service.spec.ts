@@ -8,6 +8,11 @@ import * as bcrypt from 'bcrypt';
 import { UnauthorizedException, ConflictException } from '@nestjs/common';
 
 // Mock services
+jest.mock('bcrypt', () => ({
+  compare: jest.fn(),
+  hash: jest.fn(),
+}));
+
 const mockUsersService = {
   findOneByEmail: jest.fn(),
   findOneById: jest.fn(),
@@ -62,10 +67,9 @@ describe('AuthService', () => {
   describe('validateUser', () => {
     it('should return user data without password if validation is successful', async () => {
       usersService.findOneByEmail.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       const { password, ...expectedResult } = mockUser;
-      const _password = password; // Marcar como usado se necessário para evitar linting
       const result = await service.validateUser(
         'test@example.com',
         'password123',
@@ -88,7 +92,7 @@ describe('AuthService', () => {
 
     it('should return null if password does not match', async () => {
       usersService.findOneByEmail.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => false);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
       const result = await service.validateUser(
         'test@example.com',
         'wrongpassword',
@@ -100,7 +104,6 @@ describe('AuthService', () => {
   describe('login', () => {
     it('should return an access token and user info on successful login', async () => {
       const { password, ...validateUserResult } = mockUser; // Full user data minus password
-      const _password = password; // Marcar como usado se necessário para evitar linting
       jest.spyOn(service, 'validateUser').mockResolvedValue(validateUserResult);
       usersService.findOneById.mockResolvedValue(mockUser);
       jwtService.sign.mockReturnValue('test-token');
@@ -145,7 +148,6 @@ describe('AuthService', () => {
       usersService.createUser.mockResolvedValue(createdUser);
 
       const { password, ...expectedResult } = createdUser;
-      const _password = password; // Marcar como usado se necessário para evitar linting
       const result = await service.register(registerDto);
 
       expect(usersService.createUser).toHaveBeenCalledWith(

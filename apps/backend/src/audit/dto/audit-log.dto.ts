@@ -39,15 +39,15 @@ export class CreateAuditLogDto {
 
   @IsObject()
   @IsOptional()
-  oldValues?: Record<string, any>;
+  oldValues?: Record<string, unknown>;
 
   @IsObject()
   @IsOptional()
-  newValues?: Record<string, any>;
+  newValues?: Record<string, unknown>;
 
   @IsObject()
   @IsOptional()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 
   @IsString()
   @IsOptional()
@@ -181,7 +181,7 @@ export class CreateAuditFilterDto {
   description?: string;
 
   @IsObject()
-  filters: any; // TODO: Criar DTO mais específico para filtros
+  filters: Record<string, unknown>; // TODO: Criar DTO mais específico para filtros
 }
 
 export class CreateAuditAlertDto {
@@ -209,7 +209,7 @@ export class CreateAuditAlertDto {
   notifyUsers: string[] = [];
 }
 
-export class UpdateAuditAlertDto extends PartialType(CreateAuditAlertDto) {}
+export class UpdateAuditAlertDto extends PartialType(CreateAuditAlertDto) { }
 
 export class AuditAlertConditionsDto {
   @IsString()

@@ -2,13 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNotificationQueueDto } from './dto/create-notification-queue.dto';
-import { NotificationChannel, NotificationStatus, Prisma } from '@prisma/client';
+import {
+  NotificationChannel,
+  NotificationStatus,
+  Prisma,
+} from '@prisma/client';
 
 @Injectable()
 export class NotificationQueueService {
   private readonly logger = new Logger(NotificationQueueService.name);
 
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async create(createQueueDto: CreateNotificationQueueDto) {
     const scheduledFor = createQueueDto.scheduledFor

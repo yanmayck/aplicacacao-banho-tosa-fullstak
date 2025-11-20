@@ -13,7 +13,6 @@ import {
 } from '@prisma/client';
 import { FinancialService } from '../financial/financial.service';
 import {
-  Appointment as AppointmentType,
   FullAppointment,
 } from './types/appointment.types';
 
@@ -22,7 +21,7 @@ export class AppointmentsService {
   constructor(
     private prisma: PrismaService,
     private financialService: FinancialService,
-  ) {}
+  ) { }
 
   async create(
     createAppointmentDto: CreateAppointmentDto,
@@ -101,7 +100,7 @@ export class AppointmentsService {
   }
 
   async findAllByClient(clientId: string): Promise<FullAppointment[]> {
-    return this.prisma.appointment.findMany({
+    return (await this.prisma.appointment.findMany({
       where: { clientId },
       include: {
         pet: true,
@@ -113,7 +112,7 @@ export class AppointmentsService {
         },
       },
       orderBy: { dateTime: 'asc' },
-    }) as unknown as FullAppointment[];
+    })) as unknown as FullAppointment[];
   }
 
   async findOneByClient(

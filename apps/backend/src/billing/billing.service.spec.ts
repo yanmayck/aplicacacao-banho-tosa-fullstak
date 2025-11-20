@@ -496,7 +496,7 @@ describe('BillingService', () => {
       (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue(mockEvent);
       const consoleSpy = jest
         .spyOn(console, 'log')
-        .mockImplementation(() => {}); // Mock console.log
+        .mockImplementation(() => { }); // Mock console.log
 
       await service.handleWebhook(Buffer.from('{}'), 'valid_sig');
 
@@ -516,7 +516,7 @@ describe('BillingService', () => {
       (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue(mockEvent);
       const consoleWarnSpy = jest
         .spyOn(console, 'warn')
-        .mockImplementation(() => {});
+        .mockImplementation(() => { });
 
       await service.handleWebhook(Buffer.from('{}'), 'valid_sig');
 

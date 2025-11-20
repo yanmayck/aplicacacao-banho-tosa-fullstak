@@ -9,7 +9,7 @@ import { CreateNotificationTemplateDto } from './dto/create-notification-templat
 
 @Injectable()
 export class NotificationTemplatesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async create(createTemplateDto: CreateNotificationTemplateDto) {
     // Verificar se já existe um template com o mesmo nome
@@ -27,7 +27,8 @@ export class NotificationTemplatesService {
         title: createTemplateDto.title,
         content: createTemplateDto.content,
         type: createTemplateDto.type as any,
-        channel: (createTemplateDto.channel || NotificationChannel.IN_APP) as any,
+        channel: (createTemplateDto.channel ||
+          NotificationChannel.IN_APP) as any,
         isActive: createTemplateDto.isActive ?? true,
         variables: createTemplateDto.variables || [],
         // metadata: createTemplateDto.metadata || {},
@@ -104,9 +105,9 @@ export class NotificationTemplatesService {
           variables: updateTemplateDto.variables,
         }),
         ...(updateTemplateDto.metadata &&
-        {
-          // metadata: updateTemplateDto.metadata,
-        }),
+          {
+            // metadata: updateTemplateDto.metadata,
+          }),
       },
     });
   }

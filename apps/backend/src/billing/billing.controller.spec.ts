@@ -2,7 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BillingController } from './billing.controller';
 import { BillingService } from './billing.service';
 import { Response, Request } from 'express';
-import { HttpStatus } from '@nestjs/common';
+import { RawBodyRequest, HttpStatus } from '@nestjs/common';
+import Stripe from 'stripe';
 
 describe('BillingController', () => {
   let controller: BillingController;
@@ -34,7 +35,7 @@ describe('BillingController', () => {
     it('should return a session URL on successful creation', async () => {
       const mockSession = { url: 'http://stripe.checkout.url' };
       billingService.createCheckoutSession.mockResolvedValue(
-        mockSession as any,
+        mockSession as unknown as Stripe.Response<Stripe.Checkout.Session>,
       );
 
       const res = {
@@ -125,7 +126,7 @@ describe('BillingController', () => {
         status: jest.fn().mockReturnThis(),
       } as unknown as Response;
 
-      await controller.handleWebhook(req as any, res);
+      await controller.handleWebhook(req as RawBodyRequest<Request>, res);
 
       expect(billingService.handleWebhook).toHaveBeenCalledWith(
         Buffer.from('{}'),
@@ -146,7 +147,7 @@ describe('BillingController', () => {
         status: jest.fn().mockReturnThis(),
       } as unknown as Response;
 
-      await controller.handleWebhook(req as any, res);
+      await controller.handleWebhook(req as RawBodyRequest<Request>, res);
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
       expect(res.send).toHaveBeenCalledWith(
@@ -169,7 +170,7 @@ describe('BillingController', () => {
         status: jest.fn().mockReturnThis(),
       } as unknown as Response;
 
-      await controller.handleWebhook(req as any, res);
+      await controller.handleWebhook(req as RawBodyRequest<Request>, res);
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
       expect(res.send).toHaveBeenCalledWith(
@@ -193,7 +194,7 @@ describe('BillingController', () => {
         send: jest.fn().mockReturnThis(),
       } as unknown as Response;
 
-      await controller.handleWebhook(req as any, res);
+      await controller.handleWebhook(req as RawBodyRequest<Request>, res);
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.SERVICE_UNAVAILABLE);
       expect(res.json).toHaveBeenCalledWith({
@@ -216,7 +217,7 @@ describe('BillingController', () => {
         status: jest.fn().mockReturnThis(),
       } as unknown as Response;
 
-      await controller.handleWebhook(req as any, res);
+      await controller.handleWebhook(req as RawBodyRequest<Request>, res);
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
       expect(res.send).toHaveBeenCalledWith(

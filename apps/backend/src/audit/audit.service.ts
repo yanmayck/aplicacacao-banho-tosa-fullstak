@@ -42,8 +42,11 @@ export class AuditService {
       const log = await this.prisma.auditLog.create({
         data: {
           ...createLogDto,
-          userId,
-          clientId,
+          oldValues: createLogDto.oldValues as Prisma.InputJsonValue,
+          newValues: createLogDto.newValues as Prisma.InputJsonValue,
+          metadata: createLogDto.metadata as Prisma.InputJsonValue,
+          userId: userId ?? null,
+          clientId: clientId ?? null,
           executionTime: Date.now() - startTime,
         },
         include: {

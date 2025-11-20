@@ -12,7 +12,7 @@ import { Response, Request } from 'express';
 
 @Controller('billing')
 export class BillingController {
-  constructor(private readonly billingService: BillingService) {}
+  constructor(private readonly billingService: BillingService) { }
 
   @Post('create-checkout-session')
   async createCheckoutSession(
@@ -33,14 +33,15 @@ export class BillingController {
       );
       return res.json({ url: session.url });
     } catch (error) {
-      if (error.message === 'Stripe billing is not enabled.') {
+      const err = error as Error;
+      if (err.message === 'Stripe billing is not enabled.') {
         return res
           .status(HttpStatus.SERVICE_UNAVAILABLE)
-          .json({ message: error.message });
+          .json({ message: err.message });
       }
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: error.message });
+        .json({ message: err.message });
     }
   }
 
@@ -61,20 +62,21 @@ export class BillingController {
       await this.billingService.handleWebhook(rawBody, sig as string);
       return res.status(HttpStatus.OK).send();
     } catch (error) {
-      console.error('Error handling Stripe webhook:', error.message);
-      if (error.message.includes('Webhook signature verification failed')) {
+      const err = error as Error;
+      console.error('Error handling Stripe webhook:', err.message);
+      if (err.message.includes('Webhook signature verification failed')) {
         return res
           .status(HttpStatus.BAD_REQUEST)
-          .send(`Webhook Error: ${error.message}`);
+          .send(`Webhook Error: ${err.message}`);
       }
-      if (error.message === 'Stripe billing is not enabled.') {
+      if (err.message === 'Stripe billing is not enabled.') {
         return res
           .status(HttpStatus.SERVICE_UNAVAILABLE)
-          .json({ message: error.message });
+          .json({ message: err.message });
       }
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .send(`Webhook Error: ${error.message}`);
+        .send(`Webhook Error: ${err.message}`);
     }
   }
 }

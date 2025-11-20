@@ -45,14 +45,16 @@ export class AuditInterceptor implements NestInterceptor {
       (auditMetadata.action as unknown as AuditActionType) ||
       this.getActionFromMethod(method);
     const entityType: string =
-      (auditMetadata.entityType as unknown as string) || this.getEntityTypeFromUrl(url);
+      (auditMetadata.entityType as unknown as string) ||
+      this.getEntityTypeFromUrl(url);
     const severity: AuditSeverity =
-      (auditMetadata.severity as unknown as AuditSeverity) || AuditSeverity.MEDIUM;
+      (auditMetadata.severity as unknown as AuditSeverity) ||
+      AuditSeverity.MEDIUM;
 
     // Capturar dados antes da execução
     const oldBody: Record<string, unknown> = JSON.parse(
       JSON.stringify(request.body || {}),
-    );
+    ) as Record<string, unknown>;
     const startTime = Date.now();
 
     return next.handle().pipe(

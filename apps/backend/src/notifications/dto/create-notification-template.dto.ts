@@ -12,7 +12,9 @@ import {
   NotificationChannel,
 } from '@furry-friends/types';
 
-export class CreateNotificationTemplateDto implements CreateNotificationTemplateRequest {
+export class CreateNotificationTemplateDto
+  implements CreateNotificationTemplateRequest
+{
   @IsString()
   name: string;
 

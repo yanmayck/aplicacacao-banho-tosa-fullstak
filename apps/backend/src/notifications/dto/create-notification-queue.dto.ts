@@ -13,7 +13,9 @@ import {
   NotificationStatus,
 } from '@furry-friends/types';
 
-export class CreateNotificationQueueDto implements CreateNotificationQueueRequest {
+export class CreateNotificationQueueDto
+  implements CreateNotificationQueueRequest
+{
   @IsEnum(NotificationType)
   type: NotificationType;
 

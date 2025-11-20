@@ -85,7 +85,7 @@ export class BillingService implements OnModuleInit {
 
     // Buscar ou criar o cliente Stripe
     let stripeCustomerId: string;
-    const client: any = await this.prisma.client.findUnique({
+    const client = await this.prisma.client.findUnique({
       where: { id: clientId },
     });
 
@@ -155,7 +155,7 @@ export class BillingService implements OnModuleInit {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        const checkoutSession = event.data.object;
+        const checkoutSession = event.data.object as Stripe.Checkout.Session;
         const clientId = checkoutSession.client_reference_id; // Este é o nosso client_id interno
         const stripeCustomerId = checkoutSession.customer as string;
 
@@ -173,10 +173,10 @@ export class BillingService implements OnModuleInit {
         }
         break;
       case 'invoice.payment_succeeded':
-        const invoice = event.data.object;
-        const subscriptionIdFromInvoice = (invoice as any).subscription as
-          | string
-          | undefined;
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionIdFromInvoice = (
+          invoice as unknown as { subscription: string | Stripe.Subscription }
+        ).subscription as string | undefined;
 
         if (subscriptionIdFromInvoice) {
           console.log(
@@ -185,12 +185,12 @@ export class BillingService implements OnModuleInit {
         }
         break;
       case 'customer.subscription.updated':
-        const subscription = event.data.object;
+        const subscription = event.data.object as Stripe.Subscription;
         const updatedSubscriptionStatus = subscription.status;
         const subscriptionIdUpdated = subscription.id;
 
         if (subscriptionIdUpdated) {
-          await (this.prisma.client as any).updateMany({
+          await this.prisma.client.updateMany({
             where: { stripeSubscriptionId: subscriptionIdUpdated },
             data: {
               stripeSubscriptionStatus: updatedSubscriptionStatus,
@@ -202,11 +202,11 @@ export class BillingService implements OnModuleInit {
         }
         break;
       case 'customer.subscription.deleted':
-        const deletedSubscription = event.data.object;
+        const deletedSubscription = event.data.object as Stripe.Subscription;
         const deletedSubscriptionId = deletedSubscription.id;
 
         if (deletedSubscriptionId) {
-          await (this.prisma.client as any).updateMany({
+          await this.prisma.client.updateMany({
             where: { stripeSubscriptionId: deletedSubscriptionId },
             data: {
               stripeSubscriptionStatus: 'canceled',

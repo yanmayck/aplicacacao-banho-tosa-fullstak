@@ -1,9 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
+import {
+  VaccineRecordDto,
+  RabiesVaccineDto,
+  TickMedicineDto,
+} from './dto/pet-health.dto';
 
 @Injectable()
 export class ClientPetHealthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getPetHealth(petId: string, clientId: string) {
     // Verificar se o pet pertence ao cliente
@@ -33,7 +39,11 @@ export class ClientPetHealthService {
     };
   }
 
-  async addVaccineRecord(petId: string, vaccineData: any, clientId: string) {
+  async addVaccineRecord(
+    petId: string,
+    vaccineData: VaccineRecordDto,
+    clientId: string,
+  ) {
     // Verificar se o pet pertence ao cliente
     const pet = await this.prisma.pet.findFirst({
       where: {
@@ -49,7 +59,7 @@ export class ClientPetHealthService {
     }
 
     // Obter histórico atual
-    const currentHistory = (pet.vaccineHistory as any[]) || [];
+    const currentHistory = (pet.vaccineHistory as unknown as any[]) || [];
 
     // Adicionar nova vacina
     const updatedHistory = [...currentHistory, vaccineData];
@@ -57,12 +67,16 @@ export class ClientPetHealthService {
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        vaccineHistory: updatedHistory,
+        vaccineHistory: updatedHistory as unknown as Prisma.InputJsonValue,
       },
     });
   }
 
-  async updateRabiesVaccine(petId: string, rabiesData: any, clientId: string) {
+  async updateRabiesVaccine(
+    petId: string,
+    rabiesData: RabiesVaccineDto,
+    clientId: string,
+  ) {
     // Verificar se o pet pertence ao cliente
     const pet = await this.prisma.pet.findFirst({
       where: {
@@ -80,12 +94,16 @@ export class ClientPetHealthService {
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        rabiesVaccine: rabiesData,
+        rabiesVaccine: rabiesData as unknown as Prisma.InputJsonValue,
       },
     });
   }
 
-  async updateTickMedicine(petId: string, medicineData: any, clientId: string) {
+  async updateTickMedicine(
+    petId: string,
+    medicineData: TickMedicineDto,
+    clientId: string,
+  ) {
     // Verificar se o pet pertence ao cliente
     const pet = await this.prisma.pet.findFirst({
       where: {
@@ -103,7 +121,7 @@ export class ClientPetHealthService {
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        lastTickMedicine: medicineData,
+        lastTickMedicine: medicineData as unknown as Prisma.InputJsonValue,
       },
     });
   }

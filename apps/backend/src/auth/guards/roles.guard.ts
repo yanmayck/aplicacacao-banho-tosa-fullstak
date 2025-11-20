@@ -3,9 +3,11 @@ import { Reflector } from '@nestjs/core';
 import { UserRole } from '@prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
+import { RequestWithUser } from '../../types/interceptor.types';
+
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
@@ -15,13 +17,13 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles) {
       return true;
     }
-    const { user } = context.switchToHttp().getRequest();
+    const { user } = context.switchToHttp().getRequest<RequestWithUser>();
     console.log(
       'BACKEND: RolesGuard - User role:',
       user?.role,
       'Required roles:',
       requiredRoles,
     ); // Log para depuração
-    return requiredRoles.some((role) => user.role === role);
+    return requiredRoles.some((role) => user?.role === role);
   }
 }

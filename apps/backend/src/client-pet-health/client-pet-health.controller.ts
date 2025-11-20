@@ -13,13 +13,18 @@ import {
 } from '@nestjs/common';
 import { JwtClientGuard } from '../public-client/guards/jwt-client.guard';
 import { ClientPetHealthService } from './client-pet-health.service';
+import {
+  VaccineRecordDto,
+  RabiesVaccineDto,
+  TickMedicineDto,
+} from './dto/pet-health.dto';
 
 @Controller('client/pets')
 @UseGuards(JwtClientGuard)
 export class ClientPetHealthController {
   constructor(
     private readonly clientPetHealthService: ClientPetHealthService,
-  ) {}
+  ) { }
 
   @Get(':petId/health')
   getPetHealth(
@@ -33,7 +38,7 @@ export class ClientPetHealthController {
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   addVaccineRecord(
     @Param('petId', ParseUUIDPipe) petId: string,
-    @Body() vaccineData: any,
+    @Body() vaccineData: VaccineRecordDto,
     @Request() req: { user: { sub: string } },
   ) {
     return this.clientPetHealthService.addVaccineRecord(
@@ -47,7 +52,7 @@ export class ClientPetHealthController {
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   updateRabiesVaccine(
     @Param('petId', ParseUUIDPipe) petId: string,
-    @Body() rabiesData: any,
+    @Body() rabiesData: RabiesVaccineDto,
     @Request() req: { user: { sub: string } },
   ) {
     return this.clientPetHealthService.updateRabiesVaccine(
@@ -61,7 +66,7 @@ export class ClientPetHealthController {
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   updateTickMedicine(
     @Param('petId', ParseUUIDPipe) petId: string,
-    @Body() medicineData: any,
+    @Body() medicineData: TickMedicineDto,
     @Request() req: { user: { sub: string } },
   ) {
     return this.clientPetHealthService.updateTickMedicine(

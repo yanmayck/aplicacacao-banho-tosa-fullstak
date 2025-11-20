@@ -19,7 +19,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private usersService: UsersService,
-  ) {}
+  ) { }
 
   async validateUser(
     email: string,
@@ -27,7 +27,7 @@ export class AuthService {
   ): Promise<Omit<User, 'password'> | null> {
     const user = await this.usersService.findOneByEmail(email);
     if (user && (await bcrypt.compare(pass, user.password))) {
-      const { password, ...result } = user;
+      const { password: _password, ...result } = user;
       return result;
     }
     return null;
@@ -73,7 +73,7 @@ export class AuthService {
         name: registerDto.name,
         role: registerDto.role || UserRole.USER,
       });
-      const { password, ...result } = newUser;
+      const { password: _password, ...result } = newUser;
       return result;
     } catch (error) {
       if (error instanceof ConflictException) {
