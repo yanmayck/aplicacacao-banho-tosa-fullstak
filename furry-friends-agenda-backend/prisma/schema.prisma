@@ -129,6 +129,9 @@ model Appointment {
   // Removida relação direta com ServiceType:
   // serviceType         ServiceType @relation(fields: [serviceTypeId], references: [id])
   // serviceTypeId       String
+
+  @@index([dateTime])
+  @@index([status])
 }
 
 // Novo: Tabela de junção para Appointment e Service (como no frontend)
