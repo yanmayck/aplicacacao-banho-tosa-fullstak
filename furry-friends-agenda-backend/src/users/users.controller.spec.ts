@@ -19,9 +19,9 @@ const mockUser: Omit<User, 'password'> = {
 };
 
 const mockUserWithPassword: User = {
-    ...mockUser,
-    password: 'hashedpassword',
-}
+  ...mockUser,
+  password: 'hashedpassword',
+};
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -65,14 +65,14 @@ describe('UsersController', () => {
     });
 
     it('should return null if user not found', async () => {
-        service.findOneById.mockResolvedValue(null);
-        const req = { user: { userId: 'a-uuid' } };
-  
-        const result = await controller.getMyProfile(req as any);
-  
-        expect(service.findOneById).toHaveBeenCalledWith('a-uuid');
-        expect(result).toBeNull();
-      });
+      service.findOneById.mockResolvedValue(null);
+      const req = { user: { userId: 'a-uuid' } };
+
+      const result = await controller.getMyProfile(req as any);
+
+      expect(service.findOneById).toHaveBeenCalledWith('a-uuid');
+      expect(result).toBeNull();
+    });
   });
 
   describe('updateMyProfile', () => {
@@ -82,7 +82,10 @@ describe('UsersController', () => {
       service.updateUser.mockResolvedValue(updatedUser);
       const req = { user: { userId: 'a-uuid' } };
 
-      const result = await controller.updateMyProfile(req as any, updateUserDto);
+      const result = await controller.updateMyProfile(
+        req as any,
+        updateUserDto,
+      );
 
       expect(service.updateUser).toHaveBeenCalledWith('a-uuid', updateUserDto);
       expect(result).toEqual(updatedUser);
