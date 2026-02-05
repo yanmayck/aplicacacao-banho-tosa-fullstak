@@ -11,6 +11,8 @@ import {
   ValidationPipe,
   UsePipes,
   ParseUUIDPipe,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AppointmentsService } from './appointments.service';
@@ -40,9 +42,20 @@ export class AppointmentsController {
   }
 
   @Get()
-  findAll(@Request() req: { user: JwtPayload }) {
+  findAll(
+    @Request() req: { user: JwtPayload },
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+  ) {
     // Lista apenas os agendamentos do cliente logado
-    return this.appointmentsService.findAllByClient(req.user.userId);
+    const validPage = page && page > 0 ? page : undefined;
+    const validLimit = limit && limit > 0 ? limit : undefined;
+
+    return this.appointmentsService.findAllByClient(
+      req.user.userId,
+      validPage,
+      validLimit,
+    );
   }
 
   @Get(':id')

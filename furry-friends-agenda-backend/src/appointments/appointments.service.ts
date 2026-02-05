@@ -77,7 +77,8 @@ export class AppointmentsService {
         }
     }
 
-    async findAllByClient(clientId: string): Promise<Appointment[]> {
+    async findAllByClient(clientId: string, page?: number, limit?: number): Promise<Appointment[]> {
+        const skip = page && limit ? (page - 1) * limit : undefined;
         return this.prisma.appointment.findMany({
             where: { clientId },
             include: {
@@ -90,6 +91,8 @@ export class AppointmentsService {
                 },
             },
             orderBy: { dateTime: 'asc' },
+            skip,
+            take: limit,
         });
     }
 
