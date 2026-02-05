@@ -141,10 +141,15 @@ export class AppointmentsService {
         }
 
         if (updateAppointmentDto.serviceIds) {
+            const services = await this.prisma.servicePackage.findMany({
+                where: { id: { in: updateAppointmentDto.serviceIds } },
+            });
+            const serviceMap = new Map(services.map((s) => [s.id, s]));
+
             let newTotalPrice = 0;
             const newServicesToConnect: ServicePackage[] = [];
             for (const serviceId of updateAppointmentDto.serviceIds) {
-                const service = await this.prisma.servicePackage.findUnique({ where: { id: serviceId } });
+                const service = serviceMap.get(serviceId);
                 if (!service) throw new NotFoundException(`Service with ID "${serviceId}" not found.`);
                 newServicesToConnect.push(service);
                 newTotalPrice += service.price;

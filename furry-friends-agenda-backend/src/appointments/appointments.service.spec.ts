@@ -19,6 +19,7 @@ const mockPrismaService = {
   },
   servicePackage: {
     findUnique: jest.fn(),
+    findMany: jest.fn(),
   },
   appointmentService: {
     deleteMany: jest.fn(),
@@ -98,6 +99,29 @@ describe('AppointmentsService', () => {
     it('should throw ForbiddenException if appointment not owned by client', async () => {
         prisma.appointment.findUnique.mockResolvedValue({ ...mockAppointment, clientId: 'another-client' });
         await expect(service.findOneByClient('appt-uuid', 'client-uuid')).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('update', () => {
+    const updateDto = { serviceIds: ['service-uuid'] };
+
+    it('should update an appointment services successfully', async () => {
+        prisma.appointment.findUnique.mockResolvedValue(mockAppointment); // for findOneByClient
+        prisma.servicePackage.findMany.mockResolvedValue([mockService]);
+        prisma.appointment.update.mockResolvedValue(mockAppointment);
+
+        const result = await service.update('appt-uuid', updateDto, 'client-uuid');
+        expect(result).toEqual(mockAppointment);
+        expect(prisma.servicePackage.findMany).toHaveBeenCalledWith({
+            where: { id: { in: ['service-uuid'] } }
+        });
+    });
+
+    it('should throw NotFoundException if a service is not found during update', async () => {
+        prisma.appointment.findUnique.mockResolvedValue(mockAppointment);
+        prisma.servicePackage.findMany.mockResolvedValue([]); // No service found
+
+        await expect(service.update('appt-uuid', updateDto, 'client-uuid')).rejects.toThrow(NotFoundException);
     });
   });
 });
