@@ -30,10 +30,19 @@ export class AppointmentsService {
             throw new BadRequestException('At least one service must be selected.');
         }
 
-        let calculatedTotalPrice = 0;
+        const foundServices = await this.prisma.servicePackage.findMany({
+            where: {
+                id: { in: serviceIds }
+            }
+        });
+
+        const serviceMap = new Map<string, ServicePackage>(foundServices.map(s => [s.id, s]));
+
         const servicesToConnect: ServicePackage[] = [];
+        let calculatedTotalPrice = 0;
+
         for (const serviceId of serviceIds) {
-            const service = await this.prisma.servicePackage.findUnique({ where: { id: serviceId } });
+            const service = serviceMap.get(serviceId);
             if (!service) {
                 throw new NotFoundException(`Service with ID "${serviceId}" not found.`);
             }
