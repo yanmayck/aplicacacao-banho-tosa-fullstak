@@ -72,20 +72,32 @@ describe('PetsService', () => {
     it('should create a pet for a valid client', async () => {
       prisma.client.findUnique.mockResolvedValue(mockClient);
       prisma.pet.create.mockResolvedValue(mockPet);
-      const createDto = { name: 'Fido', species: 'Dog', clientId: 'client-uuid' };
+      const createDto = {
+        name: 'Fido',
+        species: 'Dog',
+        clientId: 'client-uuid',
+      };
 
       const result = await service.create(createDto, 'user-uuid');
 
-      expect(prisma.client.findUnique).toHaveBeenCalledWith({ where: { userId: 'user-uuid' } });
+      expect(prisma.client.findUnique).toHaveBeenCalledWith({
+        where: { userId: 'user-uuid' },
+      });
       expect(prisma.pet.create).toHaveBeenCalled();
       expect(result).toEqual(mockPet);
     });
 
     it('should throw NotFoundException if client does not exist', async () => {
       prisma.client.findUnique.mockResolvedValue(null);
-      const createDto = { name: 'Fido', species: 'Dog', clientId: 'client-uuid' };
+      const createDto = {
+        name: 'Fido',
+        species: 'Dog',
+        clientId: 'client-uuid',
+      };
 
-      await expect(service.create(createDto, 'non-existent-user-uuid')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.create(createDto, 'non-existent-user-uuid'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -98,12 +110,16 @@ describe('PetsService', () => {
 
     it('should throw NotFoundException if pet not found', async () => {
       prisma.pet.findUnique.mockResolvedValue(null);
-      await expect(service.findOneByOwner('wrong-pet-uuid', 'client-uuid')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.findOneByOwner('wrong-pet-uuid', 'client-uuid'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ForbiddenException if pet is not owned by the client', async () => {
       prisma.pet.findUnique.mockResolvedValue(mockPet);
-      await expect(service.findOneByOwner('pet-uuid', 'wrong-client-uuid')).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.findOneByOwner('pet-uuid', 'wrong-client-uuid'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 

@@ -1,4 +1,13 @@
-import { IsString, IsNotEmpty, IsOptional, IsDateString, IsObject, ValidateNested, IsBoolean, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsDateString,
+  IsObject,
+  ValidateNested,
+  IsBoolean,
+  IsArray,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class TickMedicineDto {

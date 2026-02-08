@@ -42,7 +42,10 @@ export class PackagesController {
 
   @Patch(':id')
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() updatePackageDto: UpdatePackageDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updatePackageDto: UpdatePackageDto,
+  ) {
     return this.packagesService.update(id, updatePackageDto);
   }
 

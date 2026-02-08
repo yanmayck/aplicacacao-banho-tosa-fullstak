@@ -1,4 +1,9 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Response } from 'express';
 
@@ -26,7 +31,10 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       // Adicione outros códigos de erro do Prisma que você queira tratar aqui
       default:
         // Para todos os outros erros do Prisma, log e retorna um 500 genérico
-        console.error(`Código de erro do Prisma não tratado: ${exception.code}`, exception);
+        console.error(
+          `Código de erro do Prisma não tratado: ${exception.code}`,
+          exception,
+        );
         break;
     }
 

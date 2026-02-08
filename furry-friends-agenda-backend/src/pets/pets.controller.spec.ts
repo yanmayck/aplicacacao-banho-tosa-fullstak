@@ -15,8 +15,17 @@ const mockPetsService = {
   remove: jest.fn(),
 };
 
-const mockUser = { userId: 'client-uuid', username: 'client@test.com', role: UserRole.USER };
-const mockPet = { id: 'pet-uuid', name: 'Fido', species: 'Dog', clientId: 'client-uuid' };
+const mockUser = {
+  userId: 'client-uuid',
+  username: 'client@test.com',
+  role: UserRole.USER,
+};
+const mockPet = {
+  id: 'pet-uuid',
+  name: 'Fido',
+  species: 'Dog',
+  clientId: 'client-uuid',
+};
 
 describe('PetsController', () => {
   let controller: PetsController;
@@ -27,9 +36,11 @@ describe('PetsController', () => {
       controllers: [PetsController],
       providers: [{ provide: PetsService, useValue: mockPetsService }],
     })
-    .overrideGuard(JwtAuthGuard).useValue({ canActivate: () => true })
-    .overrideGuard(RolesGuard).useValue({ canActivate: () => true })
-    .compile();
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<PetsController>(PetsController);
     service = module.get(PetsService);
@@ -45,7 +56,11 @@ describe('PetsController', () => {
 
   describe('create', () => {
     it('should create a pet', async () => {
-      const createDto: CreatePetDto = { name: 'Fido', species: 'Dog', clientId: 'client-uuid' };
+      const createDto: CreatePetDto = {
+        name: 'Fido',
+        species: 'Dog',
+        clientId: 'client-uuid',
+      };
       service.create.mockResolvedValue(mockPet);
 
       const result = await controller.create(createDto, { user: mockUser });
@@ -72,7 +87,10 @@ describe('PetsController', () => {
 
       const result = await controller.findOne('pet-uuid', { user: mockUser });
 
-      expect(service.findOneByOwner).toHaveBeenCalledWith('pet-uuid', mockUser.userId);
+      expect(service.findOneByOwner).toHaveBeenCalledWith(
+        'pet-uuid',
+        mockUser.userId,
+      );
       expect(result).toEqual(mockPet);
     });
   });
@@ -83,9 +101,15 @@ describe('PetsController', () => {
       const updatedPet = { ...mockPet, ...updateDto };
       service.update.mockResolvedValue(updatedPet);
 
-      const result = await controller.update('pet-uuid', updateDto, { user: mockUser });
+      const result = await controller.update('pet-uuid', updateDto, {
+        user: mockUser,
+      });
 
-      expect(service.update).toHaveBeenCalledWith('pet-uuid', updateDto, mockUser.userId);
+      expect(service.update).toHaveBeenCalledWith(
+        'pet-uuid',
+        updateDto,
+        mockUser.userId,
+      );
       expect(result).toEqual(updatedPet);
     });
   });
