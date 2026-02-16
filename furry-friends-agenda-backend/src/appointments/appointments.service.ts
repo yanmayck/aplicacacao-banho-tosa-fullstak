@@ -101,19 +101,23 @@ export class AppointmentsService {
       );
     }
 
-    if (groomerId) {
-      const groomer = await this.prisma.groomer.findUnique({
-        where: { id: groomerId },
-      });
-      if (!groomer) {
-        throw new NotFoundException(
-          `Groomer with ID "${groomerId}" not found.`,
-        );
-      }
-    }
-
-    if (!serviceIds || serviceIds.length === 0) {
-      throw new BadRequestException('At least one service must be selected.');
+    async findAllByClient(clientId: string, page?: number, limit?: number): Promise<Appointment[]> {
+        const skip = page && limit ? (page - 1) * limit : undefined;
+        return this.prisma.appointment.findMany({
+            where: { clientId },
+            include: {
+                pet: true,
+                groomer: true,
+                appointmentServices: {
+                    include: {
+                        service: true,
+                    },
+                },
+            },
+            orderBy: { dateTime: 'asc' },
+            skip,
+            take: limit,
+        });
     }
 
     let calculatedTotalPrice = 0;

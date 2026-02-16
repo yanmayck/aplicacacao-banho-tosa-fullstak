@@ -128,4 +128,40 @@ describe('AppointmentsService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
   });
+
+  describe('findAllByClient', () => {
+    it('should return all appointments for a client with pagination', async () => {
+      prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
+
+      const clientId = 'client-uuid';
+      const page = 2;
+      const limit = 5;
+      const result = await service.findAllByClient(clientId, page, limit);
+
+      expect(result).toEqual([mockAppointment]);
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith({
+        where: { clientId },
+        include: expect.any(Object),
+        orderBy: { dateTime: 'asc' },
+        skip: 5,
+        take: 5,
+      });
+    });
+
+    it('should return all appointments when no pagination params provided', async () => {
+      prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
+
+      const clientId = 'client-uuid';
+      const result = await service.findAllByClient(clientId);
+
+      expect(result).toEqual([mockAppointment]);
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith({
+        where: { clientId },
+        include: expect.any(Object),
+        orderBy: { dateTime: 'asc' },
+        skip: undefined,
+        take: undefined,
+      });
+    });
+  });
 });
