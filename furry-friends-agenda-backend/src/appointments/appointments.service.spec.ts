@@ -23,6 +23,7 @@ const mockPrismaService = {
   },
   servicePackage: {
     findUnique: jest.fn(),
+    findMany: jest.fn(),
   },
   appointmentService: {
     deleteMany: jest.fn(),
@@ -69,7 +70,7 @@ describe('AppointmentsService', () => {
     it('should create an appointment successfully', async () => {
       prisma.pet.findUnique.mockResolvedValue(mockPet);
       prisma.groomer.findUnique.mockResolvedValue(mockGroomer);
-      prisma.servicePackage.findUnique.mockResolvedValue(mockService);
+      prisma.servicePackage.findMany.mockResolvedValue([mockService]);
       prisma.appointment.create.mockResolvedValue(mockAppointment);
 
       const result = await service.create(createDto, 'client-uuid');
@@ -103,12 +104,10 @@ describe('AppointmentsService', () => {
     });
 
     it('should throw NotFoundException if a service is not found', async () => {
-      prisma.pet.findUnique.mockResolvedValue(mockPet);
-      prisma.groomer.findUnique.mockResolvedValue(mockGroomer);
-      prisma.servicePackage.findUnique.mockResolvedValue(null);
-      await expect(service.create(createDto, 'client-uuid')).rejects.toThrow(
-        NotFoundException,
-      );
+        prisma.pet.findUnique.mockResolvedValue(mockPet);
+        prisma.groomer.findUnique.mockResolvedValue(mockGroomer);
+        prisma.servicePackage.findMany.mockResolvedValue([]);
+        await expect(service.create(createDto, 'client-uuid')).rejects.toThrow(NotFoundException);
     });
   });
 

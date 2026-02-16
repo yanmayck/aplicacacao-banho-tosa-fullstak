@@ -16,18 +16,84 @@ import {
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) { }
 
-  async create(
-    createAppointmentDto: CreateAppointmentDto,
-    currentClientId: string,
-  ): Promise<Appointment> {
-    const { petId, serviceIds, dateTime, notes, groomerId, status } =
-      createAppointmentDto;
+    async create(createAppointmentDto: CreateAppointmentDto, currentClientId: string): Promise<Appointment> {
+        const { petId, serviceIds, dateTime, notes, groomerId, status } = createAppointmentDto;
 
-    const pet = await this.prisma.pet.findUnique({ where: { id: petId } });
-    if (!pet) {
-      throw new NotFoundException(`Pet with ID "${petId}" not found.`);
+        const pet = await this.prisma.pet.findUnique({ where: { id: petId } });
+        if (!pet) {
+            throw new NotFoundException(`Pet with ID "${petId}" not found.`);
+        }
+        if (pet.clientId !== currentClientId) {
+            throw new ForbiddenException('You can only create appointments for your own pets.');
+        }
+
+        if (groomerId) {
+            const groomer = await this.prisma.groomer.findUnique({ where: { id: groomerId } });
+            if (!groomer) {
+                throw new NotFoundException(`Groomer with ID "${groomerId}" not found.`);
+            }
+        }
+
+        if (!serviceIds || serviceIds.length === 0) {
+            throw new BadRequestException('At least one service must be selected.');
+        }
+
+        const foundServices = await this.prisma.servicePackage.findMany({
+            where: {
+                id: { in: serviceIds }
+            }
+        });
+
+        const serviceMap = new Map<string, ServicePackage>(foundServices.map(s => [s.id, s]));
+
+        const servicesToConnect: ServicePackage[] = [];
+        let calculatedTotalPrice = 0;
+
+        for (const serviceId of serviceIds) {
+            const service = serviceMap.get(serviceId);
+            if (!service) {
+                throw new NotFoundException(`Service with ID "${serviceId}" not found.`);
+            }
+            servicesToConnect.push(service);
+            calculatedTotalPrice += service.price;
+        }
+
+        try {
+            return await this.prisma.appointment.create({
+                data: {
+                    dateTime: new Date(dateTime),
+                    notes,
+                    status: status || PrismaAppointmentStatus.SCHEDULED,
+                    totalPrice: calculatedTotalPrice,
+                    pet: { connect: { id: petId } },
+                    client: { connect: { id: currentClientId } },
+                    groomer: groomerId ? { connect: { id: groomerId } } : undefined,
+                    appointmentServices: {
+                        create: servicesToConnect.map(service => ({
+                            service: { connect: { id: service.id } },
+                            priceAtTime: service.price,
+                        })),
+                    },
+                },
+                include: {
+                    pet: true,
+                    client: true,
+                    groomer: true,
+                    appointmentServices: {
+                        include: {
+                            service: true,
+                        },
+                    },
+                },
+            });
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                console.error("Prisma Error creating appointment: ", error.code, error.message);
+            }
+            throw new BadRequestException('Could not create appointment. Please check input data.');
+        }
     }
     if (pet.clientId !== currentClientId) {
       throw new ForbiddenException(
