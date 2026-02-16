@@ -72,20 +72,60 @@ describe('PetsService', () => {
     it('should create a pet for a valid client', async () => {
       prisma.client.findUnique.mockResolvedValue(mockClient);
       prisma.pet.create.mockResolvedValue(mockPet);
-      const createDto = { name: 'Fido', species: 'Dog', clientId: 'client-uuid' };
+      const createDto = {
+        name: 'Fido',
+        species: 'Dog',
+        clientId: 'client-uuid',
+      };
 
       const result = await service.create(createDto, 'user-uuid');
 
-      expect(prisma.client.findUnique).toHaveBeenCalledWith({ where: { userId: 'user-uuid' } });
+      expect(prisma.client.findUnique).toHaveBeenCalledWith({
+        where: { userId: 'user-uuid' },
+      });
       expect(prisma.pet.create).toHaveBeenCalled();
       expect(result).toEqual(mockPet);
     });
 
     it('should throw NotFoundException if client does not exist', async () => {
       prisma.client.findUnique.mockResolvedValue(null);
-      const createDto = { name: 'Fido', species: 'Dog', clientId: 'client-uuid' };
+      const createDto = {
+        name: 'Fido',
+        species: 'Dog',
+        clientId: 'client-uuid',
+      };
 
-      await expect(service.create(createDto, 'non-existent-user-uuid')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.create(createDto, 'non-existent-user-uuid'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should create a pet with nested objects correctly', async () => {
+      prisma.client.findUnique.mockResolvedValue(mockClient);
+      const nestedDto = {
+        name: 'Fido',
+        species: 'Dog',
+        clientId: 'client-uuid',
+        lastTickMedicine: { name: 'M1', date: '2023-01-01' },
+        rabiesVaccine: { isUpToDate: true, lastDate: '2023-01-01' },
+        vaccineHistory: [{ name: 'V1', date: '2023-01-01' }],
+      };
+
+      const createdPet = { ...mockPet, ...nestedDto };
+      prisma.pet.create.mockResolvedValue(createdPet as any);
+
+      const result = await service.create(nestedDto, 'user-uuid');
+
+      expect(prisma.pet.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          name: 'Fido',
+          lastTickMedicine: nestedDto.lastTickMedicine,
+          rabiesVaccine: nestedDto.rabiesVaccine,
+          vaccineHistory: nestedDto.vaccineHistory,
+          client: { connect: { id: mockClient.id } },
+        }),
+      });
+      expect(result).toEqual(createdPet);
     });
   });
 
@@ -98,12 +138,16 @@ describe('PetsService', () => {
 
     it('should throw NotFoundException if pet not found', async () => {
       prisma.pet.findUnique.mockResolvedValue(null);
-      await expect(service.findOneByOwner('wrong-pet-uuid', 'client-uuid')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.findOneByOwner('wrong-pet-uuid', 'client-uuid'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ForbiddenException if pet is not owned by the client', async () => {
       prisma.pet.findUnique.mockResolvedValue(mockPet);
-      await expect(service.findOneByOwner('pet-uuid', 'wrong-client-uuid')).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.findOneByOwner('pet-uuid', 'wrong-client-uuid'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 

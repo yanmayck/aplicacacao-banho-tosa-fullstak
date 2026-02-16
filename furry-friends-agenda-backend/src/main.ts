@@ -2,9 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
+import * as compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(compression());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -21,16 +24,16 @@ async function bootstrap() {
 
   const replitDomain = process.env.REPLIT_DEV_DOMAIN;
   const defaultAllowedOrigins = [
-    'http://localhost:5173', 
+    'http://localhost:5173',
     'http://localhost:5000',
     'http://127.0.0.1:5000',
-    'http://localhost:8080'
+    'http://localhost:8080',
   ];
-  
+
   if (replitDomain) {
     defaultAllowedOrigins.push(`https://${replitDomain}`);
   }
-  
+
   const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
     ? process.env.CORS_ALLOWED_ORIGINS.split(',')
     : defaultAllowedOrigins;
@@ -53,7 +56,9 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3333;
   await app.listen(port, '0.0.0.0');
-  console.log(`Application is running on: ${await app.getUrl()} - accessible externally if port is mapped.`);
+  console.log(
+    `Application is running on: ${await app.getUrl()} - accessible externally if port is mapped.`,
+  );
 }
 bootstrap().catch((err) => {
   console.error('Failed to bootstrap the application', err);

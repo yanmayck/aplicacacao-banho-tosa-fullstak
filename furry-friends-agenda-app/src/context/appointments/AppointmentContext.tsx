@@ -32,6 +32,7 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const { data: appointments = [], isLoading, error } = useQuery<Appointment[], Error>({
     queryKey: ["appointments"],
     queryFn: appointmentApi.getAppointments,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const addMutation = useMutation({
