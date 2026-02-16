@@ -24,14 +24,20 @@ export class PackagesService {
     return pkg;
   }
 
-  async update(id: string, updatePackageDto: UpdatePackageDto): Promise<Package> {
+  async update(
+    id: string,
+    updatePackageDto: UpdatePackageDto,
+  ): Promise<Package> {
     try {
       return await this.prisma.package.update({
         where: { id },
         data: updatePackageDto,
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
         throw new NotFoundException(`Package with ID "${id}" not found`);
       }
       throw error;
@@ -42,7 +48,10 @@ export class PackagesService {
     try {
       return await this.prisma.package.delete({ where: { id } });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
         throw new NotFoundException(`Package with ID "${id}" not found`);
       }
       throw error;

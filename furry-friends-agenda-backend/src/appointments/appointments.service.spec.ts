@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppointmentsService } from './appointments.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 
 const mockPrismaService = {
   appointment: {
@@ -29,7 +33,11 @@ const mockPrismaService = {
 const mockPet = { id: 'pet-uuid', clientId: 'client-uuid' };
 const mockGroomer = { id: 'groomer-uuid' };
 const mockService = { id: 'service-uuid', price: 50 };
-const mockAppointment = { id: 'appt-uuid', clientId: 'client-uuid', petId: 'pet-uuid' };
+const mockAppointment = {
+  id: 'appt-uuid',
+  clientId: 'client-uuid',
+  petId: 'pet-uuid',
+};
 
 describe('AppointmentsService', () => {
   let service: AppointmentsService;
@@ -52,7 +60,12 @@ describe('AppointmentsService', () => {
   });
 
   describe('create', () => {
-    const createDto = { petId: 'pet-uuid', serviceIds: ['service-uuid'], dateTime: new Date().toISOString(), groomerId: 'groomer-uuid' };
+    const createDto = {
+      petId: 'pet-uuid',
+      serviceIds: ['service-uuid'],
+      dateTime: new Date().toISOString(),
+      groomerId: 'groomer-uuid',
+    };
 
     it('should create an appointment successfully', async () => {
       prisma.pet.findUnique.mockResolvedValue(mockPet);
@@ -67,18 +80,27 @@ describe('AppointmentsService', () => {
 
     it('should throw NotFoundException if pet not found', async () => {
       prisma.pet.findUnique.mockResolvedValue(null);
-      await expect(service.create(createDto, 'client-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.create(createDto, 'client-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ForbiddenException if pet does not belong to client', async () => {
-      prisma.pet.findUnique.mockResolvedValue({ ...mockPet, clientId: 'another-client' });
-      await expect(service.create(createDto, 'client-uuid')).rejects.toThrow(ForbiddenException);
+      prisma.pet.findUnique.mockResolvedValue({
+        ...mockPet,
+        clientId: 'another-client',
+      });
+      await expect(service.create(createDto, 'client-uuid')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw BadRequestException if no serviceIds are provided', async () => {
       const dtoWithNoServices = { ...createDto, serviceIds: [] };
       prisma.pet.findUnique.mockResolvedValue(mockPet);
-      await expect(service.create(dtoWithNoServices, 'client-uuid')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.create(dtoWithNoServices, 'client-uuid'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw NotFoundException if a service is not found', async () => {
@@ -91,14 +113,19 @@ describe('AppointmentsService', () => {
 
   describe('findOneByClient', () => {
     it('should return an appointment if found and owned by client', async () => {
-        prisma.appointment.findUnique.mockResolvedValue(mockAppointment);
-        const result = await service.findOneByClient('appt-uuid', 'client-uuid');
-        expect(result).toEqual(mockAppointment);
+      prisma.appointment.findUnique.mockResolvedValue(mockAppointment);
+      const result = await service.findOneByClient('appt-uuid', 'client-uuid');
+      expect(result).toEqual(mockAppointment);
     });
 
     it('should throw ForbiddenException if appointment not owned by client', async () => {
-        prisma.appointment.findUnique.mockResolvedValue({ ...mockAppointment, clientId: 'another-client' });
-        await expect(service.findOneByClient('appt-uuid', 'client-uuid')).rejects.toThrow(ForbiddenException);
+      prisma.appointment.findUnique.mockResolvedValue({
+        ...mockAppointment,
+        clientId: 'another-client',
+      });
+      await expect(
+        service.findOneByClient('appt-uuid', 'client-uuid'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

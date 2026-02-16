@@ -45,7 +45,12 @@ describe('AuthController', () => {
         name: 'Test User',
         role: UserRole.USER,
       };
-      const expectedResult = { id: '1', email: 'test@example.com', name: 'Test User', role: UserRole.USER };
+      const expectedResult = {
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: UserRole.USER,
+      };
       service.register.mockResolvedValue(expectedResult);
 
       const result = await controller.register(registerDto);
@@ -63,7 +68,12 @@ describe('AuthController', () => {
       };
       const expectedResult = {
         access_token: 'some-jwt-token',
-        user: { id: '1', email: 'test@example.com', name: 'Test User', role: UserRole.USER },
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'Test User',
+          role: UserRole.USER,
+        },
       };
       service.login.mockResolvedValue(expectedResult);
 
