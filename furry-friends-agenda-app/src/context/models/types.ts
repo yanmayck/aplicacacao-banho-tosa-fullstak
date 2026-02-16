@@ -9,6 +9,9 @@ export interface Client {
   phone: string | null;
   email: string | null;
   address: string | null;
+  _count?: {
+    pets: number;
+  };
 }
 
 // Pet model
