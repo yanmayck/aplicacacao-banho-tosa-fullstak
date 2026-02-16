@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -8,9 +12,7 @@ import { ServicePackage, Prisma } from '@prisma/client';
 export class ServicesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(
-    createServiceDto: CreateServiceDto,
-  ): Promise<ServicePackage> {
+  async create(createServiceDto: CreateServiceDto): Promise<ServicePackage> {
     try {
       return await this.prisma.servicePackage.create({
         data: createServiceDto,
@@ -53,10 +55,12 @@ export class ServicesService {
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') { // Record to update not found.
+        if (error.code === 'P2025') {
+          // Record to update not found.
           throw new NotFoundException(`Service with ID "${id}" not found`);
         }
-        if (error.code === 'P2002') { // Unique constraint violation
+        if (error.code === 'P2002') {
+          // Unique constraint violation
           throw new ConflictException(
             `Service with name "${updateServiceDto.name}" already exists.`,
           );

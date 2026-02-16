@@ -20,7 +20,9 @@ import { UsersModule } from '../users/users.module';
       useFactory: (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
         if (!secret) {
-          throw new Error('JWT_SECRET is not set in the environment variables. Application cannot start.');
+          throw new Error(
+            'JWT_SECRET is not set in the environment variables. Application cannot start.',
+          );
         }
         return {
           secret,

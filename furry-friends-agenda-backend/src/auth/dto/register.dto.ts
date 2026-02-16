@@ -20,6 +20,8 @@ export class RegisterDto {
   name?: string;
 
   @IsOptional()
-  @IsEnum(UserRole, { message: 'Role inválido. Valores permitidos: USER, ADMIN' })
+  @IsEnum(UserRole, {
+    message: 'Role inválido. Valores permitidos: USER, ADMIN',
+  })
   role?: UserRole; // Alterado de roles para role, usando o enum do Prisma
 }

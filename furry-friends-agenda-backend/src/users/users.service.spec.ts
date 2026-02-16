@@ -52,9 +52,17 @@ describe('UsersService', () => {
 
   describe('createUser', () => {
     it('should hash the password and create a new user', async () => {
-      const createDto = { email: 'new@example.com', password: 'password123', name: 'New User' };
+      const createDto = {
+        email: 'new@example.com',
+        password: 'password123',
+        name: 'New User',
+      };
       const hashedPassword = 'hashedpassword';
-      const createdUser = { ...mockUser, ...createDto, password: hashedPassword };
+      const createdUser = {
+        ...mockUser,
+        ...createDto,
+        password: hashedPassword,
+      };
 
       jest.spyOn(bcrypt, 'hash').mockResolvedValue(hashedPassword as never);
       prisma.user.findUnique.mockResolvedValue(null);
@@ -63,15 +71,23 @@ describe('UsersService', () => {
       const result = await service.createUser(createDto);
 
       expect(bcrypt.hash).toHaveBeenCalledWith('password123', roundsOfHashing);
-      expect(prisma.user.create).toHaveBeenCalledWith({ data: { ...createDto, password: hashedPassword } });
+      expect(prisma.user.create).toHaveBeenCalledWith({
+        data: { ...createDto, password: hashedPassword },
+      });
       expect(result).toEqual(createdUser);
     });
 
     it('should throw ConflictException if user already exists', async () => {
-      const createDto = { email: 'test@example.com', password: 'password123', name: 'Test User' };
+      const createDto = {
+        email: 'test@example.com',
+        password: 'password123',
+        name: 'Test User',
+      };
       prisma.user.findUnique.mockResolvedValue(mockUser);
 
-      await expect(service.createUser(createDto)).rejects.toThrow(ConflictException);
+      await expect(service.createUser(createDto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -111,16 +127,24 @@ describe('UsersService', () => {
 
       const result = await service.updateUser('a-uuid', updateDto);
 
-      expect(prisma.user.update).toHaveBeenCalledWith({ where: { id: 'a-uuid' }, data: updateDto });
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'a-uuid' },
+        data: updateDto,
+      });
       expect(result).toEqual(updatedUser);
     });
 
     it('should throw NotFoundException if user to update is not found', async () => {
-        const updateDto = { name: 'Updated Name' };
-        const error = new Prisma.PrismaClientKnownRequestError('Record to update not found.', { code: 'P2025', clientVersion: 'test' });
-        prisma.user.update.mockRejectedValue(error);
-  
-        await expect(service.updateUser('a-uuid', updateDto)).rejects.toThrow(NotFoundException);
-      });
+      const updateDto = { name: 'Updated Name' };
+      const error = new Prisma.PrismaClientKnownRequestError(
+        'Record to update not found.',
+        { code: 'P2025', clientVersion: 'test' },
+      );
+      prisma.user.update.mockRejectedValue(error);
+
+      await expect(service.updateUser('a-uuid', updateDto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 });
