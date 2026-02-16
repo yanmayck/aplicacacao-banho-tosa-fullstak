@@ -43,11 +43,17 @@ export class AuthService {
     // Para segurança, vamos buscar o usuário completo novamente ou garantir que 'role' está no tipo retornado por validateUser.
     const fullUser = await this.usersService.findOneById(user.id); // Assumindo que findOneById existe e retorna o usuário completo
     if (!fullUser) {
-        // Isso não deveria acontecer se validateUser retornou um usuário
-        throw new InternalServerErrorException('User not found after validation.');
+      // Isso não deveria acontecer se validateUser retornou um usuário
+      throw new InternalServerErrorException(
+        'User not found after validation.',
+      );
     }
 
-    const payload = { username: fullUser.email, sub: fullUser.id, role: fullUser.role }; // Alterado de roles para role
+    const payload = {
+      username: fullUser.email,
+      sub: fullUser.id,
+      role: fullUser.role,
+    }; // Alterado de roles para role
     console.log('BACKEND: Gerando token com payload:', payload); // Log para depuração
     return {
       access_token: this.jwtService.sign(payload),

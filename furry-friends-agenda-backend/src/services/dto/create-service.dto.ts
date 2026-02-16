@@ -7,7 +7,8 @@ import {
   IsInt, // Para durationMin, pois minutos geralmente são inteiros
 } from 'class-validator';
 
-export class CreateServiceDto { // Classe renomeada
+export class CreateServiceDto {
+  // Classe renomeada
   @IsString()
   @IsNotEmpty()
   name: string;

@@ -63,16 +63,28 @@ describe('ServicesService', () => {
 
       const result = await service.create(createDto);
 
-      expect(prisma.servicePackage.create).toHaveBeenCalledWith({ data: createDto });
+      expect(prisma.servicePackage.create).toHaveBeenCalledWith({
+        data: createDto,
+      });
       expect(result).toEqual(mockService);
     });
 
     it('should throw ConflictException if service name already exists', async () => {
-        const createDto = { name: 'Test Service', description: '... ', price: 50, durationMin: 30 };
-        const error = new Prisma.PrismaClientKnownRequestError('...', { code: 'P2002', clientVersion: 'test' });
-        prisma.servicePackage.create.mockRejectedValue(error);
+      const createDto = {
+        name: 'Test Service',
+        description: '... ',
+        price: 50,
+        durationMin: 30,
+      };
+      const error = new Prisma.PrismaClientKnownRequestError('...', {
+        code: 'P2002',
+        clientVersion: 'test',
+      });
+      prisma.servicePackage.create.mockRejectedValue(error);
 
-        await expect(service.create(createDto)).rejects.toThrow(ConflictException);
+      await expect(service.create(createDto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -93,14 +105,18 @@ describe('ServicesService', () => {
 
       const result = await service.findOne('a-uuid');
 
-      expect(prisma.servicePackage.findUnique).toHaveBeenCalledWith({ where: { id: 'a-uuid' } });
+      expect(prisma.servicePackage.findUnique).toHaveBeenCalledWith({
+        where: { id: 'a-uuid' },
+      });
       expect(result).toEqual(mockService);
     });
 
     it('should throw NotFoundException if service is not found', async () => {
       prisma.servicePackage.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('a-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('a-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -112,16 +128,24 @@ describe('ServicesService', () => {
 
       const result = await service.update('a-uuid', updateDto);
 
-      expect(prisma.servicePackage.update).toHaveBeenCalledWith({ where: { id: 'a-uuid' }, data: updateDto });
+      expect(prisma.servicePackage.update).toHaveBeenCalledWith({
+        where: { id: 'a-uuid' },
+        data: updateDto,
+      });
       expect(result).toEqual(updatedService);
     });
 
     it('should throw NotFoundException if service to update is not found', async () => {
       const updateDto = { name: 'Service Updated' };
-      const error = new Prisma.PrismaClientKnownRequestError('Record to update not found.', { code: 'P2025', clientVersion: 'test' });
+      const error = new Prisma.PrismaClientKnownRequestError(
+        'Record to update not found.',
+        { code: 'P2025', clientVersion: 'test' },
+      );
       prisma.servicePackage.update.mockRejectedValue(error);
 
-      await expect(service.update('a-uuid', updateDto)).rejects.toThrow(NotFoundException);
+      await expect(service.update('a-uuid', updateDto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -131,12 +155,17 @@ describe('ServicesService', () => {
 
       const result = await service.remove('a-uuid');
 
-      expect(prisma.servicePackage.delete).toHaveBeenCalledWith({ where: { id: 'a-uuid' } });
+      expect(prisma.servicePackage.delete).toHaveBeenCalledWith({
+        where: { id: 'a-uuid' },
+      });
       expect(result).toEqual(mockService);
     });
 
     it('should throw NotFoundException if service to delete is not found', async () => {
-      const error = new Prisma.PrismaClientKnownRequestError('Record to delete not found.', { code: 'P2025', clientVersion: 'test' });
+      const error = new Prisma.PrismaClientKnownRequestError(
+        'Record to delete not found.',
+        { code: 'P2025', clientVersion: 'test' },
+      );
       prisma.servicePackage.delete.mockRejectedValue(error);
 
       await expect(service.remove('a-uuid')).rejects.toThrow(NotFoundException);

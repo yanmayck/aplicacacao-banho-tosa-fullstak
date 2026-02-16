@@ -91,14 +91,18 @@ describe('PackagesService', () => {
 
       const result = await service.findOne('a-uuid');
 
-      expect(prisma.package.findUnique).toHaveBeenCalledWith({ where: { id: 'a-uuid' } });
+      expect(prisma.package.findUnique).toHaveBeenCalledWith({
+        where: { id: 'a-uuid' },
+      });
       expect(result).toEqual(mockPackage);
     });
 
     it('should throw NotFoundException if package is not found', async () => {
       prisma.package.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('a-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('a-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -110,16 +114,24 @@ describe('PackagesService', () => {
 
       const result = await service.update('a-uuid', updateDto);
 
-      expect(prisma.package.update).toHaveBeenCalledWith({ where: { id: 'a-uuid' }, data: updateDto });
+      expect(prisma.package.update).toHaveBeenCalledWith({
+        where: { id: 'a-uuid' },
+        data: updateDto,
+      });
       expect(result).toEqual(updatedPackage);
     });
 
     it('should throw NotFoundException if package to update is not found', async () => {
       const updateDto = { name: 'Package Updated' };
-      const error = new Prisma.PrismaClientKnownRequestError('Record to update not found.', { code: 'P2025', clientVersion: 'test' });
+      const error = new Prisma.PrismaClientKnownRequestError(
+        'Record to update not found.',
+        { code: 'P2025', clientVersion: 'test' },
+      );
       prisma.package.update.mockRejectedValue(error);
 
-      await expect(service.update('a-uuid', updateDto)).rejects.toThrow(NotFoundException);
+      await expect(service.update('a-uuid', updateDto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -129,12 +141,17 @@ describe('PackagesService', () => {
 
       const result = await service.remove('a-uuid');
 
-      expect(prisma.package.delete).toHaveBeenCalledWith({ where: { id: 'a-uuid' } });
+      expect(prisma.package.delete).toHaveBeenCalledWith({
+        where: { id: 'a-uuid' },
+      });
       expect(result).toEqual(mockPackage);
     });
 
     it('should throw NotFoundException if package to delete is not found', async () => {
-      const error = new Prisma.PrismaClientKnownRequestError('Record to delete not found.', { code: 'P2025', clientVersion: 'test' });
+      const error = new Prisma.PrismaClientKnownRequestError(
+        'Record to delete not found.',
+        { code: 'P2025', clientVersion: 'test' },
+      );
       prisma.package.delete.mockRejectedValue(error);
 
       await expect(service.remove('a-uuid')).rejects.toThrow(NotFoundException);

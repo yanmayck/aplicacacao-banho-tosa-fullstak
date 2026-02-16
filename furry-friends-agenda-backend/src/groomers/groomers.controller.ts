@@ -42,7 +42,10 @@ export class GroomersController {
 
   @Patch(':id')
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateGroomerDto: UpdateGroomerDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateGroomerDto: UpdateGroomerDto,
+  ) {
     return this.groomersService.update(id, updateGroomerDto);
   }
 

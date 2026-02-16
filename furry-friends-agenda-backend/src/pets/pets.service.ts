@@ -18,7 +18,9 @@ export class PetsService {
     });
 
     if (!client) {
-      throw new NotFoundException(`Client for user ID "${userId}" not found. Cannot create pet.`);
+      throw new NotFoundException(
+        `Client for user ID "${userId}" not found. Cannot create pet.`,
+      );
     }
 
     const { clientId, ...petData } = createPetDto;

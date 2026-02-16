@@ -24,14 +24,20 @@ export class GroomersService {
     return groomer;
   }
 
-  async update(id: string, updateGroomerDto: UpdateGroomerDto): Promise<Groomer> {
+  async update(
+    id: string,
+    updateGroomerDto: UpdateGroomerDto,
+  ): Promise<Groomer> {
     try {
       return await this.prisma.groomer.update({
         where: { id },
         data: updateGroomerDto,
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
         throw new NotFoundException(`Groomer with ID "${id}" not found`);
       }
       throw error;
@@ -42,7 +48,10 @@ export class GroomersService {
     try {
       return await this.prisma.groomer.delete({ where: { id } });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
         throw new NotFoundException(`Groomer with ID "${id}" not found`);
       }
       throw error;
