@@ -82,14 +82,18 @@ describe('GroomersService', () => {
 
       const result = await service.findOne('a-uuid');
 
-      expect(prisma.groomer.findUnique).toHaveBeenCalledWith({ where: { id: 'a-uuid' } });
+      expect(prisma.groomer.findUnique).toHaveBeenCalledWith({
+        where: { id: 'a-uuid' },
+      });
       expect(result).toEqual(mockGroomer);
     });
 
     it('should throw NotFoundException if groomer is not found', async () => {
       prisma.groomer.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('a-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('a-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -101,16 +105,24 @@ describe('GroomersService', () => {
 
       const result = await service.update('a-uuid', updateDto);
 
-      expect(prisma.groomer.update).toHaveBeenCalledWith({ where: { id: 'a-uuid' }, data: updateDto });
+      expect(prisma.groomer.update).toHaveBeenCalledWith({
+        where: { id: 'a-uuid' },
+        data: updateDto,
+      });
       expect(result).toEqual(updatedGroomer);
     });
 
     it('should throw NotFoundException if groomer to update is not found', async () => {
       const updateDto = { name: 'Groomer Updated' };
-      const error = new Prisma.PrismaClientKnownRequestError('Record to update not found.', { code: 'P2025', clientVersion: 'test' });
+      const error = new Prisma.PrismaClientKnownRequestError(
+        'Record to update not found.',
+        { code: 'P2025', clientVersion: 'test' },
+      );
       prisma.groomer.update.mockRejectedValue(error);
 
-      await expect(service.update('a-uuid', updateDto)).rejects.toThrow(NotFoundException);
+      await expect(service.update('a-uuid', updateDto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -120,12 +132,17 @@ describe('GroomersService', () => {
 
       const result = await service.remove('a-uuid');
 
-      expect(prisma.groomer.delete).toHaveBeenCalledWith({ where: { id: 'a-uuid' } });
+      expect(prisma.groomer.delete).toHaveBeenCalledWith({
+        where: { id: 'a-uuid' },
+      });
       expect(result).toEqual(mockGroomer);
     });
 
     it('should throw NotFoundException if groomer to delete is not found', async () => {
-      const error = new Prisma.PrismaClientKnownRequestError('Record to delete not found.', { code: 'P2025', clientVersion: 'test' });
+      const error = new Prisma.PrismaClientKnownRequestError(
+        'Record to delete not found.',
+        { code: 'P2025', clientVersion: 'test' },
+      );
       prisma.groomer.delete.mockRejectedValue(error);
 
       await expect(service.remove('a-uuid')).rejects.toThrow(NotFoundException);

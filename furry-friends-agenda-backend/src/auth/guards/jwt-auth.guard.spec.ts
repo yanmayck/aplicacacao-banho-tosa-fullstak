@@ -30,7 +30,9 @@ describe('JwtAuthGuard', () => {
     });
 
     it('should throw UnauthorizedException if there is no user', () => {
-      expect(() => guard.handleRequest(null, null)).toThrow(UnauthorizedException);
+      expect(() => guard.handleRequest(null, null)).toThrow(
+        UnauthorizedException,
+      );
     });
   });
 });

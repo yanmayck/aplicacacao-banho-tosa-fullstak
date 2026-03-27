@@ -42,7 +42,7 @@ describe('AuthService', () => {
         { provide: JwtService, useValue: mockJwtService },
         // PrismaService is a dependency but not directly used in AuthService methods being tested
         // It's used via UsersService, which is mocked.
-        { provide: PrismaService, useValue: {} }, 
+        { provide: PrismaService, useValue: {} },
       ],
     }).compile();
 
@@ -62,25 +62,40 @@ describe('AuthService', () => {
   describe('validateUser', () => {
     it('should return user data without password if validation is successful', async () => {
       usersService.findOneByEmail.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true));
+      jest
+        .spyOn(bcrypt, 'compare')
+        .mockImplementation(() => Promise.resolve(true));
 
       const { password, ...expectedResult } = mockUser;
-      const result = await service.validateUser('test@example.com', 'password123');
-      
+      const result = await service.validateUser(
+        'test@example.com',
+        'password123',
+      );
+
       expect(result).toEqual(expectedResult);
-      expect(usersService.findOneByEmail).toHaveBeenCalledWith('test@example.com');
+      expect(usersService.findOneByEmail).toHaveBeenCalledWith(
+        'test@example.com',
+      );
     });
 
     it('should return null if user is not found', async () => {
       usersService.findOneByEmail.mockResolvedValue(null);
-      const result = await service.validateUser('wrong@example.com', 'password123');
+      const result = await service.validateUser(
+        'wrong@example.com',
+        'password123',
+      );
       expect(result).toBeNull();
     });
 
     it('should return null if password does not match', async () => {
       usersService.findOneByEmail.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(false));
-      const result = await service.validateUser('test@example.com', 'wrongpassword');
+      jest
+        .spyOn(bcrypt, 'compare')
+        .mockImplementation(() => Promise.resolve(false));
+      const result = await service.validateUser(
+        'test@example.com',
+        'wrongpassword',
+      );
       expect(result).toBeNull();
     });
   });
@@ -89,10 +104,12 @@ describe('AuthService', () => {
     it('should return an access token and user info on successful login', async () => {
       const { password, ...validateUserResult } = mockUser; // Full user data minus password
       jest.spyOn(service, 'validateUser').mockResolvedValue(validateUserResult);
-      usersService.findOneById.mockResolvedValue(mockUser);
       jwtService.sign.mockReturnValue('test-token');
 
-      const result = await service.login({ email: 'test@example.com', password: 'password123' });
+      const result = await service.login({
+        email: 'test@example.com',
+        password: 'password123',
+      });
 
       const expectedUserPayload = {
         id: mockUser.id,
@@ -103,33 +120,51 @@ describe('AuthService', () => {
 
       expect(result.access_token).toBe('test-token');
       expect(result.user).toEqual(expectedUserPayload);
-      expect(jwtService.sign).toHaveBeenCalledWith({ username: mockUser.email, sub: mockUser.id, role: mockUser.role });
+      expect(jwtService.sign).toHaveBeenCalledWith({
+        username: mockUser.email,
+        sub: mockUser.id,
+        role: mockUser.role,
+      });
+      expect(usersService.findOneById).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException for invalid credentials', async () => {
       jest.spyOn(service, 'validateUser').mockResolvedValue(null);
-      await expect(service.login({ email: 'test@example.com', password: 'wrongpassword' })).rejects.toThrow(UnauthorizedException);
+      await expect(
+        service.login({ email: 'test@example.com', password: 'wrongpassword' }),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
   describe('register', () => {
     it('should create a new user and return user data without password', async () => {
-      const registerDto = { email: 'new@example.com', password: 'newpassword', name: 'New User' };
+      const registerDto = {
+        email: 'new@example.com',
+        password: 'newpassword',
+        name: 'New User',
+      };
       const createdUser = { ...mockUser, ...registerDto, id: 'new-uuid' };
       usersService.createUser.mockResolvedValue(createdUser);
 
       const { password, ...expectedResult } = createdUser;
       const result = await service.register(registerDto);
 
-      expect(usersService.createUser).toHaveBeenCalledWith(expect.objectContaining({ email: registerDto.email }));
+      expect(usersService.createUser).toHaveBeenCalledWith(
+        expect.objectContaining({ email: registerDto.email }),
+      );
       expect(result).toEqual(expectedResult);
     });
 
     it('should throw ConflictException if user already exists', async () => {
       usersService.createUser.mockRejectedValue(new ConflictException());
-      const registerDto = { email: 'test@example.com', password: 'password123' };
+      const registerDto = {
+        email: 'test@example.com',
+        password: 'password123',
+      };
 
-      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
+      await expect(service.register(registerDto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 });

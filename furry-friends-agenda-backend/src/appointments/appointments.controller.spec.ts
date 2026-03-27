@@ -13,8 +13,17 @@ const mockAppointmentsService = {
   remove: jest.fn(),
 };
 
-const mockUser = { userId: 'user-uuid', username: 'test@test.com', role: UserRole.USER };
-const mockAppointment = { id: 'appt-uuid', clientId: 'user-uuid', petId: 'pet-uuid', totalPrice: 50 };
+const mockUser = {
+  userId: 'user-uuid',
+  username: 'test@test.com',
+  role: UserRole.USER,
+};
+const mockAppointment = {
+  id: 'appt-uuid',
+  clientId: 'user-uuid',
+  petId: 'pet-uuid',
+  totalPrice: 50,
+};
 
 describe('AppointmentsController', () => {
   let controller: AppointmentsController;
@@ -23,11 +32,15 @@ describe('AppointmentsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AppointmentsController],
-      providers: [{ provide: AppointmentsService, useValue: mockAppointmentsService }],
+      providers: [
+        { provide: AppointmentsService, useValue: mockAppointmentsService },
+      ],
     })
-    .overrideGuard(JwtAuthGuard).useValue({ canActivate: () => true })
-    .overrideGuard(RolesGuard).useValue({ canActivate: () => true })
-    .compile();
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<AppointmentsController>(AppointmentsController);
     service = module.get(AppointmentsService);
@@ -43,7 +56,12 @@ describe('AppointmentsController', () => {
 
   describe('create', () => {
     it('should create an appointment', async () => {
-      const createDto = { petId: 'pet-uuid', serviceIds: ['service-uuid'], dateTime: new Date().toISOString(), groomerId: 'groomer-uuid' };
+      const createDto = {
+        petId: 'pet-uuid',
+        serviceIds: ['service-uuid'],
+        dateTime: new Date().toISOString(),
+        groomerId: 'groomer-uuid',
+      };
       service.create.mockResolvedValue(mockAppointment);
       await controller.create(createDto, { user: mockUser });
       expect(service.create).toHaveBeenCalledWith(createDto, mockUser.userId);
@@ -51,10 +69,24 @@ describe('AppointmentsController', () => {
   });
 
   describe('findAll', () => {
-    it('should find all appointments for a user', async () => {
+    it('should find all appointments for a user with pagination', async () => {
       service.findAllByClient.mockResolvedValue([mockAppointment]);
-      await controller.findAll({ user: mockUser });
-      expect(service.findAllByClient).toHaveBeenCalledWith(mockUser.userId);
+      await controller.findAll({ user: mockUser }, 1, 10);
+      expect(service.findAllByClient).toHaveBeenCalledWith(
+        mockUser.userId,
+        1,
+        10,
+      );
+    });
+
+    it('should find all appointments for a user without pagination', async () => {
+      service.findAllByClient.mockResolvedValue([mockAppointment]);
+      await controller.findAll({ user: mockUser }, undefined, undefined);
+      expect(service.findAllByClient).toHaveBeenCalledWith(
+        mockUser.userId,
+        undefined,
+        undefined,
+      );
     });
   });
 
@@ -62,7 +94,10 @@ describe('AppointmentsController', () => {
     it('should find a single appointment', async () => {
       service.findOneByClient.mockResolvedValue(mockAppointment);
       await controller.findOne('appt-uuid', { user: mockUser });
-      expect(service.findOneByClient).toHaveBeenCalledWith('appt-uuid', mockUser.userId);
+      expect(service.findOneByClient).toHaveBeenCalledWith(
+        'appt-uuid',
+        mockUser.userId,
+      );
     });
   });
 
@@ -71,7 +106,11 @@ describe('AppointmentsController', () => {
       const updateDto = { notes: 'Updated notes' };
       service.update.mockResolvedValue({ ...mockAppointment, ...updateDto });
       await controller.update('appt-uuid', updateDto, { user: mockUser });
-      expect(service.update).toHaveBeenCalledWith('appt-uuid', updateDto, mockUser.userId);
+      expect(service.update).toHaveBeenCalledWith(
+        'appt-uuid',
+        updateDto,
+        mockUser.userId,
+      );
     });
   });
 
