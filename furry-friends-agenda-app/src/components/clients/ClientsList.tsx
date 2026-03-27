@@ -152,15 +152,19 @@ const ClientsList: React.FC = () => {
                             <div className="text-sm text-gray-500 line-clamp-1">{client.address}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {/* TODO: Lógica de contagem de pets precisa ser refeita com uma query separada se necessário */}
-                            <Button 
-                              size="sm" 
-                              variant="link" 
-                              className="text-xs p-0 h-auto" 
-                              onClick={() => handleAddPet(client.id)}
-                            >
-                              Adicionar Pet
-                            </Button>
+                            <div className="flex flex-col items-start gap-1">
+                              <span className="text-sm text-gray-900 font-medium">
+                                {client._count?.pets || 0} Pet{client._count?.pets !== 1 ? 's' : ''}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="link"
+                                className="text-xs p-0 h-auto text-blue-600 hover:text-blue-800"
+                                onClick={() => handleAddPet(client.id)}
+                              >
+                                Adicionar Pet
+                              </Button>
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex justify-end gap-2">

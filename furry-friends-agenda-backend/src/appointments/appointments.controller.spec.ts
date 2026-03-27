@@ -69,10 +69,24 @@ describe('AppointmentsController', () => {
   });
 
   describe('findAll', () => {
-    it('should find all appointments for a user', async () => {
+    it('should find all appointments for a user with pagination', async () => {
       service.findAllByClient.mockResolvedValue([mockAppointment]);
-      await controller.findAll({ user: mockUser });
-      expect(service.findAllByClient).toHaveBeenCalledWith(mockUser.userId);
+      await controller.findAll({ user: mockUser }, 1, 10);
+      expect(service.findAllByClient).toHaveBeenCalledWith(
+        mockUser.userId,
+        1,
+        10,
+      );
+    });
+
+    it('should find all appointments for a user without pagination', async () => {
+      service.findAllByClient.mockResolvedValue([mockAppointment]);
+      await controller.findAll({ user: mockUser }, undefined, undefined);
+      expect(service.findAllByClient).toHaveBeenCalledWith(
+        mockUser.userId,
+        undefined,
+        undefined,
+      );
     });
   });
 

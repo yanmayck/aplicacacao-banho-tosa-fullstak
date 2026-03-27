@@ -104,7 +104,6 @@ describe('AuthService', () => {
     it('should return an access token and user info on successful login', async () => {
       const { password, ...validateUserResult } = mockUser; // Full user data minus password
       jest.spyOn(service, 'validateUser').mockResolvedValue(validateUserResult);
-      usersService.findOneById.mockResolvedValue(mockUser);
       jwtService.sign.mockReturnValue('test-token');
 
       const result = await service.login({
@@ -126,6 +125,7 @@ describe('AuthService', () => {
         sub: mockUser.id,
         role: mockUser.role,
       });
+      expect(usersService.findOneById).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException for invalid credentials', async () => {

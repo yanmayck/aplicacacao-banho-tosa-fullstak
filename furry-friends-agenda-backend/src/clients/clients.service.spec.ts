@@ -65,13 +65,23 @@ describe('ClientsService', () => {
   });
 
   describe('findAll', () => {
-    it('should return an array of clients', async () => {
-      prisma.client.findMany.mockResolvedValue([mockClient]);
+    it('should return an array of clients with pet count', async () => {
+      const mockClientWithCount = {
+        ...mockClient,
+        _count: { pets: 5 },
+      };
+      prisma.client.findMany.mockResolvedValue([mockClientWithCount]);
 
       const result = await service.findAll();
 
-      expect(prisma.client.findMany).toHaveBeenCalled();
-      expect(result).toEqual([mockClient]);
+      expect(prisma.client.findMany).toHaveBeenCalledWith({
+        include: {
+          _count: {
+            select: { pets: true },
+          },
+        },
+      });
+      expect(result).toEqual([mockClientWithCount]);
     });
   });
 

@@ -99,6 +99,34 @@ describe('PetsService', () => {
         service.create(createDto, 'non-existent-user-uuid'),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('should create a pet with nested objects correctly', async () => {
+      prisma.client.findUnique.mockResolvedValue(mockClient);
+      const nestedDto = {
+        name: 'Fido',
+        species: 'Dog',
+        clientId: 'client-uuid',
+        lastTickMedicine: { name: 'M1', date: '2023-01-01' },
+        rabiesVaccine: { isUpToDate: true, lastDate: '2023-01-01' },
+        vaccineHistory: [{ name: 'V1', date: '2023-01-01' }],
+      };
+
+      const createdPet = { ...mockPet, ...nestedDto };
+      prisma.pet.create.mockResolvedValue(createdPet as any);
+
+      const result = await service.create(nestedDto, 'user-uuid');
+
+      expect(prisma.pet.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          name: 'Fido',
+          lastTickMedicine: nestedDto.lastTickMedicine,
+          rabiesVaccine: nestedDto.rabiesVaccine,
+          vaccineHistory: nestedDto.vaccineHistory,
+          client: { connect: { id: mockClient.id } },
+        }),
+      });
+      expect(result).toEqual(createdPet);
+    });
   });
 
   describe('findOneByOwner', () => {

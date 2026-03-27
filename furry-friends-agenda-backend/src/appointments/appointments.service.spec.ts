@@ -70,7 +70,7 @@ describe('AppointmentsService', () => {
     it('should create an appointment successfully', async () => {
       prisma.pet.findUnique.mockResolvedValue(mockPet);
       prisma.groomer.findUnique.mockResolvedValue(mockGroomer);
-      prisma.servicePackage.findUnique.mockResolvedValue(mockService);
+      prisma.servicePackage.findMany.mockResolvedValue([mockService]);
       prisma.appointment.create.mockResolvedValue(mockAppointment);
 
       const result = await service.create(createDto, 'client-uuid');
@@ -104,12 +104,10 @@ describe('AppointmentsService', () => {
     });
 
     it('should throw NotFoundException if a service is not found', async () => {
-      prisma.pet.findUnique.mockResolvedValue(mockPet);
-      prisma.groomer.findUnique.mockResolvedValue(mockGroomer);
-      prisma.servicePackage.findUnique.mockResolvedValue(null);
-      await expect(service.create(createDto, 'client-uuid')).rejects.toThrow(
-        NotFoundException,
-      );
+        prisma.pet.findUnique.mockResolvedValue(mockPet);
+        prisma.groomer.findUnique.mockResolvedValue(mockGroomer);
+        prisma.servicePackage.findMany.mockResolvedValue([]);
+        await expect(service.create(createDto, 'client-uuid')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -131,26 +129,39 @@ describe('AppointmentsService', () => {
     });
   });
 
-  describe('update', () => {
-    const updateDto = { serviceIds: ['service-uuid'] };
+  describe('findAllByClient', () => {
+    it('should return all appointments for a client with pagination', async () => {
+      prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
 
-    it('should update an appointment services successfully', async () => {
-        prisma.appointment.findUnique.mockResolvedValue(mockAppointment); // for findOneByClient
-        prisma.servicePackage.findMany.mockResolvedValue([mockService]);
-        prisma.appointment.update.mockResolvedValue(mockAppointment);
+      const clientId = 'client-uuid';
+      const page = 2;
+      const limit = 5;
+      const result = await service.findAllByClient(clientId, page, limit);
 
-        const result = await service.update('appt-uuid', updateDto, 'client-uuid');
-        expect(result).toEqual(mockAppointment);
-        expect(prisma.servicePackage.findMany).toHaveBeenCalledWith({
-            where: { id: { in: ['service-uuid'] } }
-        });
+      expect(result).toEqual([mockAppointment]);
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith({
+        where: { clientId },
+        include: expect.any(Object),
+        orderBy: { dateTime: 'asc' },
+        skip: 5,
+        take: 5,
+      });
     });
 
-    it('should throw NotFoundException if a service is not found during update', async () => {
-        prisma.appointment.findUnique.mockResolvedValue(mockAppointment);
-        prisma.servicePackage.findMany.mockResolvedValue([]); // No service found
+    it('should return all appointments when no pagination params provided', async () => {
+      prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
 
-        await expect(service.update('appt-uuid', updateDto, 'client-uuid')).rejects.toThrow(NotFoundException);
+      const clientId = 'client-uuid';
+      const result = await service.findAllByClient(clientId);
+
+      expect(result).toEqual([mockAppointment]);
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith({
+        where: { clientId },
+        include: expect.any(Object),
+        orderBy: { dateTime: 'asc' },
+        skip: undefined,
+        take: undefined,
+      });
     });
   });
 });

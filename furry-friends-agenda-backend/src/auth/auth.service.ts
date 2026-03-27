@@ -38,30 +38,20 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    // No schema, User.role é singular e do tipo UserRole.
-    // Omit<User, 'password'> não garante que 'role' (singular) esteja presente se o validateUser retornar um tipo mais genérico.
-    // Para segurança, vamos buscar o usuário completo novamente ou garantir que 'role' está no tipo retornado por validateUser.
-    const fullUser = await this.usersService.findOneById(user.id); // Assumindo que findOneById existe e retorna o usuário completo
-    if (!fullUser) {
-      // Isso não deveria acontecer se validateUser retornou um usuário
-      throw new InternalServerErrorException(
-        'User not found after validation.',
-      );
-    }
 
     const payload = {
-      username: fullUser.email,
-      sub: fullUser.id,
-      role: fullUser.role,
-    }; // Alterado de roles para role
+      username: user.email,
+      sub: user.id,
+      role: user.role,
+    };
     console.log('BACKEND: Gerando token com payload:', payload); // Log para depuração
     return {
       access_token: this.jwtService.sign(payload),
       user: {
-        id: fullUser.id,
-        email: fullUser.email,
-        name: fullUser.name,
-        role: fullUser.role, // Alterado de roles para role
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
       },
     };
   }
