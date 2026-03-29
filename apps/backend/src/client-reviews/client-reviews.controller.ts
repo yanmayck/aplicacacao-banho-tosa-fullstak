@@ -14,10 +14,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { JwtClientGuard } from '../public-client/guards/jwt-client.guard';
-import {
-  ClientReviewsService,
-  CreateReviewDto,
-} from './client-reviews.service';
+import { ClientReviewsService } from './client-reviews.service';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 @Controller('client/reviews')
 @UseGuards(JwtClientGuard)

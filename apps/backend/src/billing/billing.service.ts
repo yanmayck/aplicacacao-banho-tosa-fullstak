@@ -155,7 +155,7 @@ export class BillingService implements OnModuleInit {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        const checkoutSession = event.data.object as Stripe.Checkout.Session;
+        const checkoutSession = event.data.object;
         const clientId = checkoutSession.client_reference_id; // Este é o nosso client_id interno
         const stripeCustomerId = checkoutSession.customer as string;
 
@@ -173,7 +173,7 @@ export class BillingService implements OnModuleInit {
         }
         break;
       case 'invoice.payment_succeeded':
-        const invoice = event.data.object as Stripe.Invoice;
+        const invoice = event.data.object;
         const subscriptionIdFromInvoice = (
           invoice as unknown as { subscription: string | Stripe.Subscription }
         ).subscription as string | undefined;
@@ -185,7 +185,7 @@ export class BillingService implements OnModuleInit {
         }
         break;
       case 'customer.subscription.updated':
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object;
         const updatedSubscriptionStatus = subscription.status;
         const subscriptionIdUpdated = subscription.id;
 
@@ -202,7 +202,7 @@ export class BillingService implements OnModuleInit {
         }
         break;
       case 'customer.subscription.deleted':
-        const deletedSubscription = event.data.object as Stripe.Subscription;
+        const deletedSubscription = event.data.object;
         const deletedSubscriptionId = deletedSubscription.id;
 
         if (deletedSubscriptionId) {

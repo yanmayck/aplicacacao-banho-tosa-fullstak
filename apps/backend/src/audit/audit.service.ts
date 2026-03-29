@@ -27,7 +27,7 @@ import {
 
 @Injectable()
 export class AuditService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   // ========== GESTÃO DE LOGS DE AUDITORIA ==========
 

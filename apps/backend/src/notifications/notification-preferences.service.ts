@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotificationType, NotificationChannel } from '@prisma/client';
+import { NotificationType, NotificationChannel, Prisma } from '@prisma/client';
 
 @Injectable()
 export class NotificationPreferencesService {
@@ -9,8 +9,7 @@ export class NotificationPreferencesService {
   constructor(private prisma: PrismaService) {}
 
   async getUserPreferences(userType: 'client' | 'groomer', userId: string) {
-    const whereClause: any = {};
-
+    const whereClause: Prisma.NotificationPreferenceWhereInput = {};
     if (userType === 'client') {
       whereClause.clientId = userId;
     } else {
@@ -34,8 +33,7 @@ export class NotificationPreferencesService {
     userId: string,
     preferences: Record<string, Record<string, boolean>>,
   ) {
-    const whereClause: any = {};
-
+    const whereClause: Prisma.NotificationPreferenceWhereInput = {};
     if (userType === 'client') {
       whereClause.clientId = userId;
     } else {
@@ -72,7 +70,10 @@ export class NotificationPreferencesService {
     });
   }
 
-  private getDefaultPreferences() {
+  private getDefaultPreferences(): Record<
+    NotificationType,
+    Record<NotificationChannel, boolean>
+  > {
     return {
       // Notificações de agendamento
       [NotificationType.APPOINTMENT_CONFIRMATION]: {
@@ -146,6 +147,13 @@ export class NotificationPreferencesService {
         [NotificationChannel.SMS]: false,
         [NotificationChannel.WHATSAPP]: false,
         [NotificationChannel.PUSH]: false,
+        [NotificationChannel.IN_APP]: true,
+      },
+      [NotificationType.REMINDER]: {
+        [NotificationChannel.EMAIL]: true,
+        [NotificationChannel.SMS]: true,
+        [NotificationChannel.WHATSAPP]: true,
+        [NotificationChannel.PUSH]: true,
         [NotificationChannel.IN_APP]: true,
       },
 
@@ -226,7 +234,8 @@ export class NotificationPreferencesService {
     channel: string,
   ): boolean {
     const defaults = this.getDefaultPreferences();
-    return (defaults as any)[notificationType]?.[channel] ?? false;
+    const typeDefaults = defaults[notificationType as NotificationType];
+    return typeDefaults?.[channel as NotificationChannel] ?? false;
   }
 
   async getNotificationChannelsForUser(

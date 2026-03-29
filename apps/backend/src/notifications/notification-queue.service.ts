@@ -6,6 +6,11 @@ import {
   NotificationChannel,
   NotificationStatus,
   Prisma,
+  NotificationQueue,
+  Client,
+  Groomer,
+  Appointment,
+  NotificationTemplate,
 } from '@prisma/client';
 
 @Injectable()
@@ -45,7 +50,7 @@ export class NotificationQueueService {
     limit?: number;
     offset?: number;
   }) {
-    const where: any = {};
+    const where: Prisma.NotificationQueueWhereInput = {};
 
     if (filters?.status) {
       where.status = filters.status;
@@ -193,7 +198,14 @@ export class NotificationQueueService {
     }
   }
 
-  private async processSingleNotification(notification: any) {
+  private async processSingleNotification(
+    notification: NotificationQueue & {
+      client?: Client | null;
+      groomer?: Groomer | null;
+      appointment?: Appointment | null;
+      template?: NotificationTemplate | null;
+    },
+  ) {
     this.logger.log(
       `Processando notificação ${notification.id} via ${notification.channel}`,
     );
@@ -247,7 +259,7 @@ export class NotificationQueueService {
     this.logger.log(`Notificação ${notification.id} processada com sucesso`);
   }
 
-  private async sendEmail(notification: any) {
+  private async sendEmail(notification: NotificationQueue) {
     // Implementação específica para envio de email
     this.logger.log(
       `Enviando email para ${notification.recipient}: ${notification.title}`,
@@ -262,7 +274,7 @@ export class NotificationQueueService {
     // });
   }
 
-  private async sendSMS(notification: any) {
+  private async sendSMS(notification: NotificationQueue) {
     // Implementação específica para envio de SMS
     this.logger.log(`Enviando SMS para ${notification.recipient}`);
 
@@ -274,7 +286,7 @@ export class NotificationQueueService {
     // });
   }
 
-  private async sendWhatsApp(notification: any) {
+  private async sendWhatsApp(notification: NotificationQueue) {
     // Implementação específica para WhatsApp
     this.logger.log(`Enviando WhatsApp para ${notification.recipient}`);
 
@@ -286,7 +298,7 @@ export class NotificationQueueService {
     // });
   }
 
-  private async sendPushNotification(notification: any) {
+  private async sendPushNotification(notification: NotificationQueue) {
     // Implementação específica para push notifications
     this.logger.log(
       `Enviando push notification para ${notification.recipient}`,
@@ -301,7 +313,7 @@ export class NotificationQueueService {
     // });
   }
 
-  private async createInAppNotification(notification: any) {
+  private async createInAppNotification(notification: NotificationQueue) {
     // Criar notificação in-app
     this.logger.log(
       `Criando notificação in-app para usuário ${notification.recipient}`,
@@ -314,9 +326,9 @@ export class NotificationQueueService {
         type: notification.type,
         clientId: notification.clientId,
         groomerId: notification.groomerId,
-        appointmentId: notification.appointmentId,
-        templateId: notification.templateId,
-        data: notification.data,
+        // appointmentId: notification.appointmentId, // appointmentId não existe no modelo Notification?
+        // templateId: notification.templateId, // templateId não existe no modelo Notification?
+        data: notification.data as Prisma.InputJsonValue,
         isRead: false,
       },
     });

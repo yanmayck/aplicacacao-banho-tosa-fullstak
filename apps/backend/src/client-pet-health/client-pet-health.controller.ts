@@ -24,7 +24,7 @@ import {
 export class ClientPetHealthController {
   constructor(
     private readonly clientPetHealthService: ClientPetHealthService,
-  ) { }
+  ) {}
 
   @Get(':petId/health')
   getPetHealth(

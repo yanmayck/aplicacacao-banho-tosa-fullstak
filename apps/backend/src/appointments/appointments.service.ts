@@ -12,16 +12,14 @@ import {
   AppointmentStatus as PrismaAppointmentStatus,
 } from '@prisma/client';
 import { FinancialService } from '../financial/financial.service';
-import {
-  FullAppointment,
-} from './types/appointment.types';
+import { FullAppointment } from './types/appointment.types';
 
 @Injectable()
 export class AppointmentsService {
   constructor(
     private prisma: PrismaService,
     private financialService: FinancialService,
-  ) { }
+  ) {}
 
   async create(
     createAppointmentDto: CreateAppointmentDto,

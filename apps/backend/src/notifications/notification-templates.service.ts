@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotificationType, NotificationChannel } from '@prisma/client';
+import { NotificationType, NotificationChannel, Prisma } from '@prisma/client';
 import { CreateNotificationTemplateDto } from './dto/create-notification-template.dto';
 
 @Injectable()
@@ -40,7 +40,7 @@ export class NotificationTemplatesService {
     type?: NotificationType;
     channel?: NotificationChannel;
   }) {
-    const where: any = {};
+    const where: Prisma.NotificationTemplateWhereInput = {};
 
     if (filters?.type) {
       where.type = filters.type;

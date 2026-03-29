@@ -27,7 +27,12 @@ describe('JwtAuthGuard', () => {
         role: UserRole.USER,
       };
       const mockContext = {} as ExecutionContext;
-      const result = guard.handleRequest<JwtPayload>(null, user, null, mockContext);
+      const result = guard.handleRequest<JwtPayload>(
+        null,
+        user,
+        null,
+        mockContext,
+      );
       expect(result).toEqual(user);
     });
 

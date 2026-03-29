@@ -8,7 +8,7 @@ export interface CreateNotificationDto {
   type: NotificationType;
   clientId?: string;
   groomerId?: string;
-  data?: Prisma.JsonValue;
+  data?: Prisma.InputJsonValue;
 }
 
 @Injectable()
@@ -221,7 +221,7 @@ export class NotificationsService {
     }
 
     // Verificar outras vacinas
-    vaccineHistory.forEach((vaccine: any) => {
+    vaccineHistory.forEach((vaccine: { name: string; date: string }) => {
       if (vaccine.date) {
         const vaccineDate = new Date(vaccine.date);
         const daysSinceVaccine =
@@ -254,7 +254,7 @@ export class NotificationsService {
   async sendServiceStatusUpdate(
     appointmentId: string,
     status: string,
-    additionalInfo?: any,
+    additionalInfo?: Record<string, unknown>,
   ) {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
@@ -469,7 +469,7 @@ export class NotificationsService {
       title: string;
       message: string;
       type: NotificationType;
-      data?: Prisma.JsonValue;
+      data?: Prisma.InputJsonValue;
     },
   ) {
     const notifications = [];

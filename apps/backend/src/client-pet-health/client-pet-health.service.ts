@@ -9,7 +9,7 @@ import {
 
 @Injectable()
 export class ClientPetHealthService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async getPetHealth(petId: string, clientId: string) {
     // Verificar se o pet pertence ao cliente
@@ -67,7 +67,7 @@ export class ClientPetHealthService {
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        vaccineHistory: updatedHistory as unknown as Prisma.InputJsonValue,
+        vaccineHistory: updatedHistory as any as Prisma.InputJsonValue,
       },
     });
   }
@@ -94,7 +94,7 @@ export class ClientPetHealthService {
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        rabiesVaccine: rabiesData as unknown as Prisma.InputJsonValue,
+        rabiesVaccine: rabiesData as any as Prisma.InputJsonValue,
       },
     });
   }
@@ -121,7 +121,7 @@ export class ClientPetHealthService {
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        lastTickMedicine: medicineData as unknown as Prisma.InputJsonValue,
+        lastTickMedicine: medicineData as any as Prisma.InputJsonValue,
       },
     });
   }

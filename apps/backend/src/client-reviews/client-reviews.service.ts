@@ -4,14 +4,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-
-export interface CreateReviewDto {
-  rating: number;
-  comment?: string;
-  isAnonymous?: boolean;
-  appointmentId?: string;
-  groomerId?: string;
-}
+import { CreateReviewDto } from './dto/create-review.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ClientReviewsService {
@@ -246,7 +240,7 @@ export class ClientReviewsService {
   }
 
   async getPublicReviews(groomerId?: string) {
-    const whereClause: any = {
+    const whereClause: Prisma.ReviewWhereInput = {
       isApproved: true,
       isVisible: true,
     };
@@ -284,7 +278,7 @@ export class ClientReviewsService {
   }
 
   async getAverageRating(groomerId?: string) {
-    const whereClause: any = {
+    const whereClause: Prisma.ReviewWhereInput = {
       isApproved: true,
       isVisible: true,
     };

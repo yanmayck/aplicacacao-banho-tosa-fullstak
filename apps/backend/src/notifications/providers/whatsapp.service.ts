@@ -4,7 +4,7 @@ export interface WhatsAppOptions {
   to: string | string[];
   message: string;
   templateName?: string;
-  templateVariables?: Record<string, any>;
+  templateVariables?: Record<string, unknown>;
   mediaUrl?: string;
   replyTo?: string;
   previewUrl?: boolean;
@@ -50,7 +50,7 @@ export class WhatsAppService {
         );
       }
 
-      let requestBody: any;
+      let requestBody: Record<string, unknown>;
 
       if (options.templateName) {
         // Usar template aprovado
@@ -149,7 +149,7 @@ export class WhatsAppService {
   }
 
   // Método para criar mensagens WhatsApp profissionais
-  createWhatsAppMessage(type: string, data: Record<string, any>): string {
+  createWhatsAppMessage(type: string, data: Record<string, unknown>): string {
     switch (type) {
       case 'APPOINTMENT_CONFIRMATION':
         return `✅ *Furry Friends* - Agendamento Confirmado!
@@ -320,9 +320,9 @@ Agradecemos a preferência! 🐕`;
       const data = await response.json();
 
       return {
-        total: (data.data as any[])?.length || 0,
+        total: (data.data as Array<Record<string, unknown>>)?.length || 0,
         messages:
-          (data.data as any[])?.map((msg: any) => ({
+          (data.data as Array<Record<string, unknown>>)?.map((msg) => ({
             id: msg.id,
             from: msg.from,
             to: msg.to,
@@ -363,8 +363,10 @@ Agradecemos a preferência! 🐕`;
   }
 
   // Método para construir componentes de template
-  private buildTemplateComponents(variables: Record<string, any>): Array<any> {
-    const components: any[] = [];
+  private buildTemplateComponents(
+    variables: Record<string, unknown>,
+  ): Array<Record<string, unknown>> {
+    const components: Array<Record<string, unknown>> = [];
 
     // Adicionar parâmetros do template
     if (Object.keys(variables).length > 0) {

@@ -209,7 +209,7 @@ export class CreateAuditAlertDto {
   notifyUsers: string[] = [];
 }
 
-export class UpdateAuditAlertDto extends PartialType(CreateAuditAlertDto) { }
+export class UpdateAuditAlertDto extends PartialType(CreateAuditAlertDto) {}
 
 export class AuditAlertConditionsDto {
   @IsString()

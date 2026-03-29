@@ -57,7 +57,13 @@ export class FinancialController {
     @Query('categoryId') categoryId?: string,
     @Query('groomerId') groomerId?: string,
   ) {
-    const filters: any = {};
+    const filters: {
+      type?: TransactionType;
+      startDate?: Date;
+      endDate?: Date;
+      categoryId?: string;
+      groomerId?: string;
+    } = {};
     if (type) filters.type = type;
     if (startDate) filters.startDate = new Date(startDate);
     if (endDate) filters.endDate = new Date(endDate);
@@ -170,7 +176,7 @@ export class FinancialController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const filters: any = {};
+    const filters: { startDate?: Date; endDate?: Date } = {};
     if (startDate) filters.startDate = new Date(startDate);
     if (endDate) filters.endDate = new Date(endDate);
 

@@ -12,7 +12,7 @@ import { Response, Request } from 'express';
 
 @Controller('billing')
 export class BillingController {
-  constructor(private readonly billingService: BillingService) { }
+  constructor(private readonly billingService: BillingService) {}
 
   @Post('create-checkout-session')
   async createCheckoutSession(

@@ -2,6 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePetDto } from '../pets/dto/create-pet.dto';
 import { UpdatePetDto } from '../pets/dto/update-pet.dto';
+import { Prisma } from '@prisma/client';
+import {
+  VaccineRecordDto,
+  RabiesVaccineDto,
+  TickMedicineDto,
+} from '../client-pet-health/dto/pet-health.dto';
 
 @Injectable()
 export class ClientPetsService {
@@ -98,7 +104,7 @@ export class ClientPetsService {
 
   async updateVaccineHistory(
     petId: string,
-    vaccineData: any,
+    vaccineData: VaccineRecordDto[],
     clientId: string,
   ) {
     // Verificar se o pet pertence ao cliente
@@ -115,12 +121,16 @@ export class ClientPetsService {
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        vaccineHistory: vaccineData,
+        vaccineHistory: vaccineData as any,
       },
     });
   }
 
-  async updateRabiesVaccine(petId: string, rabiesData: any, clientId: string) {
+  async updateRabiesVaccine(
+    petId: string,
+    rabiesData: RabiesVaccineDto,
+    clientId: string,
+  ) {
     // Verificar se o pet pertence ao cliente
     const pet = await this.prisma.pet.findFirst({
       where: { id: petId, clientId },
@@ -135,12 +145,16 @@ export class ClientPetsService {
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        rabiesVaccine: rabiesData,
+        rabiesVaccine: rabiesData as any,
       },
     });
   }
 
-  async updateTickMedicine(petId: string, medicineData: any, clientId: string) {
+  async updateTickMedicine(
+    petId: string,
+    medicineData: TickMedicineDto,
+    clientId: string,
+  ) {
     // Verificar se o pet pertence ao cliente
     const pet = await this.prisma.pet.findFirst({
       where: { id: petId, clientId },
@@ -155,7 +169,7 @@ export class ClientPetsService {
     return this.prisma.pet.update({
       where: { id: petId },
       data: {
-        lastTickMedicine: medicineData,
+        lastTickMedicine: medicineData as any,
       },
     });
   }

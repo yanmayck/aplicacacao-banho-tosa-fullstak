@@ -1,4 +1,4 @@
-import { NotificationType } from '@prisma/client';
+import { NotificationType, Prisma } from '@prisma/client';
 import {
   Controller,
   Get,
@@ -88,7 +88,7 @@ export class NotificationsAdminController {
   @Post('service-status/:appointmentId')
   sendServiceStatusUpdate(
     @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
-    @Body() body: { status: string; additionalInfo?: any },
+    @Body() body: { status: string; additionalInfo?: Record<string, unknown> },
   ) {
     return this.notificationsService.sendServiceStatusUpdate(
       appointmentId,
@@ -149,7 +149,7 @@ export class NotificationsAdminController {
       title: string;
       message: string;
       type: NotificationType;
-      data?: any;
+      data?: Prisma.InputJsonValue;
     },
   ) {
     return this.notificationsService.sendBulkNotifications(body.clientIds, {
