@@ -165,7 +165,7 @@ const GroomersList: React.FC = () => {
                         
                         {isAdmin() && (
                           <>
-                            <Button size="sm" variant="outline" onClick={() => handleEditGroomer(groomer)}>
+                            <Button size="sm" variant="outline" onClick={() => handleEditGroomer(groomer)} aria-label={`Editar ${groomer.name}`}>
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button size="sm" variant="destructive" onClick={() => handleDeleteGroomer(groomer.id)} aria-label={`Excluir ${groomer.name}`}>

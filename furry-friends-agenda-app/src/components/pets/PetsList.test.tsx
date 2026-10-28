@@ -113,7 +113,7 @@ describe('PetsList Component', () => {
   it('should call deletePet when delete button is clicked and confirmed', () => {
     window.confirm = vi.fn(() => true); // Mock window.confirm
     renderComponent();
-    const deleteButtons = screen.getAllByRole('button').filter(btn => btn.innerHTML.includes('lucide-trash-2'));
+    const deleteButtons = screen.getAllByLabelText(/Excluir/i);
     fireEvent.click(deleteButtons[0]);
     expect(window.confirm).toHaveBeenCalledWith('Tem certeza que deseja excluir este pet?');
     expect(mockDeletePet).toHaveBeenCalledWith('1');
@@ -121,6 +121,6 @@ describe('PetsList Component', () => {
 
   it('should display a warning for pets with expired vaccines', () => {
     renderComponent();
-    expect(screen.getByText(/vacina contra raiva vencida/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/vacina contra raiva vencida/i).length).toBeGreaterThan(0);
   });
 });

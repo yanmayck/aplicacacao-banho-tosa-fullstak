@@ -187,10 +187,10 @@ const PetsList: React.FC = () => {
                         </div>
                       </div>
                       <div className="bg-gray-50 px-4 py-2 border-t flex justify-end gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleEditPet(pet)}>
+                        <Button size="sm" variant="outline" onClick={() => handleEditPet(pet)} aria-label={`Editar ${pet.name}`}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDeletePet(pet.id)}>
+                        <Button size="sm" variant="destructive" onClick={() => handleDeletePet(pet.id)} aria-label={`Excluir ${pet.name}`}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
