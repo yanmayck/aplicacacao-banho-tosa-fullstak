@@ -115,7 +115,7 @@ const PackagesList: React.FC = () => {
                     
                     {isAdmin() && (
                       <div className="bg-gray-50 px-4 py-2 border-t flex justify-end gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleEditPackage(pkg)}>
+                        <Button size="sm" variant="outline" onClick={() => handleEditPackage(pkg)} aria-label={`Editar ${pkg.name}`}>
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button size="sm" variant="destructive" onClick={() => handleDeletePackage(pkg.id)} aria-label={`Excluir ${pkg.name}`}>

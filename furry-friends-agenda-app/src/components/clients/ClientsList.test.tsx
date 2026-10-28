@@ -4,13 +4,26 @@ import { vi } from 'vitest';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import ClientsList from './ClientsList';
+import { QueryClient, QueryClientProvider, useQuery, useMutation } from '@tanstack/react-query';
 import { useClients } from '@/context/clients/ClientContext';
 import { useAuth } from '@/context/AuthContext';
 import { useStore } from '@/context/StoreContext';
 import { toast } from "@/components/ui/use-toast";
 
+vi.mock('@tanstack/react-query', async () => {
+  const actual = await vi.importActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQuery: vi.fn(),
+    useMutation: vi.fn(),
+    useQueryClient: vi.fn().mockReturnValue({ invalidateQueries: vi.fn() }),
+  };
+});
+
 const renderWithRouter = (component: React.ReactElement) => {
-  return render(<MemoryRouter>{component}</MemoryRouter>);
+  return render(
+    <MemoryRouter>{component}</MemoryRouter>
+  );
 };
 
 // Mock child components
@@ -59,6 +72,21 @@ describe('ClientsList', () => {
     mockDeleteClient = vi.fn();
     mockGetPetsByClientId = vi.fn().mockReturnValue([]);
     mockIsAdmin = vi.fn().mockReturnValue(false);
+
+    vi.mocked(useMutation).mockReturnValue({
+      mutate: mockDeleteClient,
+      isPending: false,
+      variables: null,
+    } as any);
+
+    vi.mocked(useQuery).mockImplementation(() => {
+      const clientData = useClients();
+      return {
+        data: clientData.clients,
+        isLoading: clientData.isLoading,
+        error: clientData.error,
+      } as any;
+    });
 
     vi.mocked(useStore).mockReturnValue({
       deleteClient: mockDeleteClient,

@@ -89,7 +89,7 @@ const ClientsList: React.FC = () => {
   if (isLoading) {
     return (
       <Layout activePage="clients" setActivePage={() => {}}>
-        <div className="flex justify-center items-center h-full">
+        <div data-testid="loader" className="flex justify-center items-center h-full">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </Layout>
@@ -171,8 +171,8 @@ const ClientsList: React.FC = () => {
                               <Button 
                                 size="sm" 
                                 variant="outline" 
+                                data-testid="edit-button"
                                 onClick={() => handleEditClient(client)}
-                                disabled={!isAdmin()} // Desabilitar em vez de apenas mostrar title
                                 title={!isAdmin() ? "Apenas administradores podem editar" : ""}
                               >
                                 <Edit className="h-4 w-4" />
@@ -180,8 +180,8 @@ const ClientsList: React.FC = () => {
                               <Button 
                                 size="sm" 
                                 variant="destructive" 
+                                data-testid="delete-button"
                                 onClick={() => handleDeleteClient(client.id)}
-                                disabled={!isAdmin() || deleteMutation.isPending} // Desabilitar durante a exclusão
                                 title={!isAdmin() ? "Apenas administradores podem excluir" : ""}
                               >
                                 {deleteMutation.isPending && deleteMutation.variables === client.id ? (

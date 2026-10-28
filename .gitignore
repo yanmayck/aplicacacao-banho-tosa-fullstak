@@ -49,3 +49,9 @@ Desktop.ini
 # Other
 *.tmp
 *.user
+
+.nx/installation
+.nx/cache
+.nx/workspace-data
+.nx/self-healing
+.nx/migrate-runs

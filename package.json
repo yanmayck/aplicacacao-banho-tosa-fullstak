@@ -1,0 +1,19 @@
+{
+  "name": "furry-friends-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "furry-friends-agenda-app",
+    "furry-friends-agenda-backend"
+  ],
+  "scripts": {
+    "start": "nx run-many --target=dev --parallel",
+    "dev": "nx run-many --target=dev --parallel",
+    "build": "nx run-many --target=build --all",
+    "test": "nx run-many --target=test --all",
+    "lint": "nx run-many --target=lint --all"
+  },
+  "devDependencies": {
+    "nx": "^20.0.0"
+  }
+}
